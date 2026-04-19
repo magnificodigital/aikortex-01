@@ -7,8 +7,18 @@ interface CodeEditorProps {
   channel?: "whatsapp" | "web";
 }
 
+const escapeHtml = (s: string) =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const syntaxHighlight = (line: string) => {
-  return line
+  // Escape HTML first to prevent XSS, then apply syntax highlighting spans.
+  const safe = escapeHtml(line);
+  return safe
     .replace(/(import|from|export|default|function|return|const|let|var|if|else|switch|case|break|new|this|await|async|class|private|interface|type)/g, '<span class="text-purple-400">$1</span>')
     .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="text-green-400">$1</span>')
     .replace(/(\/\/.*)/g, '<span class="text-muted-foreground">$1</span>');

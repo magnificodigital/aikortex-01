@@ -382,9 +382,9 @@ function FlowCanvasInner({ initialNodes, initialEdges, flowName, flowId, onSave,
       };
 
       if (savedFlowId) {
-        await (supabase.from("user_flows").update(payload) as any).eq("id", savedFlowId);
+        await (supabase.from("user_flows" as any).update(payload) as any).eq("id", savedFlowId);
       } else {
-        const { data } = await (supabase.from("user_flows").insert(payload) as any).select().single();
+        const { data } = await (supabase.from("user_flows" as any).insert(payload) as any).select().single();
         if (data) setSavedFlowId((data as any).id);
       }
       toast.success("Fluxo salvo com sucesso!");
@@ -467,11 +467,11 @@ function FlowCanvasInner({ initialNodes, initialEdges, flowName, flowId, onSave,
   }, [savedFlowId]);
 
   const loadNodeLogs = useCallback(async (executionId: string) => {
-    const { data } = await supabase
-      .from("flow_node_logs")
+    const { data } = await (supabase
+      .from("flow_node_logs" as any)
       .select("*")
       .eq("execution_id", executionId)
-      .order("started_at", { ascending: true });
+      .order("started_at", { ascending: true }) as any);
     if (data) setNodeLogs(data as unknown as FlowNodeLog[]);
   }, []);
 

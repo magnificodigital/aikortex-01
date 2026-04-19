@@ -3,6 +3,8 @@ import { ArrowUp, Mic, RefreshCw, Sparkles, ArrowRight, Bot } from "lucide-react
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import { NODE_TEMPLATES } from "@/types/flow-builder";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -92,11 +94,22 @@ export default function FlowCopilotPanel({ onClose, onAddNode, onBuildFlow, init
       setIsStreaming(true);
 
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          toast.error("Faça login para usar o copiloto.");
+          setIsStreaming(false);
+          setHasError(true);
+          return;
+        }
+
         const res = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deerflow-proxy`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
             body: JSON.stringify({ messages: conversationHistory }),
           }
         );

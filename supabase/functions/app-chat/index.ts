@@ -69,9 +69,9 @@ serve(async (req) => {
     if (typeof temperature === "number") orPayload.temperature = temperature;
     // Cap max_tokens to avoid OpenRouter 402 "requires more credits" errors.
     const MAX_TOKENS_CAP = 8000;
-    if (typeof max_tokens === "number") {
-      orPayload.max_tokens = Math.min(max_tokens, MAX_TOKENS_CAP);
-    }
+    orPayload.max_tokens = typeof max_tokens === "number"
+      ? Math.min(max_tokens, MAX_TOKENS_CAP)
+      : MAX_TOKENS_CAP;
     if (typeof top_p === "number") orPayload.top_p = top_p;
     if (typeof frequency_penalty === "number") orPayload.frequency_penalty = frequency_penalty;
     if (typeof presence_penalty === "number") orPayload.presence_penalty = presence_penalty;

@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -543,6 +543,57 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          agent_id: string | null
+          channel: string
+          contact_id: string
+          created_at: string
+          id: string
+          lead_id: string | null
+          messages: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          channel?: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          messages?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          channel?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          messages?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "user_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_packages: {
         Row: {
           created_at: string | null
@@ -672,59 +723,6 @@ export type Database = {
         }
         Relationships: []
       }
-      flow_node_logs: {
-        Row: {
-          agent_session_id: string | null
-          completed_at: string | null
-          error_message: string | null
-          execution_id: string
-          id: string
-          input: Json | null
-          node_id: string
-          node_label: string | null
-          node_type: string
-          output: Json | null
-          started_at: string | null
-          status: string
-        }
-        Insert: {
-          agent_session_id?: string | null
-          completed_at?: string | null
-          error_message?: string | null
-          execution_id: string
-          id?: string
-          input?: Json | null
-          node_id: string
-          node_label?: string | null
-          node_type: string
-          output?: Json | null
-          started_at?: string | null
-          status?: string
-        }
-        Update: {
-          agent_session_id?: string | null
-          completed_at?: string | null
-          error_message?: string | null
-          execution_id?: string
-          id?: string
-          input?: Json | null
-          node_id?: string
-          node_label?: string | null
-          node_type?: string
-          output?: Json | null
-          started_at?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "flow_node_logs_execution_id_fkey"
-            columns: ["execution_id"]
-            isOneToOne: false
-            referencedRelation: "flow_executions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       help_articles: {
         Row: {
           article_type: string
@@ -840,7 +838,9 @@ export type Database = {
           activities: Json
           agent_id: string | null
           assignee: string
+          channel: string | null
           company: string
+          contact_id: string | null
           created_at: string
           email: string
           id: string
@@ -861,12 +861,14 @@ export type Database = {
           activities?: Json
           agent_id?: string | null
           assignee?: string
+          channel?: string | null
           company?: string
+          contact_id?: string | null
           created_at?: string
           email?: string
           id?: string
           lost_reason?: string | null
-          name: string
+          name?: string
           notes?: string
           phone?: string
           position?: string
@@ -882,7 +884,9 @@ export type Database = {
           activities?: Json
           agent_id?: string | null
           assignee?: string
+          channel?: string | null
           company?: string
+          contact_id?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -899,7 +903,15 @@ export type Database = {
           user_id?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "user_agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meeting_messages: {
         Row: {
@@ -1476,6 +1488,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tool_credentials: {
+        Row: {
+          created_at: string
+          credentials: Json
+          id: string
+          tool: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credentials?: Json
+          id?: string
+          tool: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credentials?: Json
+          id?: string
+          tool?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_agents: {
         Row: {
           agent_type: string
@@ -1559,6 +1598,7 @@ export type Database = {
           api_key: string
           created_at: string
           id: string
+          key_name: string | null
           provider: string
           updated_at: string
           user_id: string
@@ -1567,6 +1607,7 @@ export type Database = {
           api_key: string
           created_at?: string
           id?: string
+          key_name?: string | null
           provider: string
           updated_at?: string
           user_id: string
@@ -1575,6 +1616,7 @@ export type Database = {
           api_key?: string
           created_at?: string
           id?: string
+          key_name?: string | null
           provider?: string
           updated_at?: string
           user_id?: string
@@ -1619,48 +1661,6 @@ export type Database = {
           status?: string
           tables_schema?: Json
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_flows: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          edges: Json
-          id: string
-          is_active: boolean | null
-          name: string
-          nodes: Json
-          trigger_config: Json | null
-          trigger_type: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          edges?: Json
-          id?: string
-          is_active?: boolean | null
-          name: string
-          nodes?: Json
-          trigger_config?: Json | null
-          trigger_type?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          edges?: Json
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          nodes?: Json
-          trigger_config?: Json | null
-          trigger_type?: string | null
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1770,10 +1770,6 @@ export type Database = {
     Functions: {
       add_to_wallet_consumed: {
         Args: { consumed: number; user_uuid: string }
-        Returns: undefined
-      }
-      increment_monthly_usage: {
-        Args: { p_user_id: string; p_year_month: string }
         Returns: undefined
       }
       is_platform_user: { Args: { check_user_id: string }; Returns: boolean }

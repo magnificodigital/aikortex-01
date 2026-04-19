@@ -1,1 +1,7 @@
 project_id = "kbknehyfksugykrovfxs"
+
+[functions.agent-runtime]
+verify_jwt = false
+
+[functions.app-chat]
+verify_jwt = false

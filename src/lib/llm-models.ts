@@ -52,11 +52,8 @@ export const PROVIDER_LABELS: Record<string, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
   google: "Google Gemini",
-  meta: "Meta Llama",
   deepseek: "DeepSeek",
-  mistral: "Mistral",
   qwen: "Qwen",
-  microsoft: "Microsoft",
 };
 
 /** Group models by provider for grouped selects */

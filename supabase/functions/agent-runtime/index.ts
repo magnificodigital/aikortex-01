@@ -14,17 +14,59 @@ const corsHeaders = {
 
 const DEFAULT_MODEL = "google/gemini-2.5-flash";
 
+/** Map deprecated/legacy OpenRouter model IDs to their current equivalents. */
+const LEGACY_MODEL_ALIASES: Record<string, string> = {
+  "google/gemini-2.5-flash-preview-04-17": "google/gemini-2.5-flash",
+  "google/gemini-2.5-pro-preview-05-06": "google/gemini-2.5-pro",
+  "google/gemini-2.5-flash-preview": "google/gemini-2.5-flash",
+  "google/gemini-2.5-pro-preview": "google/gemini-2.5-pro",
+};
+
 function normalizeModel(model: string | undefined, provider?: string): string {
   if (!model) return DEFAULT_MODEL;
-  if (model.includes("/")) return model;
+  const aliased = LEGACY_MODEL_ALIASES[model] || model;
+  if (aliased.includes("/")) return aliased;
   switch ((provider || "").toLowerCase()) {
-    case "openai": return `openai/${model}`;
-    case "anthropic": return `anthropic/${model}`;
+    case "openai": return `openai/${aliased}`;
+    case "anthropic": return `anthropic/${aliased}`;
     case "gemini":
-    case "google": return `google/${model}`;
-    case "groq": return `groq/${model}`;
-    default: return model;
+    case "google": return `google/${aliased}`;
+    case "groq": return `groq/${aliased}`;
+    default: return aliased;
   }
+}
+
+/* ── Operational system prompt for live agent chats (non-wizard) ── */
+function buildOperationalSystemPrompt(ctx: any): string {
+  if (!ctx || typeof ctx !== "object") return "";
+  const name = ctx.name || "Assistente";
+  const company = ctx.companyName || ctx.company || "";
+  const role = ctx.role || "assistente especializado";
+  const objective = ctx.objective || "ajudar o usuário com excelência";
+  const tone = ctx.toneOfVoice || "profissional e amigável";
+  const greeting = ctx.greetingMessage || "";
+  const channels = Array.isArray(ctx.channels) ? ctx.channels.join(", ") : "";
+  const tools = Array.isArray(ctx.tools) ? ctx.tools.join(", ") : "";
+  const instructions = ctx.instructions || "";
+
+  return `# Identidade
+Você é **${name}**${company ? `, da empresa **${company}**` : ""}. Atua como **${role}**.
+
+# Objetivo principal
+${objective}
+
+# Tom de voz
+${tone}. Frases curtas, diretas, sem rodeios. Evite jargão técnico desnecessário.
+
+# Regras invioláveis
+1. Responda **sempre em português do Brasil**.
+2. **NUNCA invente** informações sobre a empresa, produtos, preços ou prazos. Se não souber, diga que vai verificar.
+3. Faça **uma pergunta por vez**. Não dispare múltiplas perguntas seguidas.
+4. Mantenha respostas com **no máximo 3 parágrafos curtos** ou 5 bullets.
+5. Use markdown (negrito) apenas para destacar termos-chave.
+6. Quando coletar dados de lead com intenção real, finalize com um bloco \`<<<CRM_LEAD>>> {json} <<<END>>>\` contendo: name, email, phone, company, position, stage, source, temperature, value, notes, tags, meeting (se houver agendamento).
+
+${greeting ? `# Mensagem de saudação (use na primeira interação)\n${greeting}\n` : ""}${channels ? `# Canais ativos\n${channels}\n` : ""}${tools ? `# Ferramentas disponíveis\n${tools}\n` : ""}${instructions ? `# Instruções específicas do agente\n${instructions}` : ""}`.trim();
 }
 
 /* ── Wizard system prompts (PT-BR, guided Q&A per agent type) ── */
@@ -112,6 +154,7 @@ serve(async (req) => {
     const {
       mode,
       agentType,
+      agentContext,
       messages = [],
       model,
       provider,
@@ -131,10 +174,15 @@ serve(async (req) => {
       );
     }
 
-    // Inject wizard system prompt (PT-BR guided Q&A) when running setup wizard.
+    // Inject system prompt: wizard for setup, operational for live chats.
     let finalMessages = messages;
+    let systemPrompt = "";
     if (mode === "wizard-setup") {
-      const systemPrompt = buildWizardSystemPrompt(agentType);
+      systemPrompt = buildWizardSystemPrompt(agentType);
+    } else if (agentContext) {
+      systemPrompt = buildOperationalSystemPrompt(agentContext);
+    }
+    if (systemPrompt) {
       const hasSystem = messages[0]?.role === "system";
       finalMessages = hasSystem
         ? [{ role: "system", content: systemPrompt }, ...messages.slice(1)]

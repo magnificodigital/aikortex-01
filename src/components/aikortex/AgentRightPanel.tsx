@@ -577,27 +577,11 @@ const AgentRightPanel = ({
                 {/* Instruções (objetivo + comportamento unificados, estruturados em tópicos) */}
                 {settingsNav === "instructions" && (
                   <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h2 className="text-lg font-bold text-foreground">Instruções</h2>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Prompt completo do agente: objetivo, público, tom, fluxo, regras e restrições — organizado em tópicos.
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs shrink-0"
-                        onClick={() => {
-                          const merged = agentObjective?.trim()
-                            ? `# 2. Objetivo Principal\n${agentObjective.trim()}\n\n${DEFAULT_INSTRUCTIONS_TEMPLATE.replace(/# 2\. Objetivo Principal[\s\S]*?(?=\n# 3\.)/, "")}`
-                            : DEFAULT_INSTRUCTIONS_TEMPLATE;
-                          setAgentInstructions(merged);
-                          if (agentObjective?.trim()) setAgentObjective("");
-                        }}
-                      >
-                        Carregar template
-                      </Button>
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">Instruções</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Prompt completo do agente: objetivo, público, tom, fluxo, regras e restrições — organizado em tópicos.
+                      </p>
                     </div>
                     <Textarea
                       value={agentInstructions}

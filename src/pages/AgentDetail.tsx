@@ -394,6 +394,10 @@ const AgentDetail = () => {
 
       if (result) {
         toast.success(`✅ ${config.agent_name} criado com sucesso!`);
+        toast.info(
+          "💡 Para deixar seu agente ainda mais completo, alimente as Bases de Conhecimento (arquivos e URLs) no painel direito.",
+          { duration: 8000 }
+        );
         setLoadedAgent({
           name: config.agent_name,
           avatar: AVATAR_BY_TYPE[resolvedType] || avatar1,

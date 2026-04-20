@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import type { AgentType } from "@/types/agent-builder";
 import { supabase } from "@/integrations/supabase/client";
 import { AGENT_PRESETS } from "@/types/agent-presets";
-import { getOperationalInstructions } from "@/lib/agent-operational-prompts";
+import { getOperationalInstructions, type OperationalContext } from "@/lib/agent-operational-prompts";
 import { DEFAULT_FREE_SETUP_MODEL, GATEWAY_MODELS, normalizeFreeSetupModel } from "@/lib/free-setup-models";
 import { LLM_MODELS as ALL_LLM_MODELS, getGroupedModels, getProviderForModel, DEFAULT_FREE_MODEL } from "@/lib/llm-models";
 import AgentMemoryTab from "@/components/aikortex/AgentMemoryTab";
@@ -75,13 +75,40 @@ const buildSavedConfig = (config: AgentConfig, agentType: string) => ({
   agentType,
 });
 
-const mergeAgentInstructions = (agentType: AgentType, ...parts: Array<string | undefined>) => {
-  const merged = [getOperationalInstructions(agentType), ...parts]
+const mergeAgentInstructions = (
+  agentType: AgentType,
+  ctx: OperationalContext,
+  ...parts: Array<string | undefined>
+) => {
+  const merged = [getOperationalInstructions(agentType, ctx), ...parts]
     .map((part) => part?.trim())
     .filter((part): part is string => !!part)
     .filter((part, index, all) => all.indexOf(part) === index);
 
   return merged.join("\n\n");
+};
+
+const buildOperationalContext = (
+  cfg: Partial<AgentConfig> | null | undefined,
+  fallbackName?: string,
+): OperationalContext => {
+  const integ = (cfg?.integrations as string[] | undefined) || [];
+  const schedulingTool = integ.find((i) =>
+    /calendar|calendly|agenda|cal\.com|outlook/i.test(i),
+  );
+  return {
+    companyName: (cfg as any)?.companyName || (cfg as any)?.company,
+    agentName: cfg?.name || fallbackName,
+    industry: (cfg as any)?.industry,
+    mainProduct: (cfg as any)?.mainProduct || cfg?.objective,
+    services: (cfg as any)?.services,
+    targetAudience: (cfg as any)?.targetAudience,
+    painPoints: (cfg as any)?.painPoints,
+    toneOfVoice: cfg?.toneOfVoice,
+    averageTicket: (cfg as any)?.averageTicket,
+    businessHours: (cfg as any)?.businessHours,
+    schedulingTool,
+  };
 };
 
 /* ── Component ── */
@@ -588,12 +615,15 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
 
   const testSystemPrompt = useMemo(() => {
     const name = agentConfig?.name || loadedAgent.name;
+    const opCtx = buildOperationalContext(agentConfig, name);
+    const operational = getOperationalInstructions(loadedAgent.agentType, opCtx);
     const parts = [
       `Você é o agente "${name}". Você deve agir EXATAMENTE como este agente em todas as interações.`,
       `\nTipo de agente: ${loadedAgent.agentType}`,
+      operational ? `\n${operational}` : "",
       agentConfig?.description    ? `\nDescrição: ${agentConfig.description}` : "",
       agentConfig?.objective      ? `\nObjetivo: ${agentConfig.objective}` : "",
-      agentConfig?.instructions   ? `\nInstruções que você DEVE seguir:\n${agentConfig.instructions}` : "",
+      agentConfig?.instructions   ? `\nInstruções complementares do usuário:\n${agentConfig.instructions}` : "",
       agentConfig?.toneOfVoice    ? `\nTom de voz obrigatório: ${agentConfig.toneOfVoice}` : "",
       agentConfig?.greetingMessage ? `\nSua mensagem de saudação padrão: ${agentConfig.greetingMessage}` : "",
       agentConfig?.channels?.length ? `\nCanais ativos: ${agentConfig.channels.join(", ")}` : "",

@@ -1,5 +1,5 @@
 // Edge function: agent-runtime
-// Sandbox / wizard runtime — proxies chat-completion requests to Groq
+// Sandbox / wizard runtime — proxies chat-completion requests to OpenRouter
 // and streams the SSE response back. Output format is OpenAI-compatible,
 // so the existing frontend SSE parser (use-agent-chat.ts) keeps working.
 
@@ -12,8 +12,20 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const DEFAULT_MODEL = "openai/gpt-oss-120b";
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const DEFAULT_MODEL = "google/gemini-2.5-flash";
+
+function normalizeModel(model: string | undefined, provider?: string): string {
+  if (!model) return DEFAULT_MODEL;
+  if (model.includes("/")) return model;
+  switch ((provider || "").toLowerCase()) {
+    case "openai": return `openai/${model}`;
+    case "anthropic": return `anthropic/${model}`;
+    case "gemini":
+    case "google": return `google/${model}`;
+    case "groq": return `groq/${model}`;
+    default: return model;
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -21,10 +33,10 @@ serve(async (req) => {
   }
 
   try {
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    if (!GROQ_API_KEY) {
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "GROQ_API_KEY is not configured" }),
+        JSON.stringify({ error: "OPENROUTER_API_KEY is not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -33,6 +45,7 @@ serve(async (req) => {
     const {
       messages = [],
       model,
+      provider,
       temperature,
       max_tokens,
       top_p,
@@ -49,58 +62,51 @@ serve(async (req) => {
       );
     }
 
-    // Force Groq-compatible model. Ignore client-supplied models (e.g. google/gemini-*)
-    // since this runtime only proxies to Groq.
-    const isGroqModel = typeof model === "string" && (
-      model.startsWith("openai/") ||
-      model.startsWith("llama") ||
-      model.startsWith("meta-llama/") ||
-      model.startsWith("mixtral") ||
-      model.startsWith("groq/")
-    );
-    const payload: Record<string, unknown> = {
-      model: isGroqModel ? model : DEFAULT_MODEL,
+    const orPayload: Record<string, unknown> = {
+      model: normalizeModel(model, provider),
       messages,
       stream: true,
     };
-    if (typeof temperature === "number") payload.temperature = temperature;
+    if (typeof temperature === "number") orPayload.temperature = temperature;
     const MAX_TOKENS_CAP = 8000;
-    payload.max_tokens = typeof max_tokens === "number"
+    orPayload.max_tokens = typeof max_tokens === "number"
       ? Math.min(max_tokens, MAX_TOKENS_CAP)
       : MAX_TOKENS_CAP;
-    if (typeof top_p === "number") payload.top_p = top_p;
-    if (typeof frequency_penalty === "number") payload.frequency_penalty = frequency_penalty;
-    if (typeof presence_penalty === "number") payload.presence_penalty = presence_penalty;
-    if (response_format) payload.response_format = response_format;
-    if (stop) payload.stop = stop;
+    if (typeof top_p === "number") orPayload.top_p = top_p;
+    if (typeof frequency_penalty === "number") orPayload.frequency_penalty = frequency_penalty;
+    if (typeof presence_penalty === "number") orPayload.presence_penalty = presence_penalty;
+    if (response_format) orPayload.response_format = response_format;
+    if (stop) orPayload.stop = stop;
 
-    const resp = await fetch(GROQ_URL, {
+    const orResp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://aikortex01.lovable.app",
+        "X-Title": "Aikortex",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(orPayload),
     });
 
-    if (!resp.ok) {
-      const errText = await resp.text();
-      console.error("Groq error:", resp.status, errText);
-      const status = resp.status === 429 ? 429 : resp.status === 402 ? 402 : 500;
+    if (!orResp.ok) {
+      const errText = await orResp.text();
+      console.error("OpenRouter error:", orResp.status, errText);
+      const status = orResp.status === 429 ? 429 : orResp.status === 402 ? 402 : 500;
       return new Response(
-        JSON.stringify({ error: `Groq ${resp.status}: ${errText.slice(0, 500)}` }),
+        JSON.stringify({ error: `OpenRouter ${orResp.status}: ${errText.slice(0, 500)}` }),
         { status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    if (!resp.body) {
-      return new Response(JSON.stringify({ error: "No response body from Groq" }), {
+    if (!orResp.body) {
+      return new Response(JSON.stringify({ error: "No response body from OpenRouter" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(resp.body, {
+    return new Response(orResp.body, {
       headers: {
         ...corsHeaders,
         "Content-Type": "text/event-stream",

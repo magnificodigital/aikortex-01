@@ -711,7 +711,11 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
         isStructuring={isStructuring}
         isBuilding={isBuilding}
         onOpenConfig={() => setShowConfig(true)}
-        initialPrompt={isNewCustomFromHome ? navState?.initialPrompt : undefined}
+        initialPrompt={
+          isNewCustomFromHome
+            ? navState?.initialPrompt
+            : templateAgent?.autoPrompt
+        }
         initialWizardMessages={wizardMessages}
         onWizardMessagesChange={setWizardMessages}
         hasMemoryActive={hasMemoryActive}

@@ -117,7 +117,7 @@ const AgentDetail = () => {
         setLoadedAgent({
           name:        data.name,
           avatar:      data.avatar_url || AVATAR_BY_TYPE[data.agent_type] || avatar1,
-          model:       data.model || "gemini-2.5-flash",
+          model:       data.model || "google/gemini-2.5-flash-preview-04-17",
           agentType:   (data.agent_type as AgentType) || "Custom",
           savedConfig: {
             ...(typeof data.config === "object" && data.config !== null ? data.config : {}),

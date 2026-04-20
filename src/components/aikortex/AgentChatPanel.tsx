@@ -722,7 +722,7 @@ const AgentChatPanel = ({
             </span>
           </div>
         )}
-        {chatMode === "test" && !keysLoading && wizardStep === "done" && hasAnyLLMKey && availableModels.length > 0 && (() => {
+        {chatMode === "test" && !keysLoading && wizardStep === "done" && availableModels.length > 0 && (() => {
           const grouped = new Map<string, typeof availableModels>();
           const providerLabels: Record<string, string> = { anthropic: "Anthropic", openai: "OpenAI", google: "Google", meta: "Meta", deepseek: "DeepSeek", mistral: "Mistral", gemini: "Google" };
           for (const m of availableModels) {

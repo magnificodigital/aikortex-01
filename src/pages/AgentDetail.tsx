@@ -712,9 +712,9 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
         isBuilding={isBuilding}
         onOpenConfig={() => setShowConfig(true)}
         initialPrompt={
-          isNewCustomFromHome
-            ? navState?.initialPrompt
-            : templateAgent?.autoPrompt
+          // Only auto-fire structure for free-form custom agents from Home.
+          // Templates must go through the wizard Q&A first (handled by wizardChat).
+          isNewCustomFromHome ? navState?.initialPrompt : undefined
         }
         initialWizardMessages={wizardMessages}
         onWizardMessagesChange={setWizardMessages}

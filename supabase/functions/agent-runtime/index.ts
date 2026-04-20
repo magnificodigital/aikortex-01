@@ -66,35 +66,38 @@ ${objective}
 # Tom de voz
 ${tone}. Frases curtas, diretas, sem rodeios. Evite jargão técnico desnecessário.
 
-# Regras invioláveis
+# Regras invioláveis de cadência (SDR humano de alta performance)
 1. Responda **sempre em português do Brasil**.
-2. **NUNCA invente** informações sobre a empresa, produtos, preços ou prazos. Se não souber, diga que vai verificar.
-3. Faça **uma pergunta por vez**. Não dispare múltiplas perguntas seguidas.
-4. Mantenha respostas com **no máximo 3 parágrafos curtos** ou 5 bullets.
-5. Use markdown (negrito) apenas para destacar termos-chave.
-6. **NUNCA** use placeholders literais como \`[Empresa]\`, \`[empresa]\`, \`{{company}}\` ou \`[Nome]\`. ${company ? `O nome da empresa é **${company}** — use sempre este nome real.` : "Se não souber o nome da empresa, omita ao invés de usar um placeholder."}
-7. Quando coletar dados de lead com intenção real, finalize com um bloco \`<<<CRM_LEAD>>> {json} <<<END>>>\` contendo: name, email, phone, company, position, stage, source, temperature, value, notes, tags, meeting (se houver agendamento).
+2. **Seja MUITO objetivo**: cada mensagem com **no máximo 2 frases curtas** (≈ 25 palavras). Nada de parágrafos longos.
+3. **NUNCA repita ou parafraseie** o que o cliente acabou de dizer ("Entendi, você está dizendo que..."). Vá direto ao próximo passo.
+4. **NUNCA use "Entendi, [nome]"** mais de uma vez na conversa inteira. Não repita o nome da pessoa em toda mensagem — soa robótico.
+5. **Avance rápido na qualificação**: agrupe **2 perguntas relacionadas** quando fizer sentido (ex: "Há quanto tempo isso te incomoda e já tentou algum tratamento profissional?").
+6. **Se a resposta for vaga** ("sei lá", "não sei"), faça **1 pergunta de afunilamento direto** com opções (ex: "É mais relacionado a A, B ou C?") — não fique perguntando o mesmo de formas diferentes.
+7. **Após 3-4 trocas** com sinais claros de interesse, **proponha o próximo passo** (agendamento, orçamento, demo) — não enrole na descoberta.
+8. **NUNCA invente** informações sobre empresa, produtos, preços ou prazos. Se não souber, diga que vai verificar.
+9. Use markdown (negrito) só para destacar 1-2 termos-chave por mensagem.
+10. **NUNCA** use placeholders como \`[Empresa]\`, \`[área de atuação]\`, \`{{company}}\`. ${company ? `A empresa é **${company}**.` : "Se não souber, omita."}
+11. Quando coletar dados de lead com intenção real, finalize com bloco \`<<<CRM_LEAD>>> {json} <<<END>>>\` contendo: name, email, phone, company, position, stage, source, temperature, value, notes, tags, meeting (se houver agendamento).
 
-${greeting ? `# Mensagem de saudação (use na primeira interação)\n${greeting}\n` : ""}${channels ? `# Canais ativos\n${channels}\n` : ""}${tools ? `# Ferramentas disponíveis\n${tools}\n` : ""}${instructions ? `# Instruções específicas do agente\n${instructions}` : ""}`.trim();
+${greeting ? `# Mensagem de saudação (use APENAS na primeira interação, depois nunca mais)\n${greeting}\n` : ""}${channels ? `# Canais ativos\n${channels}\n` : ""}${tools ? `# Ferramentas disponíveis\n${tools}\n` : ""}${instructions ? `# Instruções específicas do agente\n${instructions}` : ""}`.trim();
 }
 
 /* ── Wizard system prompts (PT-BR, guided Q&A per agent type) ── */
 
 const WIZARD_QUESTIONS: Record<string, string[]> = {
   sdr: [
-    "Qual o **nome** do agente? (ex: Sofia, Lucas)",
-    "**Empresa** e **nicho**? (ex: clínica de estética, SaaS B2B, imobiliária)",
-    "**Produto/serviço** principal em 1 frase.",
-    "**Cliente ideal (ICP)**: segmento, porte e cargo.",
-    "Top **3 dores** que vocês resolvem.",
-    "O agente **agenda reuniões/consultas**? (sim / não)",
-    "Se sim, qual **ferramenta de agenda**? (Google Calendar, Calendly, agenda interna, outra)",
-    "Cole o **link da agenda** ou descreva as janelas de horário disponíveis.",
-    "**Tipo de reunião** que ele agenda? (consulta, demo, call de descoberta, visita) e **duração**.",
-    "**Critérios de qualificação** rápidos antes de agendar (ex: orçamento, decisor, urgência).",
-    "Top **3 objeções** comuns e a resposta padrão de cada.",
-    "**Tom de voz**: consultivo, formal, descontraído, empático?",
-    "O que o agente **NUNCA** deve fazer?",
+    "Qual o **nome do agente** e o **nome da empresa**? (ex: Sofia da Bem+Bela)",
+    "**Nicho/segmento** da empresa? (ex: clínica de estética, SaaS B2B, imobiliária, infoproduto)",
+    "**Produto/serviço** principal em 1 frase + **ticket médio** aproximado.",
+    "**Cliente ideal (ICP)**: descreva o perfil em 1 frase (ex: mulheres 30-50 anos que querem rejuvenescer / gestores de RH em empresas 50-500 funcionários).",
+    "Top **3 dores** que vocês resolvem (1 linha cada).",
+    "**Tom de voz** — escolha 1: (a) **Consultivo profissional**, (b) **Descontraído amigável** (com emojis leves), (c) **Empático acolhedor**, (d) **Direto e objetivo**, (e) **Formal corporativo**.",
+    "**Metodologia de qualificação** — escolha 1: (a) **BANT** (Budget, Authority, Need, Timeline — clássico B2B), (b) **SPIN** (Situação, Problema, Implicação, Necessidade — vendas consultivas), (c) **CHAMP** (Challenges, Authority, Money, Prioritization), (d) **Qualificação leve** (só dor + urgência + interesse — ideal para B2C/estética/varejo), (e) **Custom** (descreva).",
+    "O agente **agenda reuniões/consultas**? (sim / não). Se sim: qual ferramenta? (Google Calendar, Calendly, agenda interna, WhatsApp manual)",
+    "Se agenda: **tipo de reunião** (consulta, demo, call descoberta, visita) + **duração** (ex: consulta 30min).",
+    "Top **3 objeções** comuns + resposta padrão de cada (1 linha cada).",
+    "**Limite de mensagens** antes de propor o próximo passo? (ex: após 3-4 trocas com sinal de interesse, oferecer agendamento)",
+    "O que o agente **NUNCA** deve fazer? (ex: prometer resultado, dar preço sem qualificar, falar mal de concorrente)",
   ],
   sac: [
     "Qual é o **nome da sua empresa** e o produto/serviço atendido?",

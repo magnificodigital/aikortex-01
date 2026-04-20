@@ -786,6 +786,17 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
               </Button>
             ))}
             <div className="w-px h-5 bg-border mx-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs gap-1 px-2"
+              onClick={() => navigate("/aikortex/automations", { state: { openAgentFlowId: agentId } })}
+              title="Abrir fluxo deste agente"
+            >
+              <Workflow className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Fluxo</span>
+            </Button>
+            <div className="w-px h-5 bg-border mx-1" />
             {isSaving && (
               <span className="text-[10px] text-muted-foreground animate-pulse">Salvando...</span>
             )}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Loader2, ArrowLeft, Sparkles, Bot, Settings, Plug, Share2, Rocket, Phone, Brain, Monitor } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, Bot, Settings, Plug, Share2, Rocket, Phone, Brain, Monitor, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ConversationProvider } from "@elevenlabs/react";
@@ -785,6 +785,17 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
                 <span className="hidden lg:inline">{btn.label}</span>
               </Button>
             ))}
+            <div className="w-px h-5 bg-border mx-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs gap-1 px-2"
+              onClick={() => navigate("/aikortex/automations", { state: { openAgentFlowId: agentId } })}
+              title="Abrir fluxo deste agente"
+            >
+              <Workflow className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Fluxo</span>
+            </Button>
             <div className="w-px h-5 bg-border mx-1" />
             {isSaving && (
               <span className="text-[10px] text-muted-foreground animate-pulse">Salvando...</span>

@@ -49,6 +49,23 @@ const AikortexAutomations = () => {
     }
   }, [location.state]);
 
+  // Auto-open the flow that belongs to a specific agent (deep-link from AgentDetail)
+  useEffect(() => {
+    const state = location.state as any;
+    const targetAgentId = state?.openAgentFlowId;
+    if (!targetAgentId || isLoading || buildingFlow) return;
+    const match = flows.find((f) => {
+      const cfg = f.triggerConfig as { agent_id?: string } | null | undefined;
+      return cfg?.agent_id === targetAgentId;
+    });
+    if (match) {
+      handleOpenFlow(match);
+    } else {
+      toast.info("Nenhum fluxo encontrado para este agente.");
+    }
+    window.history.replaceState({}, document.title);
+  }, [location.state, flows, isLoading, buildingFlow]);
+
   const persistFolders = useCallback((next: FlowFolder[]) => {
     setFolders(next);
     localStorage.setItem("aikortex_folders", JSON.stringify(next));

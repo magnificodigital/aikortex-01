@@ -29,6 +29,8 @@ function dbToSavedFlow(f: DbFlow): SavedFlow {
     edges: f.edges || [],
     createdAt: f.created_at || new Date().toISOString(),
     updatedAt: f.updated_at || new Date().toISOString(),
+    triggerType: f.trigger_type,
+    triggerConfig: (f.trigger_config as Record<string, unknown>) || null,
   };
 }
 

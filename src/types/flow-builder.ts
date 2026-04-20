@@ -190,6 +190,8 @@ export interface SavedFlow {
   edges: unknown[];
   createdAt: string;
   updatedAt: string;
+  triggerType?: string | null;
+  triggerConfig?: Record<string, unknown> | null;
 }
 
 export interface FlowFolder {

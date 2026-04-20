@@ -1,4 +1,30 @@
-import { lazy, Suspense } from "react";
+import { lazy as reactLazy, Suspense, type ComponentType } from "react";
+
+// Wrap lazy() to auto-reload on stale chunk errors (after a new deploy,
+// the old hashed JS files no longer exist and dynamic import fails).
+const lazy = <T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T }>,
+) =>
+  reactLazy(async () => {
+    try {
+      return await factory();
+    } catch (err: any) {
+      const msg = String(err?.message || "");
+      if (
+        msg.includes("Failed to fetch dynamically imported module") ||
+        msg.includes("Importing a module script failed") ||
+        msg.includes("error loading dynamically imported module")
+      ) {
+        const key = "__lovable_chunk_reload__";
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          window.location.reload();
+          return { default: (() => null) as unknown as T };
+        }
+      }
+      throw err;
+    }
+  });
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";

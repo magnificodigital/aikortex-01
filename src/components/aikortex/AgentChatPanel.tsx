@@ -165,8 +165,20 @@ const AgentChatPanel = ({
   const [editingConfig, setEditingConfig] = useState(false);
   const [wizardMessages, setWizardMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>(() => initialWizardMessages || []);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const initialPromptUsedRef = useRef(false);
   const handleDiscoverRef = useRef<(text: string) => Promise<void>>(async () => {});
+
+  // Auto-refocus the textarea when streaming finishes (so users don't have to click again)
+  const wasStreamingRef = useRef(false);
+  useEffect(() => {
+    const streamingNow = isStreaming || !!wizardIsStreaming;
+    if (wasStreamingRef.current && !streamingNow) {
+      // Streaming just finished — restore focus
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+    wasStreamingRef.current = streamingNow;
+  }, [isStreaming, wizardIsStreaming]);
 
   // ── Audio recording via SpeechRecognition ──
   const [isRecording, setIsRecording] = useState(false);
@@ -345,6 +357,8 @@ const AgentChatPanel = ({
     if (!input.trim() || isStreaming) return;
     sendMessage(input.trim());
     setInput("");
+    // Keep focus on the textarea so the user can keep typing
+    requestAnimationFrame(() => textareaRef.current?.focus());
   }, [input, isStreaming, sendMessage]);
 
   /* ── Send (during wizard discover — Q&A with backend) ── */
@@ -353,6 +367,7 @@ const AgentChatPanel = ({
     if (!text || wizardIsStreaming || !wizardSendMessage) return;
     wizardSendMessage(text);
     setInput("");
+    requestAnimationFrame(() => textareaRef.current?.focus());
   }, [input, wizardIsStreaming, wizardSendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -770,6 +785,7 @@ const AgentChatPanel = ({
           (wizardStep === "done" || wizardStep === "discover") ? "focus-within:border-primary/30" : "opacity-60"
         }`}>
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

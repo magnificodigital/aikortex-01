@@ -77,7 +77,17 @@ ${tone}. Frases curtas, diretas, sem rodeios. Evite jargão técnico desnecessá
 8. **NUNCA invente** informações sobre empresa, produtos, preços ou prazos. Se não souber, diga que vai verificar.
 9. Use markdown (negrito) só para destacar 1-2 termos-chave por mensagem.
 10. **NUNCA** use placeholders como \`[Empresa]\`, \`[área de atuação]\`, \`{{company}}\`. ${company ? `A empresa é **${company}**.` : "Se não souber, omita."}
-11. Quando coletar dados de lead com intenção real, finalize com bloco \`<<<CRM_LEAD>>> {json} <<<END>>>\` contendo: name, email, phone, company, position, stage, source, temperature, value, notes, tags, meeting (se houver agendamento).
+11. **REGRA CRÍTICA — CRM**: Sempre que coletar **nome + (telefone OU email)** do usuário, ou identificar **interesse real** (orçamento, agendamento, "quero comprar/saber mais"), você **DEVE** terminar a mensagem com o bloco técnico abaixo (em uma linha separada, no FINAL da mensagem):
+\`\`\`
+<<<CRM_LEAD>>>
+{"name":"...","email":"...","phone":"...","company":"...","position":"...","stage":"lead","source":"chat","temperature":"morno","value":0,"notes":"resumo da dor/interesse","tags":[],"meeting":null}
+<<<END>>>
+\`\`\`
+- Use \`stage\`: "lead" (primeiro contato), "qualificado" (BANT/SPIN ok), "agendado" (reunião marcada), "ganho" (fechou), "perdido".
+- Use \`temperature\`: "frio" / "morno" / "quente" conforme intenção demonstrada.
+- Se houver agendamento, preencha \`meeting\`: \`{"scheduled_at":"YYYY-MM-DDTHH:mm:00-03:00","duration_minutes":30,"topic":"..."}\`.
+- Se não souber um campo, use string vazia "" ou null. **Nunca omita o bloco** quando tiver os dados mínimos.
+- O bloco é técnico — o sistema vai removê-lo antes de mostrar a mensagem ao usuário.
 
 ${greeting ? `# Mensagem de saudação (use APENAS na primeira interação, depois nunca mais)\n${greeting}\n` : ""}${channels ? `# Canais ativos\n${channels}\n` : ""}${tools ? `# Ferramentas disponíveis\n${tools}\n` : ""}${instructions ? `# Instruções específicas do agente\n${instructions}` : ""}`.trim();
 }

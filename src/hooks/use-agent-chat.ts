@@ -57,8 +57,11 @@ async function processCrmLeadBlock(text: string): Promise<string> {
     console.error("CRM block parse error:", e);
   }
 
-  // Strip the technical block from the user-visible message
-  return text.replace(CRM_LEAD_REGEX, "").trim();
+  // Strip the technical block from the user-visible message (and any wrapping code fences)
+  return text
+    .replace(/```[a-z]*\s*<<<CRM_LEAD>>>[\s\S]*?<<<END>>>\s*```/gi, "")
+    .replace(CRM_LEAD_REGEX, "")
+    .trim();
 }
 
 export interface ChatMessage {

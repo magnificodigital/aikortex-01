@@ -104,6 +104,8 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const {
+      mode,
+      agentType,
       messages = [],
       model,
       provider,
@@ -121,6 +123,16 @@ serve(async (req) => {
         JSON.stringify({ error: "messages must be a non-empty array" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
+    }
+
+    // Inject wizard system prompt (PT-BR guided Q&A) when running setup wizard.
+    let finalMessages = messages;
+    if (mode === "wizard-setup") {
+      const systemPrompt = buildWizardSystemPrompt(agentType);
+      const hasSystem = messages[0]?.role === "system";
+      finalMessages = hasSystem
+        ? [{ role: "system", content: systemPrompt }, ...messages.slice(1)]
+        : [{ role: "system", content: systemPrompt }, ...messages];
     }
 
     const orPayload: Record<string, unknown> = {

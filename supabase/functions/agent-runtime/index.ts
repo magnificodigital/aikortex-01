@@ -154,6 +154,7 @@ serve(async (req) => {
     const {
       mode,
       agentType,
+      agentContext,
       messages = [],
       model,
       provider,
@@ -173,10 +174,15 @@ serve(async (req) => {
       );
     }
 
-    // Inject wizard system prompt (PT-BR guided Q&A) when running setup wizard.
+    // Inject system prompt: wizard for setup, operational for live chats.
     let finalMessages = messages;
+    let systemPrompt = "";
     if (mode === "wizard-setup") {
-      const systemPrompt = buildWizardSystemPrompt(agentType);
+      systemPrompt = buildWizardSystemPrompt(agentType);
+    } else if (agentContext) {
+      systemPrompt = buildOperationalSystemPrompt(agentContext);
+    }
+    if (systemPrompt) {
       const hasSystem = messages[0]?.role === "system";
       finalMessages = hasSystem
         ? [{ role: "system", content: systemPrompt }, ...messages.slice(1)]

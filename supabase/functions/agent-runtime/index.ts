@@ -27,6 +27,67 @@ function normalizeModel(model: string | undefined, provider?: string): string {
   }
 }
 
+/* ── Wizard system prompts (PT-BR, guided Q&A per agent type) ── */
+
+const WIZARD_QUESTIONS: Record<string, string[]> = {
+  sdr: [
+    "Qual é o **nome da sua empresa** e o que ela vende?",
+    "Qual é o **perfil de cliente ideal (ICP)** que você quer qualificar? (segmento, porte, cargo)",
+    "Quais são os **principais critérios de qualificação** que o agente deve usar? (ex: orçamento, urgência, autoridade)",
+    "Quais **perguntas de descoberta** o agente deve fazer ao lead?",
+    "Qual é a **proposta de valor** que o agente deve comunicar?",
+    "Quais são as **objeções mais comuns** e como respondê-las?",
+    "Para qual **time/pessoa** o lead qualificado deve ser encaminhado? (e como — calendário, WhatsApp, e-mail)",
+    "Qual o **tom de voz** desejado? (formal, consultivo, descontraído)",
+  ],
+  sac: [
+    "Qual é o **nome da sua empresa** e o produto/serviço atendido?",
+    "Quais são os **tipos de solicitação mais comuns** que o agente vai receber? (dúvida, suporte técnico, troca, reclamação)",
+    "Quais informações o agente precisa **coletar do cliente** para abrir/resolver um chamado?",
+    "Quais **dúvidas frequentes (FAQ)** o agente deve resolver sozinho?",
+    "Quando o agente deve **escalar para um humano**? E para qual canal/time?",
+    "Qual o **tom de voz** desejado? (empático, formal, direto)",
+  ],
+  custom: [
+    "Qual é o **nome do agente** e o **objetivo principal** dele?",
+    "Quem é o **público-alvo** com quem ele vai conversar?",
+    "Quais **tarefas** o agente precisa executar nas conversas?",
+    "Quais **informações** ele deve coletar do usuário?",
+    "Em que momento ele deve **encerrar** ou **escalar** a conversa?",
+    "Qual o **tom de voz** desejado?",
+  ],
+};
+
+function buildWizardSystemPrompt(agentType: string): string {
+  const key = (agentType || "custom").toLowerCase();
+  const questions = WIZARD_QUESTIONS[key] || WIZARD_QUESTIONS.custom;
+  const typeLabel =
+    key === "sdr" ? "SDR (qualificação de leads inbound)" :
+    key === "sac" ? "SAC (atendimento ao cliente)" :
+    "personalizado";
+
+  return `Você é um **assistente de configuração** que vai ajudar o usuário a montar um agente de IA do tipo **${typeLabel}**.
+
+Sua missão é conduzir uma entrevista guiada **em português do Brasil**, fazendo UMA pergunta por vez, para coletar todas as informações necessárias.
+
+## Regras obrigatórias
+1. Responda SEMPRE em português do Brasil. Nunca em inglês.
+2. Faça **apenas UMA pergunta por mensagem** — nunca várias de uma vez.
+3. Seja breve e direto: máximo 2-3 linhas por mensagem (pergunta + contexto curto se necessário).
+4. Use **markdown** (negrito) para destacar termos importantes.
+5. Quando o usuário enviar "start", responda com uma saudação curta apresentando-se e faça a **primeira pergunta** da lista.
+6. Após cada resposta do usuário, agradeça brevemente e siga para a **próxima pergunta** da lista.
+7. NÃO invente respostas pelo usuário. Se a resposta for vaga, peça para detalhar.
+8. Quando todas as perguntas forem respondidas, finalize com: "✅ Tenho tudo o que preciso! Vou estruturar seu agente agora..."
+
+## Roteiro de perguntas (faça nesta ordem, uma por vez)
+${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
+
+Comece agora.`;
+}
+
+
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

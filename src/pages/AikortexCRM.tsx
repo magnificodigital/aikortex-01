@@ -1,21 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ModuleGate from "@/components/shared/ModuleGate";
 import CRMKanban from "@/components/crm/CRMKanban";
 import LeadDetailDialog from "@/components/crm/LeadDetailDialog";
 import NewLeadDialog from "@/components/crm/NewLeadDialog";
-import { Lead, MOCK_LEADS, PipelineStage, PIPELINE_STAGES, LEAD_SOURCES, TEMPERATURE_CONFIG } from "@/types/crm";
+import { Lead, PipelineStage, PIPELINE_STAGES, LEAD_SOURCES, TEMPERATURE_CONFIG, LeadSource, LeadTemperature, LeadActivity } from "@/types/crm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Contact, Plus, Search, Users, TrendingUp, DollarSign, BarChart3, LayoutGrid, List, Filter } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Contact, Plus, Search, Users, TrendingUp, DollarSign, BarChart3, LayoutGrid, List, Loader2, RefreshCw } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+/** Convert a Supabase row → Lead shape used by the UI components. */
+function rowToLead(row: any): Lead {
+  const activities = Array.isArray(row.activities) ? row.activities : [];
+  return {
+    id: row.id,
+    name: row.name || "",
+    email: row.email || "",
+    phone: row.phone || "",
+    company: row.company || "",
+    position: row.position || "",
+    stage: (row.stage as PipelineStage) || "lead",
+    source: (row.source as LeadSource) || "manual",
+    temperature: (row.temperature as LeadTemperature) || "morno",
+    value: Number(row.value) || 0,
+    assignee: row.assignee || "",
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    notes: row.notes || "",
+    activities: activities as LeadActivity[],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    lostReason: row.lost_reason || undefined,
+  };
+}
 
 const AikortexCRM = () => {
-  const [leads, setLeads] = useState<Lead[]>(MOCK_LEADS);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [newLeadOpen, setNewLeadOpen] = useState(false);
@@ -23,6 +49,36 @@ const AikortexCRM = () => {
   const [filterSource, setFilterSource] = useState<string>("all");
   const [filterTemp, setFilterTemp] = useState<string>("all");
   const [view, setView] = useState<"kanban" | "list">("kanban");
+
+  /* ── Load leads from Supabase ── */
+  const loadLeads = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Erro ao carregar leads:", error);
+      toast.error("Não foi possível carregar leads.");
+      setLoading(false);
+      return;
+    }
+    setLeads((data || []).map(rowToLead));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { void loadLeads(); }, [loadLeads]);
+
+  /* ── Realtime: novos leads aparecem automaticamente ── */
+  useEffect(() => {
+    const channel = supabase
+      .channel("leads-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, () => {
+        void loadLeads();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [loadLeads]);
 
   const filteredLeads = leads.filter((l) => {
     const matchesSearch = !search || l.name.toLowerCase().includes(search.toLowerCase()) || l.company.toLowerCase().includes(search.toLowerCase());
@@ -37,59 +93,71 @@ const AikortexCRM = () => {
   const wonValue = wonLeads.reduce((sum, l) => sum + l.value, 0);
   const conversionRate = leads.length > 0 ? Math.round((wonLeads.length / leads.length) * 100) : 0;
 
-  const handleStageChange = (leadId: string, newStage: PipelineStage) => {
-    setLeads((prev) =>
-      prev.map((l) =>
-        l.id === leadId
-          ? {
-              ...l,
-              stage: newStage,
-              updatedAt: new Date().toISOString(),
-              activities: [
-                ...l.activities,
-                {
-                  id: `act-${Date.now()}`,
-                  type: "stage_change" as const,
-                  description: `Movido para ${PIPELINE_STAGES.find((s) => s.value === newStage)?.label}`,
-                  createdAt: new Date().toISOString(),
-                  createdBy: "Você",
-                },
-              ],
-            }
-          : l
-      )
-    );
-    if (selectedLead?.id === leadId) {
-      setSelectedLead((prev) => prev ? { ...prev, stage: newStage } : null);
+  const handleStageChange = async (leadId: string, newStage: PipelineStage) => {
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+    const newActivity: LeadActivity = {
+      id: `act-${Date.now()}`,
+      type: "stage_change",
+      description: `Movido para ${PIPELINE_STAGES.find((s) => s.value === newStage)?.label}`,
+      createdAt: new Date().toISOString(),
+      createdBy: "Você",
+    };
+    const updatedActivities = [...lead.activities, newActivity];
+    // Optimistic update
+    setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, stage: newStage, activities: updatedActivities } : l));
+    if (selectedLead?.id === leadId) setSelectedLead((prev) => prev ? { ...prev, stage: newStage } : null);
+
+    const { error } = await supabase
+      .from("leads")
+      .update({ stage: newStage, activities: updatedActivities as any, updated_at: new Date().toISOString() })
+      .eq("id", leadId);
+    if (error) {
+      toast.error("Falha ao atualizar estágio.");
+      void loadLeads();
     }
   };
 
-  const handleAddActivity = (leadId: string, activity: { type: string; description: string }) => {
-    setLeads((prev) =>
-      prev.map((l) =>
-        l.id === leadId
-          ? {
-              ...l,
-              updatedAt: new Date().toISOString(),
-              activities: [
-                ...l.activities,
-                { id: `act-${Date.now()}`, type: activity.type as any, description: activity.description, createdAt: new Date().toISOString(), createdBy: "Você" },
-              ],
-            }
-          : l
-      )
-    );
+  const handleAddActivity = async (leadId: string, activity: { type: string; description: string }) => {
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+    const newActivity: LeadActivity = {
+      id: `act-${Date.now()}`,
+      type: activity.type as any,
+      description: activity.description,
+      createdAt: new Date().toISOString(),
+      createdBy: "Você",
+    };
+    const updatedActivities = [...lead.activities, newActivity];
+    setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, activities: updatedActivities } : l));
+
+    const { error } = await supabase
+      .from("leads")
+      .update({ activities: updatedActivities as any, updated_at: new Date().toISOString() })
+      .eq("id", leadId);
+    if (error) {
+      toast.error("Falha ao registrar atividade.");
+      void loadLeads();
+    }
   };
 
-  const handleNewLead = (data: Omit<Lead, "id" | "activities" | "createdAt" | "updatedAt">) => {
-    const newLead: Lead = {
-      ...data,
-      id: `lead-${Date.now()}`,
-      activities: [{ id: `act-${Date.now()}`, type: "note", description: "Lead criado manualmente", createdAt: new Date().toISOString(), createdBy: "Você" }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setLeads((prev) => [newLead, ...prev]);
+  const handleNewLead = async (data: Omit<Lead, "id" | "activities" | "createdAt" | "updatedAt">) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Faça login para criar um lead."); return; }
+    const activities: LeadActivity[] = [{
+      id: `act-${Date.now()}`, type: "note",
+      description: "Lead criado manualmente", createdAt: new Date().toISOString(), createdBy: "Você",
+    }];
+    const { error } = await supabase.from("leads").insert({
+      user_id: user.id,
+      name: data.name, email: data.email, phone: data.phone, company: data.company, position: data.position,
+      stage: data.stage, source: data.source, temperature: data.temperature, value: data.value,
+      assignee: data.assignee, tags: data.tags, notes: data.notes,
+      activities: activities as any,
+    });
+    if (error) { toast.error("Falha ao criar lead."); return; }
+    toast.success("Lead criado!");
+    void loadLeads();
   };
 
   const openLeadDetail = (lead: Lead) => {
@@ -112,9 +180,14 @@ const AikortexCRM = () => {
               <p className="text-xs text-muted-foreground">Pipeline de leads e oportunidades</p>
             </div>
           </div>
-          <Button className="gap-2" onClick={() => setNewLeadOpen(true)}>
-            <Plus className="w-4 h-4" /> Novo Lead
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => void loadLeads()} disabled={loading} title="Recarregar">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            </Button>
+            <Button className="gap-2" onClick={() => setNewLeadOpen(true)}>
+              <Plus className="w-4 h-4" /> Novo Lead
+            </Button>
+          </div>
         </div>
 
         {/* Metrics */}
@@ -178,8 +251,33 @@ const AikortexCRM = () => {
           </div>
         </div>
 
+        {/* Empty state */}
+        {!loading && leads.length === 0 && (
+          <div className="rounded-xl border border-dashed border-border bg-card/50 p-10 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <Contact className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Nenhum lead ainda</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Os leads capturados pelos seus agentes IA aparecerão aqui automaticamente.
+              </p>
+            </div>
+            <Button size="sm" onClick={() => setNewLeadOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Adicionar lead manualmente
+            </Button>
+          </div>
+        )}
+
+        {/* Loading state */}
+        {loading && leads.length === 0 && (
+          <div className="flex items-center justify-center py-16 text-muted-foreground gap-2 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" /> Carregando leads...
+          </div>
+        )}
+
         {/* Content */}
-        {view === "kanban" ? (
+        {leads.length > 0 && (view === "kanban" ? (
           <CRMKanban leads={filteredLeads} onLeadClick={openLeadDetail} onStageChange={handleStageChange} />
         ) : (
           <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -231,7 +329,7 @@ const AikortexCRM = () => {
               </TableBody>
             </Table>
           </div>
-        )}
+        ))}
       </div>
 
       <LeadDetailDialog

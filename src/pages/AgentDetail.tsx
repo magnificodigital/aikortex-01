@@ -639,9 +639,13 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
 
   const testAgentContext = useMemo(() => {
     if (!agentConfig) return undefined;
+    const cfg = agentConfig as any;
     return {
       name: agentConfig.name || loadedAgent.name,
       role: loadedAgent.agentType,
+      companyName: cfg.companyName || cfg.company || "",
+      industry: cfg.industry,
+      mainProduct: cfg.mainProduct,
       description: agentConfig.description,
       objective: agentConfig.objective,
       instructions: agentConfig.instructions,

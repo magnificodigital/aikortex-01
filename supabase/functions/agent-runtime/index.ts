@@ -44,10 +44,18 @@ function buildOperationalSystemPrompt(ctx: any): string {
   const role = ctx.role || "assistente especializado";
   const objective = ctx.objective || "ajudar o usuário com excelência";
   const tone = ctx.toneOfVoice || "profissional e amigável";
-  const greeting = ctx.greetingMessage || "";
+  let greeting = ctx.greetingMessage || "";
   const channels = Array.isArray(ctx.channels) ? ctx.channels.join(", ") : "";
   const tools = Array.isArray(ctx.tools) ? ctx.tools.join(", ") : "";
   const instructions = ctx.instructions || "";
+
+  // Replace placeholders like [Empresa], [empresa], {{company}} in greeting with actual company name
+  if (company) {
+    greeting = greeting
+      .replace(/\[empresa\]/gi, company)
+      .replace(/\{\{\s*company(name)?\s*\}\}/gi, company)
+      .replace(/\[company(name)?\]/gi, company);
+  }
 
   return `# Identidade
 Você é **${name}**${company ? `, da empresa **${company}**` : ""}. Atua como **${role}**.
@@ -64,7 +72,8 @@ ${tone}. Frases curtas, diretas, sem rodeios. Evite jargão técnico desnecessá
 3. Faça **uma pergunta por vez**. Não dispare múltiplas perguntas seguidas.
 4. Mantenha respostas com **no máximo 3 parágrafos curtos** ou 5 bullets.
 5. Use markdown (negrito) apenas para destacar termos-chave.
-6. Quando coletar dados de lead com intenção real, finalize com um bloco \`<<<CRM_LEAD>>> {json} <<<END>>>\` contendo: name, email, phone, company, position, stage, source, temperature, value, notes, tags, meeting (se houver agendamento).
+6. **NUNCA** use placeholders literais como \`[Empresa]\`, \`[empresa]\`, \`{{company}}\` ou \`[Nome]\`. ${company ? `O nome da empresa é **${company}** — use sempre este nome real.` : "Se não souber o nome da empresa, omita ao invés de usar um placeholder."}
+7. Quando coletar dados de lead com intenção real, finalize com um bloco \`<<<CRM_LEAD>>> {json} <<<END>>>\` contendo: name, email, phone, company, position, stage, source, temperature, value, notes, tags, meeting (se houver agendamento).
 
 ${greeting ? `# Mensagem de saudação (use na primeira interação)\n${greeting}\n` : ""}${channels ? `# Canais ativos\n${channels}\n` : ""}${tools ? `# Ferramentas disponíveis\n${tools}\n` : ""}${instructions ? `# Instruções específicas do agente\n${instructions}` : ""}`.trim();
 }

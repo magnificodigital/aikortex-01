@@ -54,8 +54,8 @@ const AikortexAutomations = () => {
     const state = location.state as any;
     const targetAgentId = state?.openAgentFlowId;
     if (!targetAgentId || isLoading || buildingFlow) return;
-    const match = flows.find((f: any) => {
-      const cfg = (f as any).trigger_config || (f as any).triggerConfig;
+    const match = flows.find((f) => {
+      const cfg = f.triggerConfig as { agent_id?: string } | null | undefined;
       return cfg?.agent_id === targetAgentId;
     });
     if (match) {

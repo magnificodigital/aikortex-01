@@ -31,14 +31,18 @@ function normalizeModel(model: string | undefined, provider?: string): string {
 
 const WIZARD_QUESTIONS: Record<string, string[]> = {
   sdr: [
-    "Qual é o **nome da sua empresa** e o que ela vende?",
-    "Qual é o **perfil de cliente ideal (ICP)** que você quer qualificar? (segmento, porte, cargo)",
-    "Quais são os **principais critérios de qualificação** que o agente deve usar? (ex: orçamento, urgência, autoridade)",
-    "Quais **perguntas de descoberta** o agente deve fazer ao lead?",
-    "Qual é a **proposta de valor** que o agente deve comunicar?",
-    "Quais são as **objeções mais comuns** e como respondê-las?",
-    "Para qual **time/pessoa** o lead qualificado deve ser encaminhado? (e como — calendário, WhatsApp, e-mail)",
-    "Qual o **tom de voz** desejado? (formal, consultivo, descontraído)",
+    "Qual **nome** você quer dar ao seu agente SDR? (ex: Sofia, Lucas, Ana — algo humano e fácil de lembrar)",
+    "Qual **tom de voz** ele deve ter? (ex: consultivo e empático, formal e corporativo, descontraído e próximo)",
+    "Qual o **nome da sua empresa** e em **uma frase**, o que vocês fazem?",
+    "Qual é o **principal produto ou serviço** que o agente vai oferecer? Descreva de forma simples como você apresentaria a um amigo.",
+    "Quem é o seu **cliente ideal (ICP)**? Pense em segmento, porte da empresa e cargo da pessoa que normalmente compra de você.",
+    "Quais são as **3 maiores dores** que o seu cliente tem hoje — e que o seu produto resolve?",
+    "Quais **perguntas de descoberta** o agente deve fazer para entender se o lead está pronto? (ex: tamanho do time, situação atual, urgência)",
+    "Como qualificar **BANT**? Conta brevemente: faixa de **Budget** típica, quem costuma ser o **decisor**, qual a **dor crítica** e o **prazo** ideal de implementação.",
+    "Quais são as **3 objeções mais comuns** que vocês ouvem (ex: \"está caro\", \"vou pensar\", \"já uso outro\") e como o time costuma responder?",
+    "Qual é a **proposta de valor** em 1-2 frases — o motivo pelo qual o cliente escolhe vocês em vez do concorrente?",
+    "Como o agente deve **agendar a reunião**? Cole aqui o **link da agenda** (Calendly, Google Calendar) ou diga: nome do vendedor + janelas típicas de horário.",
+    "Por fim: o que o agente **NUNCA** deve fazer? (ex: não falar de preço sem qualificar, não prometer prazo, não negociar desconto)",
   ],
   sac: [
     "Qual é o **nome da sua empresa** e o produto/serviço atendido?",

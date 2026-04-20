@@ -31,7 +31,7 @@ import avatar8 from "@/assets/avatars/avatar-8.png";
 
 const TEMPLATE_MAP: Record<string, { name: string; avatar: string; model: string; agentType: AgentType; autoPrompt: string }> = {
   "sdr-1":    { name: "Agente SDR",           avatar: avatar1, model: "qwen/qwen3-30b-a3b", agentType: "SDR",    autoPrompt: "Crie um agente SDR para qualificação de leads inbound. Ele deve coletar nome, email, empresa e interesse do lead, qualificar com base em critérios BANT e agendar reuniões com o time comercial." },
-  "sac-1":    { name: "Agente SAC",           avatar: avatar3, model: "gemini-2.5-flash", agentType: "SAC",    autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
+  "sac-1":    { name: "Agente SAC",           avatar: avatar3, model: "google/gemini-2.5-flash-preview-04-17", agentType: "SAC",    autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
 };
 
 const AVATAR_BY_TYPE: Record<string, string> = {
@@ -104,7 +104,7 @@ const AgentDetail = () => {
       // Templates start with neutral name — wizard chat will collect details first
       return { name: "Novo Agente", avatar: templateAgent.avatar, model: templateAgent.model, agentType: templateAgent.agentType, savedConfig: null };
     }
-    return { name: "Carregando...", avatar: avatar1, model: "gemini-2.5-flash", agentType: initialType, savedConfig: null };
+    return { name: "Carregando...", avatar: avatar1, model: "google/gemini-2.5-flash-preview-04-17", agentType: initialType, savedConfig: null };
   });
   const [agentLoading, setAgentLoading] = useState(!isTemplate);
 
@@ -117,7 +117,7 @@ const AgentDetail = () => {
         setLoadedAgent({
           name:        data.name,
           avatar:      data.avatar_url || AVATAR_BY_TYPE[data.agent_type] || avatar1,
-          model:       data.model || "gemini-2.5-flash",
+          model:       data.model || "google/gemini-2.5-flash-preview-04-17",
           agentType:   (data.agent_type as AgentType) || "Custom",
           savedConfig: {
             ...(typeof data.config === "object" && data.config !== null ? data.config : {}),

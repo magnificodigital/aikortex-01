@@ -137,7 +137,7 @@ serve(async (req) => {
 
     const orPayload: Record<string, unknown> = {
       model: normalizeModel(model, provider),
-      messages,
+      messages: finalMessages,
       stream: true,
     };
     if (typeof temperature === "number") orPayload.temperature = temperature;

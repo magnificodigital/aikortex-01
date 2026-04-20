@@ -685,6 +685,60 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
     testMessagesRef.current = testChat.messages;
   }, [testChat.messages]);
 
+  /* ── Server-side persistence of test conversation (so history survives across devices/sessions) ── */
+  const conversationLoadedRef = useRef(false);
+  useEffect(() => {
+    if (isTemplate || !agentId || agentId === "new" || agentId.startsWith("new-")) return;
+    if (conversationLoadedRef.current) return;
+    conversationLoadedRef.current = true;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const contactId = `test-${user.id}`;
+      const { data } = await supabase
+        .from("conversations")
+        .select("messages")
+        .eq("agent_id", agentId)
+        .eq("contact_id", contactId)
+        .maybeSingle();
+      if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+        testChat.setMessages(data.messages as any);
+      }
+    })();
+  }, [agentId, isTemplate, testChat.setMessages]);
+
+  // Debounced save of test conversation to server
+  useEffect(() => {
+    if (isTemplate || !agentId || agentId === "new" || agentId.startsWith("new-")) return;
+    if (testChat.messages.length <= 1) return; // skip when only initial greeting present
+    const timer = setTimeout(async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const contactId = `test-${user.id}`;
+      // Upsert by (agent_id, contact_id) — find existing first to keep id stable
+      const { data: existing } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("agent_id", agentId)
+        .eq("contact_id", contactId)
+        .maybeSingle();
+      if (existing?.id) {
+        await supabase.from("conversations")
+          .update({ messages: testChat.messages as any, updated_at: new Date().toISOString() })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("conversations").insert({
+          user_id: user.id,
+          agent_id: agentId,
+          contact_id: contactId,
+          channel: "test",
+          messages: testChat.messages as any,
+        });
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [testChat.messages, agentId, isTemplate]);
+
   const activeChat = chatMode === "setup" ? setupChat : testChat;
 
   /* ── Limpar localStorage ao abrir template ── */

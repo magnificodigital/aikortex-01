@@ -49,8 +49,17 @@ serve(async (req) => {
       );
     }
 
+    // Force Groq-compatible model. Ignore client-supplied models (e.g. google/gemini-*)
+    // since this runtime only proxies to Groq.
+    const isGroqModel = typeof model === "string" && (
+      model.startsWith("openai/") ||
+      model.startsWith("llama") ||
+      model.startsWith("meta-llama/") ||
+      model.startsWith("mixtral") ||
+      model.startsWith("groq/")
+    );
     const payload: Record<string, unknown> = {
-      model: model && typeof model === "string" ? model : DEFAULT_MODEL,
+      model: isGroqModel ? model : DEFAULT_MODEL,
       messages,
       stream: true,
     };

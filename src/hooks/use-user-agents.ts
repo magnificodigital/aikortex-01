@@ -94,9 +94,25 @@ export function useUserAgents() {
       const created = data as any as UserAgent;
       setAgents(prev => [created, ...prev]);
 
-      // Auto-create a default automation flow for this new agent
+      // Auto-create a personalized automation flow for this new agent (via DeerFlow)
       try {
-        const flow = buildDefaultFlowForAgent(created);
+        let flow: { name: string; description: string; nodes: unknown[]; edges: unknown[] } | null = null;
+
+        // 1) Try DeerFlow-powered builder for a tailored flow based on niche/scheduling
+        try {
+          const { data: flowResp, error: flowErr } = await supabase.functions.invoke("agent-flow-builder", {
+            body: { agent: created },
+          });
+          if (!flowErr && flowResp?.flow?.nodes?.length) {
+            flow = flowResp.flow;
+          }
+        } catch (e) {
+          console.warn("DeerFlow flow generation failed, falling back to local builder:", e);
+        }
+
+        // 2) Fallback to local default builder
+        if (!flow) flow = buildDefaultFlowForAgent(created);
+
         await (supabase.from("user_flows" as any).insert({
           user_id: user.id,
           name: flow.name,

@@ -29,8 +29,9 @@ export const LLM_MODELS: LLMModel[] = [
   { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'openai', byok: true },
 
   // ── GOOGLE GEMINI (via OpenRouter — plataforma paga) ──
-  { id: 'google/gemini-2.5-pro-preview-05-06', name: 'Gemini 2.5 Pro', provider: 'google', byok: false },
-  { id: 'google/gemini-2.5-flash-preview-04-17', name: 'Gemini 2.5 Flash', provider: 'google', byok: false },
+  { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google', byok: false },
+  { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'google', byok: false },
+  { id: 'google/gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', provider: 'google', byok: false },
   { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', provider: 'google', byok: false },
   { id: 'google/gemini-2.0-flash-lite-001', name: 'Gemini 2.0 Flash Lite', provider: 'google', byok: false },
   { id: 'google/gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'google', byok: false },
@@ -70,7 +71,20 @@ export function getGroupedModels() {
   return groups;
 }
 
-export const DEFAULT_FREE_MODEL = "google/gemini-2.5-flash-preview-04-17";
+export const DEFAULT_FREE_MODEL = "google/gemini-2.5-flash";
+
+/** Map deprecated/legacy OpenRouter model IDs to their current equivalents. */
+const LEGACY_MODEL_ALIASES: Record<string, string> = {
+  "google/gemini-2.5-flash-preview-04-17": "google/gemini-2.5-flash",
+  "google/gemini-2.5-pro-preview-05-06": "google/gemini-2.5-pro",
+  "google/gemini-2.5-flash-preview": "google/gemini-2.5-flash",
+  "google/gemini-2.5-pro-preview": "google/gemini-2.5-pro",
+};
+
+export function normalizeModelId(modelId?: string | null): string {
+  if (!modelId) return DEFAULT_FREE_MODEL;
+  return LEGACY_MODEL_ALIASES[modelId] || modelId;
+}
 
 export function getProviderForModel(modelId: string): string {
   if (!modelId) return "google";

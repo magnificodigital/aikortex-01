@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { Bot, Plus, Pencil, Trash2, Loader2, Play, Send, CheckCircle2, Archive, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useAgentChat } from "@/hooks/use-agent-chat";
@@ -34,6 +35,13 @@ interface AgentTemplate {
   created_at: string;
   updated_at: string;
   template_pricing?: PricingRow[];
+  category?: string;
+  features?: string[];
+  demo_url?: string | null;
+  min_tier?: string;
+  is_active?: boolean;
+  is_exclusive?: boolean;
+  sort_order?: number;
 }
 
 interface PricingRow {

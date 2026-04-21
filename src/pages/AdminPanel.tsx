@@ -9,7 +9,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import AdminOverviewTab from "@/components/admin/AdminOverviewTab";
 import AdminGestaoTab from "@/components/admin/AdminGestaoTab";
 import AdminPlansTab from "@/components/admin/AdminPlansTab";
-import AdminTemplatesTab from "@/components/admin/AdminTemplatesTab";
 import AdminAgentTemplatesTab from "@/components/admin/AdminAgentTemplatesTab";
 import AdminFinanceiroTab from "@/components/admin/AdminFinanceiroTab";
 import AdminConfigTab from "@/components/admin/AdminConfigTab";
@@ -20,7 +19,6 @@ const TAB_LABELS: Record<string, string> = {
   overview: "Visão Geral",
   gestao: "Gestão",
   plans: "Planos",
-  templates: "Templates",
   "agent-templates": "Agentes IA",
   financeiro: "Financeiro",
   "api-keys": "Chaves de API",
@@ -89,7 +87,6 @@ const AdminPanel = () => {
             <AdminGestaoTab initialTier={gestaoTier} initialAgencyId={gestaoAgencyId} initialClientId={gestaoClientId} />
           </TabsContent>
           <TabsContent value="plans"><AdminPlansTab /></TabsContent>
-          <TabsContent value="templates"><AdminTemplatesTab /></TabsContent>
           <TabsContent value="agent-templates"><AdminAgentTemplatesTab /></TabsContent>
           <TabsContent value="financeiro"><AdminFinanceiroTab /></TabsContent>
           {isPlatformOwner && (

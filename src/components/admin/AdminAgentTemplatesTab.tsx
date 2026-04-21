@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { Bot, Plus, Pencil, Trash2, Loader2, Play, Send, CheckCircle2, Archive, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useAgentChat } from "@/hooks/use-agent-chat";
@@ -34,6 +35,13 @@ interface AgentTemplate {
   created_at: string;
   updated_at: string;
   template_pricing?: PricingRow[];
+  category?: string;
+  features?: string[];
+  demo_url?: string | null;
+  min_tier?: string;
+  is_active?: boolean;
+  is_exclusive?: boolean;
+  sort_order?: number;
 }
 
 interface PricingRow {
@@ -56,6 +64,13 @@ interface TemplateForm {
   price_cents: number;
   billing_type: "monthly" | "one_time";
   min_resale_margin_pct: number;
+  category: string;
+  features: string[];
+  demo_url: string;
+  min_tier: string;
+  is_active: boolean;
+  is_exclusive: boolean;
+  sort_order: number;
 }
 
 // ── Constants ──────────────────────────────────────────────────────
@@ -79,6 +94,13 @@ const EMPTY_FORM: TemplateForm = {
   price_cents: 0,
   billing_type: "monthly",
   min_resale_margin_pct: 20,
+  category: "agent",
+  features: [],
+  demo_url: "",
+  min_tier: "starter",
+  is_active: true,
+  is_exclusive: false,
+  sort_order: 0,
 };
 
 const slugify = (t: string) =>
@@ -193,6 +215,13 @@ const AdminAgentTemplatesTab = () => {
         model:       form.model,
         soul_md:     form.soul_md,
         config_yaml: form.config_yaml,
+        category:    form.category,
+        features:    form.features,
+        demo_url:    form.demo_url || null,
+        min_tier:    form.min_tier,
+        is_active:   form.is_active,
+        is_exclusive: form.is_exclusive,
+        sort_order:  form.sort_order,
         updated_at:  new Date().toISOString(),
       };
 
@@ -281,6 +310,13 @@ const AdminAgentTemplatesTab = () => {
       price_cents:           pricing?.price_cents ?? 0,
       billing_type:          pricing?.billing_type ?? "monthly",
       min_resale_margin_pct: pricing?.min_resale_margin_pct ?? 20,
+      category:              t.category ?? "agent",
+      features:              Array.isArray(t.features) ? t.features : [],
+      demo_url:              t.demo_url ?? "",
+      min_tier:              t.min_tier ?? "starter",
+      is_active:             t.is_active ?? true,
+      is_exclusive:          t.is_exclusive ?? false,
+      sort_order:            t.sort_order ?? 0,
     });
     setFormTab("info");
     setModalOpen(true);
@@ -471,6 +507,52 @@ const AdminAgentTemplatesTab = () => {
                       <SelectItem value="anthropic/claude-3-5-sonnet">Claude 3.5 Sonnet</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Categoria</Label>
+                  <Select value={form.category} onValueChange={(v) => setForm((p) => ({ ...p, category: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="agent">Agente</SelectItem>
+                      <SelectItem value="automation">Automação</SelectItem>
+                      <SelectItem value="app">Aplicativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Tier mínimo</Label>
+                  <Select value={form.min_tier} onValueChange={(v) => setForm((p) => ({ ...p, min_tier: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="starter">Starter</SelectItem>
+                      <SelectItem value="explorer">Explorer</SelectItem>
+                      <SelectItem value="hack">Hack</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <Label>URL do demo</Label>
+                  <Input
+                    value={form.demo_url}
+                    onChange={(e) => setForm((p) => ({ ...p, demo_url: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Ordem de exibição</Label>
+                  <Input
+                    type="number"
+                    value={form.sort_order}
+                    onChange={(e) => setForm((p) => ({ ...p, sort_order: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between col-span-2 rounded-md border p-3">
+                  <Label className="text-sm">Ativo no marketplace</Label>
+                  <Switch checked={form.is_active} onCheckedChange={(v) => setForm((p) => ({ ...p, is_active: v }))} />
+                </div>
+                <div className="flex items-center justify-between col-span-2 rounded-md border p-3">
+                  <Label className="text-sm">Exclusivo Hack</Label>
+                  <Switch checked={form.is_exclusive} onCheckedChange={(v) => setForm((p) => ({ ...p, is_exclusive: v }))} />
                 </div>
               </div>
             </TabsContent>

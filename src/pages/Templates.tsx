@@ -63,13 +63,16 @@ export const TemplatesMarketplaceView = () => {
   useEffect(() => {
     const load = async () => {
       const [tRes, aRes] = await Promise.all([
-        supabase.from("platform_templates").select("*").eq("is_active", true).order("sort_order"),
+        supabase.from("agent_templates" as any).select("*, template_pricing(*)").eq("is_active", true).eq("status", "published").order("sort_order"),
         user ? supabase.from("agency_profiles").select("*").eq("user_id", user.id).maybeSingle() : null,
       ]);
       if (tRes.data) {
         setTemplates(tRes.data.map((t: any) => ({
           ...t,
           features: Array.isArray(t.features) ? t.features : [],
+          platform_price_monthly: t.template_pricing?.[0]?.price_cents
+            ? t.template_pricing[0].price_cents / 100
+            : 0,
         })));
       }
       if (aRes?.data) setAgency(aRes.data as any);

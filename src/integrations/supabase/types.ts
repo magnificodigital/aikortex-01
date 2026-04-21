@@ -675,6 +675,119 @@ export type Database = {
         }
         Relationships: []
       }
+      deerflow_runs: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          deerflow_run_id: string | null
+          error: string | null
+          finished_at: string | null
+          id: string
+          input: Json
+          latency_ms: number | null
+          mode: string
+          output: Json | null
+          status: string
+          thread_id: string | null
+          tokens_used: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          deerflow_run_id?: string | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          input?: Json
+          latency_ms?: number | null
+          mode?: string
+          output?: Json | null
+          status?: string
+          thread_id?: string | null
+          tokens_used?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          deerflow_run_id?: string | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          input?: Json
+          latency_ms?: number | null
+          mode?: string
+          output?: Json | null
+          status?: string
+          thread_id?: string | null
+          tokens_used?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deerflow_runs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "user_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deerflow_runs_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "deerflow_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deerflow_threads: {
+        Row: {
+          agent_id: string
+          channel: string
+          created_at: string
+          deerflow_thread_id: string
+          external_ref: string | null
+          id: string
+          metadata: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          channel?: string
+          created_at?: string
+          deerflow_thread_id: string
+          external_ref?: string | null
+          id?: string
+          metadata?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          channel?: string
+          created_at?: string
+          deerflow_thread_id?: string
+          external_ref?: string | null
+          id?: string
+          metadata?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deerflow_threads_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "user_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flow_executions: {
         Row: {
           completed_at: string | null
@@ -1524,7 +1637,10 @@ export type Database = {
           call_webhook_url: string | null
           config: Json
           created_at: string
+          deerflow_agent_name: string | null
+          deerflow_meta: Json
           description: string | null
+          execution_engine: string
           id: string
           max_call_duration_seconds: number | null
           model: string | null
@@ -1549,7 +1665,10 @@ export type Database = {
           call_webhook_url?: string | null
           config?: Json
           created_at?: string
+          deerflow_agent_name?: string | null
+          deerflow_meta?: Json
           description?: string | null
+          execution_engine?: string
           id?: string
           max_call_duration_seconds?: number | null
           model?: string | null
@@ -1574,7 +1693,10 @@ export type Database = {
           call_webhook_url?: string | null
           config?: Json
           created_at?: string
+          deerflow_agent_name?: string | null
+          deerflow_meta?: Json
           description?: string | null
+          execution_engine?: string
           id?: string
           max_call_duration_seconds?: number | null
           model?: string | null

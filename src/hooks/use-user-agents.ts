@@ -16,6 +16,8 @@ export interface UserAgent {
   config: Record<string, any>;
   created_at: string;
   updated_at: string;
+  execution_engine?: string;
+  deerflow_agent_name?: string;
 }
 
 export function useUserAgents() {

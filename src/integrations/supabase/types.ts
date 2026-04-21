@@ -124,6 +124,57 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_template_licenses: {
+        Row: {
+          agency_user_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          pricing_id: string | null
+          purchased_at: string
+          resale_price_cents: number | null
+          status: string
+          template_id: string
+        }
+        Insert: {
+          agency_user_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pricing_id?: string | null
+          purchased_at?: string
+          resale_price_cents?: number | null
+          status?: string
+          template_id: string
+        }
+        Update: {
+          agency_user_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pricing_id?: string | null
+          purchased_at?: string
+          resale_price_cents?: number | null
+          status?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_template_licenses_pricing_id_fkey"
+            columns: ["pricing_id"]
+            isOneToOne: false
+            referencedRelation: "template_pricing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_template_licenses_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "agent_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_wallets: {
         Row: {
           balance: number
@@ -244,6 +295,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agent_templates: {
+        Row: {
+          agent_type: string
+          config_yaml: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          model: string
+          name: string
+          slug: string
+          soul_md: string
+          status: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          agent_type?: string
+          config_yaml?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          model?: string
+          name: string
+          slug: string
+          soul_md?: string
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          agent_type?: string
+          config_yaml?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          model?: string
+          name?: string
+          slug?: string
+          soul_md?: string
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
       }
       billing_events: {
         Row: {
@@ -1571,6 +1676,50 @@ export type Database = {
         }
         Relationships: []
       }
+      template_pricing: {
+        Row: {
+          billing_type: string
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          min_resale_margin_pct: number
+          price_cents: number
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          billing_type?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          min_resale_margin_pct?: number
+          price_cents?: number
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          billing_type?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          min_resale_margin_pct?: number
+          price_cents?: number
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_pricing_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "agent_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tier_module_access: {
         Row: {
           has_access: boolean
@@ -1894,6 +2043,7 @@ export type Database = {
         Args: { consumed: number; user_uuid: string }
         Returns: undefined
       }
+      is_platform_admin: { Args: never; Returns: boolean }
       is_platform_user: { Args: { check_user_id: string }; Returns: boolean }
     }
     Enums: {

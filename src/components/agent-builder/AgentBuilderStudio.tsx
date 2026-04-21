@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 const STEP_META = [
+  { key: "choose-type" as const, label: "Tipo", icon: Bot },
   { key: "describe" as const, label: "Descrever", icon: MessageSquare },
   { key: "customize" as const, label: "Personalizar", icon: Settings2 },
   { key: "calibrate" as const, label: "Calibrar", icon: FlaskConical },
@@ -222,6 +223,36 @@ const AgentBuilderStudio = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        {/* ── Step 0: Choose Type ── */}
+        {step === "choose-type" && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="text-center space-y-1">
+              <h2 className="text-xl font-bold">Qual agente você precisa?</h2>
+              <p className="text-sm text-muted-foreground">
+                Escolha o tipo de agente para personalizar a configuração.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {([
+                { type: "SDR", label: "SDR — Qualificação", desc: "Qualifica leads, aplica BANT e agenda reuniões automaticamente." },
+                { type: "BDR", label: "BDR — Prospecção", desc: "Pesquisa empresas e aborda prospects com mensagens personalizadas." },
+                { type: "SAC", label: "SAC — Suporte", desc: "Atendimento 24/7, resolve dúvidas e escala para humano." },
+                { type: "CS", label: "CS — Sucesso do Cliente", desc: "Onboarding, retenção de clientes e prevenção de churn." },
+                { type: "Custom", label: "Personalizado", desc: "Configure livremente para qualquer objetivo." },
+              ] as const).map(opt => (
+                <button
+                  key={opt.type}
+                  onClick={() => { updateConfigField("agentType", opt.type); setStep("describe"); }}
+                  className="text-left rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 p-4 transition-all space-y-1"
+                >
+                  <div className="text-sm font-semibold">{opt.label}</div>
+                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Step 1: Descrever ── */}
         {step === "describe" && (
           <div className="max-w-lg mx-auto space-y-5">

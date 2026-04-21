@@ -54,6 +54,8 @@ const Aikortex = () => {
   const navigate = useNavigate();
   const { agents, loading, deleteAgent } = useUserAgents();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { tier } = usePartnerTier();
+  const canCreateCustom = tier === "explorer" || tier === "hack";
 
   const handleOpenAgent = (agentId: string) => {
     navigate(`/aikortex/agents/${agentId}`);
@@ -87,14 +89,7 @@ const Aikortex = () => {
   };
 
   const handleNewCustom = () => {
-    const newId = `new-${Date.now()}`;
-    navigate(`/aikortex/agents/${newId}`, {
-      state: {
-        fromTemplate: false,
-        agentType: "Custom",
-        agentName: "Novo Agente",
-      },
-    });
+    navigate("/agent-builder");
   };
 
   const handleDeleteAgent = async () => {

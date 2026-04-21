@@ -57,7 +57,6 @@ async function processCrmLeadBlock(text: string): Promise<string> {
     console.error("CRM block parse error:", e);
   }
 
-  // Strip the technical block from the user-visible message (and any wrapping code fences)
   return text
     .replace(/```[a-z]*\s*<<<CRM_LEAD>>>[\s\S]*?<<<END>>>\s*```/gi, "")
     .replace(CRM_LEAD_REGEX, "")
@@ -114,17 +113,15 @@ interface UseAgentChatOptions {
   persistKey?: string;
   apiConfig?: ApiConfigParams;
   agentContext?: AgentChatContext;
-  /** When set to "wizard-setup", routes to the backend setup wizard prompt builder. */
   mode?: "agent-chat" | "wizard-setup";
-  /** Agent type (sdr/sac/...) — required by the wizard-setup prompt builder. */
   agentType?: string;
-  /** Disable CRM lead extraction post-processing (e.g. during wizard). */
   disableCrmExtraction?: boolean;
+  agentId?: string;
+  executionEngine?: string;
 }
 
 function deriveProvider(model?: string): string | undefined {
   if (!model) return undefined;
-  // Models with a slash are OpenRouter-routed (platform-provided) — no single "provider" to validate against
   if (model.includes("/")) return undefined;
   if (model.startsWith("gemini")) return "gemini";
   if (model.startsWith("gpt")) return "openai";
@@ -156,14 +153,10 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
+    return () => { mountedRef.current = false; };
   }, []);
 
-  useEffect(() => {
-    messagesRef.current = messages;
-  }, [messages]);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   useEffect(() => {
     if (options.persistKey && messages.length > 0) {
@@ -171,7 +164,6 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
     }
   }, [messages, options.persistKey]);
 
-  /** Batched state update for streaming tokens — uses RAF to stay in React's scheduling */
   const flushPendingText = useCallback((force = false) => {
     const doFlush = () => {
       flushScheduledRef.current = false;
@@ -187,14 +179,9 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
       });
     };
 
-    if (force) {
-      flushScheduledRef.current = false;
-      doFlush();
-      return;
-    }
+    if (force) { flushScheduledRef.current = false; doFlush(); return; }
     if (flushScheduledRef.current) return;
     flushScheduledRef.current = true;
-    // Use setTimeout with a safe interval; React batches these automatically in v18
     setTimeout(doFlush, FLUSH_INTERVAL_MS);
   }, []);
 
@@ -205,10 +192,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
     if (options.provider && inferredProvider && options.provider !== inferredProvider) {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "agent",
-          text: `⚠️ O modelo **${options.model}** não pertence ao provider **${options.provider}**. Ajuste a configuração antes de testar.`,
-        },
+        { role: "agent", text: `⚠️ O modelo **${options.model}** não pertence ao provider **${options.provider}**. Ajuste a configuração antes de testar.` },
       ]);
       return;
     }
@@ -229,9 +213,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
     }
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       let resp: Response | null = null;
@@ -242,6 +224,10 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
           messages: apiMessages,
           useGateway: options.useGateway ?? false,
         };
+
+        // DeerFlow routing
+        if (options.agentId) payload.agent_id = options.agentId;
+        if (options.executionEngine) payload.execution_engine = options.executionEngine;
 
         if (options.mode === "wizard-setup") {
           payload.agentType = options.agentType || "custom";
@@ -283,7 +269,6 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
       }
 
       if (!resp.body) throw new Error("Sem resposta do servidor");
-
       if (!mountedRef.current) return;
 
       const withPlaceholder = [...messagesRef.current, { role: "agent" as const, text: "" }];
@@ -310,10 +295,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
           if (!line.startsWith("data: ")) continue;
 
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") {
-            flushPendingText(true);
-            continue;
-          }
+          if (jsonStr === "[DONE]") { flushPendingText(true); continue; }
 
           try {
             const parsed = JSON.parse(jsonStr);
@@ -330,7 +312,6 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
 
       flushPendingText(true);
 
-      // After full stream completes, check for CRM_LEAD block and persist it.
       const finalText = pendingTextRef.current;
       if (!options.disableCrmExtraction && finalText && CRM_LEAD_REGEX.test(finalText)) {
         const cleanText = await processCrmLeadBlock(finalText);
@@ -354,11 +335,9 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
         ]);
       }
     } finally {
-      if (mountedRef.current) {
-        setIsStreaming(false);
-      }
+      if (mountedRef.current) setIsStreaming(false);
     }
-  }, [isStreaming, options.provider, options.model, options.useGateway, options.gatewayModel, options.systemPrompt, options.apiConfig, options.agentContext, options.mode, options.agentType, options.disableCrmExtraction, flushPendingText]);
+  }, [isStreaming, options.provider, options.model, options.useGateway, options.gatewayModel, options.systemPrompt, options.apiConfig, options.agentContext, options.mode, options.agentType, options.disableCrmExtraction, options.agentId, options.executionEngine, flushPendingText]);
 
   return { messages, setMessages, sendMessage, isStreaming };
 }

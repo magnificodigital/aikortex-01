@@ -1,8 +1,10 @@
 import { AgentRecommendation } from "@/types/agent-builder";
-import { ArrowRight, Settings2, Sparkles, Bot, Trash2, Loader2 } from "lucide-react";
+import { ArrowRight, Sparkles, Bot, Trash2, Loader2, Lock } from "lucide-react";
 import { useUserAgents, type UserAgent } from "@/hooks/use-user-agents";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { usePartnerTier } from "@/hooks/use-partner-tier";
 
 import avatar1 from "@/assets/avatars/avatar-1.png";
 import avatar2 from "@/assets/avatars/avatar-2.png";
@@ -38,6 +40,9 @@ const AVATAR_MAP: Record<string, string> = {
 
 const StepAgents = ({ selected, onSelect }: Props) => {
   const { agents, loading, deleteAgent } = useUserAgents();
+  const navigate = useNavigate();
+  const { tier } = usePartnerTier();
+  const canCreateCustom = tier === "explorer" || tier === "hack";
 
   const handleSelect = (id: string, type: string, name: string, description: string) => {
     onSelect({

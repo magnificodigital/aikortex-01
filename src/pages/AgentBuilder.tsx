@@ -1,10 +1,9 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AgentBuilderProvider } from "@/contexts/AgentBuilderContext";
 import AgentBuilderStudio from "@/components/agent-builder/AgentBuilderStudio";
 import AgentPreview from "@/components/agent-builder/AgentPreview";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Bot } from "lucide-react";
-import type { AgentType } from "@/types/agent-builder";
 
 const AgentBuilderInner = () => {
   const navigate = useNavigate();
@@ -36,12 +35,8 @@ const AgentBuilderInner = () => {
 };
 
 const AgentBuilder = () => {
-  const location = useLocation();
-  const state = location.state as { agentType?: AgentType } | null;
-  const initialType: AgentType = state?.agentType || "Custom";
-
   return (
-    <AgentBuilderProvider initialType={initialType}>
+    <AgentBuilderProvider initialType="Custom">
       <AgentBuilderInner />
     </AgentBuilderProvider>
   );

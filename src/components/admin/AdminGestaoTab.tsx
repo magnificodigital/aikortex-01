@@ -96,12 +96,24 @@ const generatePassword = () => {
 };
 
 const adminInvoke = async (body: Record<string, any>) => {
-  const { data, error } = await supabase.functions.invoke("admin-users", { body });
-  if (error) {
-    // Try to extract the real error message from the response context
-    const msg = (data as any)?.error || error.message || "Erro desconhecido";
-    throw new Error(msg);
-  }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Sessão expirada. Faça login novamente.");
+
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`,
+        "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error || "Erro desconhecido");
   if (data?.error) throw new Error(data.error);
   return data;
 };

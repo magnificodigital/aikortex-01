@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import type { AgentType } from "@/types/agent-builder";
 
-export type AgentBuilderStep = "describe" | "customize" | "calibrate" | "create" | "done";
+export type AgentBuilderStep = "choose-type" | "describe" | "customize" | "calibrate" | "create" | "done";
 
 export type AgentProvider = "auto" | "anthropic" | "openai" | "gemini" | "openrouter";
 
@@ -43,7 +43,7 @@ export interface AgentBuilderState {
 }
 
 const INITIAL_STATE: AgentBuilderState = {
-  step: "describe",
+  step: "choose-type",
   agentType: "Custom",
   prompt: "",
   structuredConfig: null,

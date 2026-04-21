@@ -1,8 +1,10 @@
 import { AgentRecommendation } from "@/types/agent-builder";
-import { ArrowRight, Settings2, Sparkles, Bot, Trash2, Loader2 } from "lucide-react";
+import { ArrowRight, Sparkles, Bot, Trash2, Loader2, Lock } from "lucide-react";
 import { useUserAgents, type UserAgent } from "@/hooks/use-user-agents";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { usePartnerTier } from "@/hooks/use-partner-tier";
 
 import avatar1 from "@/assets/avatars/avatar-1.png";
 import avatar2 from "@/assets/avatars/avatar-2.png";
@@ -38,6 +40,9 @@ const AVATAR_MAP: Record<string, string> = {
 
 const StepAgents = ({ selected, onSelect }: Props) => {
   const { agents, loading, deleteAgent } = useUserAgents();
+  const navigate = useNavigate();
+  const { tier } = usePartnerTier();
+  const canCreateCustom = tier === "explorer" || tier === "hack";
 
   const handleSelect = (id: string, type: string, name: string, description: string) => {
     onSelect({
@@ -196,53 +201,60 @@ const StepAgents = ({ selected, onSelect }: Props) => {
       {/* Divider */}
       <div className="flex items-center gap-4 w-full">
         <div className="flex-1 h-px bg-border" />
-        <span className="text-xs text-muted-foreground font-medium">ou</span>
+        <span className="text-xs text-muted-foreground font-medium">ou crie do zero</span>
         <div className="flex-1 h-px bg-border" />
       </div>
 
-      {/* Custom Agent Section */}
+      {/* Custom Agent / Novo Agente */}
       <div className="space-y-3 w-full">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground bg-muted px-3 py-1.5 rounded-lg">Personalizado</span>
-          <span className="text-xs text-muted-foreground">Crie do zero com total liberdade</span>
-        </div>
-
-        <button
-          onClick={() => handleSelect("custom-1", "Custom", "Agente Personalizado", "Configure um agente sob medida com total liberdade: objetivos, canais, integrações e comportamento.")}
-          className={`relative w-full text-left rounded-xl border p-6 transition-all duration-200 ${
-            isCustomSelected
-              ? "border-primary bg-primary/5 ring-1 ring-primary"
-              : "border-dashed border-border bg-card hover:border-primary/40"
-          }`}
-        >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center shrink-0">
-              <Settings2 className="w-5 h-5 text-accent-foreground" />
-            </div>
-            <div className="space-y-2 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-foreground">Agente Personalizado</span>
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
+        {canCreateCustom ? (
+          <button
+            onClick={() => navigate("/agent-builder")}
+            className="relative w-full text-left rounded-xl border border-dashed border-border bg-card hover:border-primary/40 p-6 transition-all duration-200"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center shrink-0">
+                <Bot className="w-5 h-5 text-accent-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Configure um agente sob medida com total liberdade: defina objetivos, canais, integrações e comportamento sem restrições.
-              </p>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {["Todos os canais", "Todas as integrações", "Objetivos livres", "100% configurável"].map((tag) => (
-                  <span key={tag} className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                    {tag}
-                  </span>
-                ))}
+              <div className="space-y-2 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-foreground">Novo Agente</span>
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Configure um agente sob medida com total liberdade: defina objetivos, canais, integrações e comportamento sem restrições.
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {["SDR", "BDR", "SAC", "CS", "Personalizado"].map((tag) => (
+                    <span key={tag} className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </button>
+        ) : (
+          <div className="relative w-full rounded-xl border border-dashed border-border bg-muted/30 p-6 opacity-75">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="space-y-2 min-w-0">
+                <h3 className="text-sm font-bold text-foreground">Novo Agente</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Disponível a partir do tier Explorer (5 clientes ativos).
+                </p>
               </div>
             </div>
           </div>
-        </button>
+        )}
       </div>
 
       {/* Footer hint */}
       <div className="pt-2">
         <p className="text-xs text-muted-foreground text-center">
-          Selecione um template ou crie um personalizado para continuar
+          Selecione um template ou crie um agente do zero para continuar
         </p>
       </div>
     </div>

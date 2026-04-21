@@ -131,9 +131,11 @@ const Aikortex = () => {
               Crie agentes inteligentes para vendas, suporte, marketing e mais.
             </p>
           </div>
-          <Button onClick={handleNewCustom} className="gap-2 rounded-full">
-            <Plus className="w-4 h-4" /> Novo Agente
-          </Button>
+          {canCreateCustom && (
+            <Button onClick={handleNewCustom} className="gap-2 rounded-full">
+              <Plus className="w-4 h-4" /> Novo Agente
+            </Button>
+          )}
         </div>
 
         {/* Saved Agents */}

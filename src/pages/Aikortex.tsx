@@ -229,25 +229,40 @@ const Aikortex = () => {
           ))}
 
           {/* Custom card */}
-          <div
-            onClick={handleNewCustom}
-            className="group rounded-xl border border-dashed border-border bg-card p-5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                <Settings2 className="w-5 h-5 text-accent-foreground" />
+          {canCreateCustom ? (
+            <div
+              onClick={handleNewCustom}
+              className="group rounded-xl border border-dashed border-border bg-card p-5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
+                  <Settings2 className="w-5 h-5 text-accent-foreground" />
+                </div>
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
               </div>
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <h3 className="text-sm font-bold text-foreground mb-0.5">Personalizado</h3>
+              <p className="text-[10px] text-primary/70 font-medium mb-1.5">Livre</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                Crie um agente do zero com total liberdade: objetivos, canais, integrações e comportamento.
+              </p>
+              <div className="flex items-center text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Criar agente <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-foreground mb-0.5">Personalizado</h3>
-            <p className="text-[10px] text-primary/70 font-medium mb-1.5">Livre</p>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-              Crie um agente do zero com total liberdade: objetivos, canais, integrações e comportamento.
-            </p>
-            <div className="flex items-center text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-              Criar agente <ArrowRight className="w-3.5 h-3.5 ml-1" />
+          ) : (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-5 opacity-75">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-muted-foreground" />
+                </div>
+              </div>
+              <h3 className="text-sm font-bold text-foreground mb-0.5">Personalizado</h3>
+              <p className="text-[10px] text-muted-foreground font-medium mb-1.5">Disponível no tier Explorer</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                Conquiste 5 clientes ativos para desbloquear criação de agentes personalizados.
+              </p>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Delete confirmation */}

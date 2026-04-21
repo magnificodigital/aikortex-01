@@ -64,6 +64,13 @@ interface TemplateForm {
   price_cents: number;
   billing_type: "monthly" | "one_time";
   min_resale_margin_pct: number;
+  category: string;
+  features: string[];
+  demo_url: string;
+  min_tier: string;
+  is_active: boolean;
+  is_exclusive: boolean;
+  sort_order: number;
 }
 
 // ── Constants ──────────────────────────────────────────────────────
@@ -87,6 +94,13 @@ const EMPTY_FORM: TemplateForm = {
   price_cents: 0,
   billing_type: "monthly",
   min_resale_margin_pct: 20,
+  category: "agent",
+  features: [],
+  demo_url: "",
+  min_tier: "starter",
+  is_active: true,
+  is_exclusive: false,
+  sort_order: 0,
 };
 
 const slugify = (t: string) =>
@@ -201,6 +215,13 @@ const AdminAgentTemplatesTab = () => {
         model:       form.model,
         soul_md:     form.soul_md,
         config_yaml: form.config_yaml,
+        category:    form.category,
+        features:    form.features,
+        demo_url:    form.demo_url || null,
+        min_tier:    form.min_tier,
+        is_active:   form.is_active,
+        is_exclusive: form.is_exclusive,
+        sort_order:  form.sort_order,
         updated_at:  new Date().toISOString(),
       };
 
@@ -289,6 +310,13 @@ const AdminAgentTemplatesTab = () => {
       price_cents:           pricing?.price_cents ?? 0,
       billing_type:          pricing?.billing_type ?? "monthly",
       min_resale_margin_pct: pricing?.min_resale_margin_pct ?? 20,
+      category:              t.category ?? "agent",
+      features:              Array.isArray(t.features) ? t.features : [],
+      demo_url:              t.demo_url ?? "",
+      min_tier:              t.min_tier ?? "starter",
+      is_active:             t.is_active ?? true,
+      is_exclusive:          t.is_exclusive ?? false,
+      sort_order:            t.sort_order ?? 0,
     });
     setFormTab("info");
     setModalOpen(true);

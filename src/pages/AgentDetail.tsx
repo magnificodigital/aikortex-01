@@ -55,6 +55,8 @@ interface LoadedAgent {
   model: string;
   agentType: AgentType;
   savedConfig: Record<string, any> | null;
+  executionEngine?: string;
+  deerflowAgentName?: string;
 }
 
 const buildSavedConfig = (config: AgentConfig, agentType: string) => ({
@@ -142,15 +144,17 @@ const AgentDetail = () => {
       const { data } = await supabase.from("user_agents").select("*").eq("id", agentId).single();
       if (data) {
         setLoadedAgent({
-          name:        data.name,
-          avatar:      data.avatar_url || AVATAR_BY_TYPE[data.agent_type] || avatar1,
-          model:       data.model || "google/gemini-2.5-flash",
-          agentType:   (data.agent_type as AgentType) || "Custom",
+          name:              data.name,
+          avatar:            data.avatar_url || AVATAR_BY_TYPE[data.agent_type] || avatar1,
+          model:             data.model || "google/gemini-2.5-flash",
+          agentType:         (data.agent_type as AgentType) || "Custom",
+          executionEngine:   (data as any).execution_engine || undefined,
+          deerflowAgentName: (data as any).deerflow_agent_name || undefined,
           savedConfig: {
             ...(typeof data.config === "object" && data.config !== null ? data.config : {}),
-            name: data.name,
+            name:        data.name,
             description: data.description || "",
-            avatarUrl: data.avatar_url || AVATAR_BY_TYPE[data.agent_type] || avatar1,
+            avatarUrl:   data.avatar_url || AVATAR_BY_TYPE[data.agent_type] || avatar1,
           } as Record<string, any>,
         });
       }
@@ -661,11 +665,13 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
   const testChat = useAgentChat(
     [{ role: "agent", text: agentConfig?.greetingMessage || `🧪 Modo de Teste ativado! Respondendo como **${loadedAgent.name}**. Envie uma mensagem.` }],
     {
-      provider:     currentProvider,
-      model:        agentModel,
-      systemPrompt: testSystemPrompt,
-      persistKey:   shouldPersistTemplateDraft ? `${storagePrefix}-test-messages` : undefined,
-      agentContext: testAgentContext,
+      provider:        currentProvider,
+      model:           agentModel,
+      systemPrompt:    testSystemPrompt,
+      persistKey:      shouldPersistTemplateDraft ? `${storagePrefix}-test-messages` : undefined,
+      agentContext:    testAgentContext,
+      agentId:         resolvedAgentId,
+      executionEngine: loadedAgent.executionEngine,
     }
   );
 

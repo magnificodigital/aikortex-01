@@ -299,14 +299,21 @@ export type Database = {
       agent_templates: {
         Row: {
           agent_type: string
+          category: string
           config_yaml: string
           created_at: string
           created_by: string | null
+          demo_url: string | null
           description: string | null
+          features: Json | null
           id: string
+          is_active: boolean
+          is_exclusive: boolean
+          min_tier: string
           model: string
           name: string
           slug: string
+          sort_order: number
           soul_md: string
           status: string
           tags: string[] | null
@@ -316,14 +323,21 @@ export type Database = {
         }
         Insert: {
           agent_type?: string
+          category?: string
           config_yaml?: string
           created_at?: string
           created_by?: string | null
+          demo_url?: string | null
           description?: string | null
+          features?: Json | null
           id?: string
+          is_active?: boolean
+          is_exclusive?: boolean
+          min_tier?: string
           model?: string
           name: string
           slug: string
+          sort_order?: number
           soul_md?: string
           status?: string
           tags?: string[] | null
@@ -333,14 +347,21 @@ export type Database = {
         }
         Update: {
           agent_type?: string
+          category?: string
           config_yaml?: string
           created_at?: string
           created_by?: string | null
+          demo_url?: string | null
           description?: string | null
+          features?: Json | null
           id?: string
+          is_active?: boolean
+          is_exclusive?: boolean
+          min_tier?: string
           model?: string
           name?: string
           slug?: string
+          sort_order?: number
           soul_md?: string
           status?: string
           tags?: string[] | null
@@ -643,7 +664,7 @@ export type Database = {
             foreignKeyName: "client_template_subscriptions_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
-            referencedRelation: "platform_templates"
+            referencedRelation: "agent_templates"
             referencedColumns: ["id"]
           },
         ]

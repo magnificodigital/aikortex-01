@@ -267,7 +267,7 @@ async function handleProvisionAgent(
   const admin = supaAdmin();
 
   // Deterministic DeerFlow agent name: aikortex_<agent_id_first_8>
-  const safeName = `aikortex_${agentId.replace(/-/g, "").slice(0, 12)}`;
+  const safeName = `aikortex-${agentId.replace(/-/g, "").slice(0, 12)}`;
 
   // Build a DeerFlow-compatible payload. Adjust keys as your DeerFlow schema
   // evolves. Current expected shape (from /api/agents POST):

@@ -508,6 +508,52 @@ const AdminAgentTemplatesTab = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-1">
+                  <Label>Categoria</Label>
+                  <Select value={form.category} onValueChange={(v) => setForm((p) => ({ ...p, category: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="agent">Agente</SelectItem>
+                      <SelectItem value="automation">Automação</SelectItem>
+                      <SelectItem value="app">Aplicativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Tier mínimo</Label>
+                  <Select value={form.min_tier} onValueChange={(v) => setForm((p) => ({ ...p, min_tier: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="starter">Starter</SelectItem>
+                      <SelectItem value="explorer">Explorer</SelectItem>
+                      <SelectItem value="hack">Hack</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <Label>URL do demo</Label>
+                  <Input
+                    value={form.demo_url}
+                    onChange={(e) => setForm((p) => ({ ...p, demo_url: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Ordem de exibição</Label>
+                  <Input
+                    type="number"
+                    value={form.sort_order}
+                    onChange={(e) => setForm((p) => ({ ...p, sort_order: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between col-span-2 rounded-md border p-3">
+                  <Label className="text-sm">Ativo no marketplace</Label>
+                  <Switch checked={form.is_active} onCheckedChange={(v) => setForm((p) => ({ ...p, is_active: v }))} />
+                </div>
+                <div className="flex items-center justify-between col-span-2 rounded-md border p-3">
+                  <Label className="text-sm">Exclusivo Hack</Label>
+                  <Switch checked={form.is_exclusive} onCheckedChange={(v) => setForm((p) => ({ ...p, is_exclusive: v }))} />
+                </div>
               </div>
             </TabsContent>
 

@@ -35,6 +35,26 @@ const AddClientWizard = ({ open, onOpenChange, agencyId, customPricing, agencyTi
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  const agencyInvoke = async (fnName: string, body: Record<string, any>) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error("Sessão expirada. Faça login novamente.");
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${fnName}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error || `Erro na função ${fnName}`);
+    return data;
+  };
+
   // Step 1
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

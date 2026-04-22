@@ -178,7 +178,9 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
     const isExpanded = expandedItems[item.path];
     const basePath = item.path.split("?")[0];
     const moduleKey = MODULE_KEY_MAP[basePath];
-    const isLocked = moduleKey ? !canAccess(moduleKey) : false;
+    const isLocked = moduleKey
+      ? (isClientMode ? !canView(moduleKey) : !canAccess(moduleKey))
+      : false;
 
     return (
       <div key={item.path}>

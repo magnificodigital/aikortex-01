@@ -214,7 +214,131 @@ const Home = () => {
         </p>
 
         {/* Prompt Box */}
-        <div className="w-full max-w-2xl rounded-2xl border border-border bg-card shadow-xl shadow-black/5 overflow-hidden mb-8">
+        {!isClientMode ? (
+          <>
+            <div className="w-full max-w-2xl rounded-2xl border border-border bg-card shadow-xl shadow-black/5 overflow-hidden mb-8">
+              {/* Creation tabs */}
+              <div className="flex items-center gap-1 px-4 pt-3 pb-1">
+                {(["app", "agentes", "flows"] as const).map((tab) => {
+                  const labels = { app: "App", agentes: "Agentes", flows: "Flows" };
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        activeCreationTab === tab
+                          ? "bg-primary/10 text-primary shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      }`}
+                    >
+                      {tab === "app" && <Monitor className="w-4 h-4" />}
+                      {tab === "agentes" && <Sparkles className="w-4 h-4" />}
+                      {tab === "flows" && <Globe className="w-4 h-4" />}
+                      {labels[tab]}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Text area */}
+              <textarea
+                value={prompt}
+                onChange={(e) => handlePromptChange(e.target.value)}
+                placeholder={
+                  activeCreationTab === "app"
+                    ? "Descreva o app que você quer criar..."
+                    : activeCreationTab === "agentes"
+                    ? "Descreva o agente que você precisa..."
+                    : "Descreva o fluxo que você quer automatizar..."
+                }
+                className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/50 px-5 py-3 min-h-[90px]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
+                }}
+              />
+
+              {/* Bottom bar */}
+              <div className="flex items-center justify-between px-4 pb-3">
+                <div className="flex items-center gap-1.5">
+                  {activeCreationTab === "app" && (
+                    <>
+                      <button
+                        onClick={() => setDetectedChannel("web")}
+                        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border transition-all ${
+                          detectedChannel === "web" || !detectedChannel
+                            ? "border-primary/40 bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                        }`}
+                      >
+                        <Monitor className="w-3.5 h-3.5" />
+                        Web App
+                      </button>
+                      <button
+                        onClick={() => setDetectedChannel("whatsapp")}
+                        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border transition-all ${
+                          detectedChannel === "whatsapp"
+                            ? "border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400"
+                            : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                        }`}
+                      >
+                        <WhatsAppIcon className="w-3.5 h-3.5" />
+                        WhatsApp
+                      </button>
+                    </>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  className="h-9 px-5 rounded-full bg-primary hover:bg-primary/90 gap-1.5"
+                  disabled={!prompt.trim()}
+                  onClick={() => handleSubmit()}
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Suggestions */}
+            <div className="flex items-center gap-3 flex-wrap justify-center">
+              {currentSuggestions.map((label) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setPrompt(label);
+                    handlePromptChange(label);
+                  }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors"
+                >
+                  <SuggestionIcon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+              <button
+                onClick={refreshSuggestions}
+                className="flex items-center justify-center w-10 h-10 rounded-full border border-border text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 w-full max-w-md mt-4">
+            {[
+              { label: "Mensagens", path: "/aikortex/messages" },
+              { label: "Tarefas", path: "/tasks" },
+              { label: "Clientes", path: "/clients" },
+              { label: "Financeiro", path: "/financeiro" },
+            ].map(item => (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className="rounded-xl border border-border bg-card p-5 text-sm font-medium hover:border-primary/40 transition-all text-left"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
           {/* Creation tabs */}
           <div className="flex items-center gap-1 px-4 pt-3 pb-1">
             {(["app", "agentes", "flows"] as const).map((tab) => {

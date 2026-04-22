@@ -322,7 +322,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
 
           {renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)}
           {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
-          {renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
+          {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
 
           {/* Seção Conta & Suporte */}
           <div>

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useModuleAccess } from "@/hooks/use-module-access";
+import { useClientPermissions } from "@/hooks/use-client-permissions";
 import { useMonthlyUsage } from "@/hooks/use-monthly-usage";
 import aikortexLogoWhite from "@/assets/aikortex-logo-white.png";
 import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";

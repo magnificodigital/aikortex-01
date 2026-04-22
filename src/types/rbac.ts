@@ -63,7 +63,7 @@ export type FeatureFlag =
   | "module.team"
   | "module.tasks";
 
-export type PartnerTier = "starter" | "explorer" | "hack";
+export type PartnerTier = "starter" | "hack" | "growth";
 
 export interface TierFeatureConfig {
   label: string;
@@ -193,8 +193,8 @@ export const TIER_FEATURE_CONFIG: Record<PartnerTier, TierFeatureConfig> = {
       "module.tasks",
     ],
   },
-  explorer: {
-    label: "Explorer",
+  hack: {
+    label: "Hack",
     color: "text-gray-400",
     bg: "bg-gray-500/10",
     icon: "🥈",
@@ -216,8 +216,8 @@ export const TIER_FEATURE_CONFIG: Record<PartnerTier, TierFeatureConfig> = {
       "feature.custom_reports",
     ],
   },
-  hack: {
-    label: "Hack",
+  growth: {
+    label: "Growth",
     color: "text-yellow-500",
     bg: "bg-yellow-500/10",
     icon: "🥇",

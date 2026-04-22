@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { TIER_CONFIG, type PartnerTier } from "@/types/partner";
 import { useAuth } from "@/contexts/AuthContext";
 
-const TIERS: PartnerTier[] = ["starter", "explorer", "hack"];
+const TIERS: PartnerTier[] = ["starter", "hack", "growth"];
 
 const tierBadge = (tier: string) => {
   const cfg = TIER_CONFIG[tier as PartnerTier];

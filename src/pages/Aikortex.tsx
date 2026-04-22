@@ -55,7 +55,7 @@ const Aikortex = () => {
   const { agents, loading, deleteAgent } = useUserAgents();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { tier } = usePartnerTier();
-  const canCreateCustom = tier === "explorer" || tier === "hack";
+  const canCreateCustom = tier === "hack" || tier === "growth";
 
   const handleOpenAgent = (agentId: string) => {
     navigate(`/aikortex/agents/${agentId}`);
@@ -257,7 +257,7 @@ const Aikortex = () => {
                 </div>
               </div>
               <h3 className="text-sm font-bold text-foreground mb-0.5">Personalizado</h3>
-              <p className="text-[10px] text-muted-foreground font-medium mb-1.5">Disponível no tier Explorer</p>
+              <p className="text-[10px] text-muted-foreground font-medium mb-1.5">Disponível no tier Hack</p>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                 Conquiste 5 clientes ativos para desbloquear criação de agentes personalizados.
               </p>

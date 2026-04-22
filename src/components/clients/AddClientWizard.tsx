@@ -78,8 +78,21 @@ const AddClientWizard = ({ open, onOpenChange, agencyId, customPricing, agencyTi
       setStep(1); setName(""); setEmail(""); setPhone(""); setDocument("");
       setSelected(new Set()); setPaymentLink(""); setCreatedClientId("");
       setCreateWorkspaceAccess(false); setClientPassword("");
-      supabase.from("platform_templates").select("*").eq("is_active", true).then(({ data }) => {
-        if (data) setTemplates(data.filter((t: any) => TIER_ORDER[agencyTier] >= TIER_ORDER[t.min_tier]) as Template[]);
+      supabase.from("agent_templates").select("*, template_pricing(*)").eq("status", "published").then(({ data }) => {
+        if (data) {
+          const mapped = data.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            slug: item.slug,
+            description: item.description,
+            category: item.category,
+            min_tier: item.min_tier,
+            platform_price_monthly: item.template_pricing?.[0]?.price_cents
+              ? item.template_pricing[0].price_cents / 100
+              : 0,
+          })) as Template[];
+          setTemplates(mapped.filter((t) => TIER_ORDER[agencyTier] >= TIER_ORDER[t.min_tier]));
+        }
       });
     }
   }, [open, agencyTier]);

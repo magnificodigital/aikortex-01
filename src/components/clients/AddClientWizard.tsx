@@ -107,31 +107,74 @@ const AddClientWizard = ({ open, onOpenChange, agencyId, customPricing, agencyTi
     if (!agencyId) { toast.error("Perfil de agência não encontrado"); return; }
     setLoading(true);
     try {
-      // Create client
-      const data = await agencyInvoke("asaas-create-client", {
-        client_name: name, client_email: email, client_phone: phone, client_document: document,
-      });
-      const clientId = data.client?.id;
+      let clientId: string | null = null;
+
+      // Tentar criar no Asaas — se falhar, cadastrar direto no banco
+      try {
+        const data = await agencyInvoke("asaas-create-client", {
+          client_name: name, client_email: email, client_phone: phone, client_document: document,
+        });
+        clientId = data.client?.id ?? null;
+      } catch {
+        const { data: newClient, error } = await supabase
+          .from("agency_clients")
+          .insert({
+            agency_id: agencyId,
+            client_name: name,
+            client_email: email || null,
+            client_phone: phone || null,
+            client_document: document || null,
+            status: "active",
+          })
+          .select("id")
+          .single();
+        if (error) throw new Error("Erro ao cadastrar cliente");
+        clientId = newClient.id;
+      }
+
+      if (!clientId) throw new Error("Erro ao obter ID do cliente");
       setCreatedClientId(clientId);
 
-      // Optionally create workspace access for client
+      // Criar acesso ao workspace (opcional)
       if (createWorkspaceAccess && email && clientPassword) {
-        const createRes = await agencyInvoke("create-user", {
-          email,
-          password: clientPassword,
-          full_name: name,
-          role: "client_owner",
-          tenant_type: "client",
-        });
-        if (createRes?.user?.id) {
-          // Link client_user_id
-          await supabase.from("agency_clients").update({ client_user_id: createRes.user.id }).eq("id", clientId);
+        try {
+          const createRes = await agencyInvoke("create-user", {
+            email,
+            password: clientPassword,
+            full_name: name,
+            role: "client_owner",
+            tenant_type: "client",
+          });
+          if (createRes?.user?.id) {
+            await supabase
+              .from("agency_clients")
+              .update({ client_user_id: createRes.user.id })
+              .eq("id", clientId);
+          }
+        } catch {
+          // Ignorar erro — não bloqueia o cadastro
         }
       }
 
-      // Subscribe templates
+      // Vincular templates (Asaas opcional)
       for (const t of selectedTemplates) {
-        await agencyInvoke("asaas-subscribe-template", { client_id: clientId, template_id: t.id });
+        try {
+          await agencyInvoke("asaas-subscribe-template", {
+            client_id: clientId, template_id: t.id,
+          });
+        } catch {
+          const price = getPrice(t) ?? 0;
+          await supabase
+            .from("client_template_subscriptions")
+            .insert({
+              agency_id: agencyId,
+              client_id: clientId,
+              template_id: t.id,
+              status: "active",
+              platform_price_monthly: t.platform_price_monthly ?? 0,
+              agency_price_monthly: price,
+            });
+        }
       }
 
       toast.success("Cliente cadastrado com sucesso!");

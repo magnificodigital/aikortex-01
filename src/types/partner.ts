@@ -1,4 +1,4 @@
-export type PartnerTier = "starter" | "explorer" | "hack";
+export type PartnerTier = "starter" | "hack" | "growth";
 
 export interface PartnerProfile {
   id: string;
@@ -85,8 +85,8 @@ export const TIER_CONFIG: Record<PartnerTier, { label: string; color: string; mi
     minCerts: 0,
     benefits: ["Acesso à comunidade", "Treinamentos básicos", "Suporte padrão"],
   },
-  explorer: {
-    label: "Explorer",
+  hack: {
+    label: "Hack",
     color: "text-gray-400",
     minClients: 5,
     minRevenue: 10000,
@@ -94,8 +94,8 @@ export const TIER_CONFIG: Record<PartnerTier, { label: string; color: string; mi
     minCerts: 1,
     benefits: ["Marketplace básico", "Badge de parceiro", "Eventos exclusivos", "Suporte prioritário"],
   },
-  hack: {
-    label: "Hack",
+  growth: {
+    label: "Growth",
     color: "text-yellow-500",
     minClients: 20,
     minRevenue: 50000,

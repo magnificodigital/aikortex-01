@@ -5,7 +5,7 @@ import { type FeatureFlag, type PartnerTier, TIER_FEATURE_CONFIG } from "@/types
 import { TIER_CONFIG } from "@/types/partner";
 import type { Tables } from "@/integrations/supabase/types";
 
-const TIERS: PartnerTier[] = ["starter", "explorer", "hack"];
+const TIERS: PartnerTier[] = ["starter", "hack", "growth"];
 
 // Map FeatureFlag keys to tier_module_access module_key values in DB
 const FEATURE_TO_MODULE_KEY: Record<string, string> = {
@@ -95,8 +95,8 @@ export function usePartnerTier() {
 
       // Calcular tier real baseado nos clientes
       const realTier: PartnerTier =
-        realClients >= 15 ? "hack" :
-        realClients >= 5  ? "explorer" :
+        realClients >= 20 ? "growth" :
+        realClients >= 5  ? "hack" :
         "starter";
 
       // Atualizar partner_tiers se estiver desatualizado

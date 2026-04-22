@@ -42,7 +42,7 @@ const StepAgents = ({ selected, onSelect }: Props) => {
   const { agents, loading, deleteAgent } = useUserAgents();
   const navigate = useNavigate();
   const { tier } = usePartnerTier();
-  const canCreateCustom = tier === "explorer" || tier === "hack";
+  const canCreateCustom = tier === "hack" || tier === "growth";
 
   const handleSelect = (id: string, type: string, name: string, description: string) => {
     onSelect({

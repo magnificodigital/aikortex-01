@@ -26,17 +26,17 @@ const TIER_VISUAL: Record<string, { icon: React.ReactNode; badge: string; badgeC
     badgeClass: "bg-muted text-muted-foreground",
     unlock: "Disponível ao se cadastrar",
   },
-  explorer: {
+  hack: {
     icon: <Rocket className="w-5 h-5" />,
-    badge: "Explorer",
+    badge: "Hack",
     badgeClass: "bg-blue-500/10 text-blue-600",
     unlock: "Desbloqueado com 5 clientes ativos",
   },
-  hack: {
+  growth: {
     icon: <Crown className="w-5 h-5" />,
-    badge: "Hack",
+    badge: "Growth",
     badgeClass: "bg-purple-500/10 text-purple-600",
-    unlock: "Desbloqueado com 15 clientes ativos",
+    unlock: "Desbloqueado com 20 clientes ativos",
   },
 };
 

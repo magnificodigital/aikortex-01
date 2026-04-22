@@ -35,6 +35,26 @@ const AddClientWizard = ({ open, onOpenChange, agencyId, customPricing, agencyTi
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  const agencyInvoke = async (fnName: string, body: Record<string, any>) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error("Sessão expirada. Faça login novamente.");
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${fnName}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error || `Erro na função ${fnName}`);
+    return data;
+  };
+
   // Step 1
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -58,8 +78,21 @@ const AddClientWizard = ({ open, onOpenChange, agencyId, customPricing, agencyTi
       setStep(1); setName(""); setEmail(""); setPhone(""); setDocument("");
       setSelected(new Set()); setPaymentLink(""); setCreatedClientId("");
       setCreateWorkspaceAccess(false); setClientPassword("");
-      supabase.from("platform_templates").select("*").eq("is_active", true).then(({ data }) => {
-        if (data) setTemplates(data.filter((t: any) => TIER_ORDER[agencyTier] >= TIER_ORDER[t.min_tier]) as Template[]);
+      supabase.from("agent_templates").select("*, template_pricing(*)").eq("status", "published").then(({ data }) => {
+        if (data) {
+          const mapped = data.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            slug: item.slug,
+            description: item.description,
+            category: item.category,
+            min_tier: item.min_tier,
+            platform_price_monthly: item.template_pricing?.[0]?.price_cents
+              ? item.template_pricing[0].price_cents / 100
+              : 0,
+          })) as Template[];
+          setTemplates(mapped.filter((t) => TIER_ORDER[agencyTier] >= TIER_ORDER[t.min_tier]));
+        }
       });
     }
   }, [open, agencyTier]);
@@ -75,37 +108,30 @@ const AddClientWizard = ({ open, onOpenChange, agencyId, customPricing, agencyTi
     setLoading(true);
     try {
       // Create client
-      const res = await supabase.functions.invoke("asaas-create-client", {
-        body: { client_name: name, client_email: email, client_phone: phone, client_document: document },
+      const data = await agencyInvoke("asaas-create-client", {
+        client_name: name, client_email: email, client_phone: phone, client_document: document,
       });
-      if (res.error) throw new Error(res.error.message);
-      if (res.data?.error) { toast.error(typeof res.data.error === "string" ? res.data.error : "Erro ao criar cliente"); setLoading(false); return; }
-
-      const clientId = res.data.client?.id;
+      const clientId = data.client?.id;
       setCreatedClientId(clientId);
 
       // Optionally create workspace access for client
       if (createWorkspaceAccess && email && clientPassword) {
-        const createRes = await supabase.functions.invoke("create-user", {
-          body: {
-            email,
-            password: clientPassword,
-            full_name: name,
-            role: "client_owner",
-            tenant_type: "client",
-          },
+        const createRes = await agencyInvoke("create-user", {
+          email,
+          password: clientPassword,
+          full_name: name,
+          role: "client_owner",
+          tenant_type: "client",
         });
-        if (createRes.data?.user?.id) {
+        if (createRes?.user?.id) {
           // Link client_user_id
-          await supabase.from("agency_clients").update({ client_user_id: createRes.data.user.id }).eq("id", clientId);
+          await supabase.from("agency_clients").update({ client_user_id: createRes.user.id }).eq("id", clientId);
         }
       }
 
       // Subscribe templates
       for (const t of selectedTemplates) {
-        await supabase.functions.invoke("asaas-subscribe-template", {
-          body: { client_id: clientId, template_id: t.id },
-        });
+        await agencyInvoke("asaas-subscribe-template", { client_id: clientId, template_id: t.id });
       }
 
       toast.success("Cliente cadastrado com sucesso!");

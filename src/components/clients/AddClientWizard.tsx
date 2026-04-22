@@ -108,37 +108,30 @@ const AddClientWizard = ({ open, onOpenChange, agencyId, customPricing, agencyTi
     setLoading(true);
     try {
       // Create client
-      const res = await supabase.functions.invoke("asaas-create-client", {
-        body: { client_name: name, client_email: email, client_phone: phone, client_document: document },
+      const data = await agencyInvoke("asaas-create-client", {
+        client_name: name, client_email: email, client_phone: phone, client_document: document,
       });
-      if (res.error) throw new Error(res.error.message);
-      if (res.data?.error) { toast.error(typeof res.data.error === "string" ? res.data.error : "Erro ao criar cliente"); setLoading(false); return; }
-
-      const clientId = res.data.client?.id;
+      const clientId = data.client?.id;
       setCreatedClientId(clientId);
 
       // Optionally create workspace access for client
       if (createWorkspaceAccess && email && clientPassword) {
-        const createRes = await supabase.functions.invoke("create-user", {
-          body: {
-            email,
-            password: clientPassword,
-            full_name: name,
-            role: "client_owner",
-            tenant_type: "client",
-          },
+        const createRes = await agencyInvoke("create-user", {
+          email,
+          password: clientPassword,
+          full_name: name,
+          role: "client_owner",
+          tenant_type: "client",
         });
-        if (createRes.data?.user?.id) {
+        if (createRes?.user?.id) {
           // Link client_user_id
-          await supabase.from("agency_clients").update({ client_user_id: createRes.data.user.id }).eq("id", clientId);
+          await supabase.from("agency_clients").update({ client_user_id: createRes.user.id }).eq("id", clientId);
         }
       }
 
       // Subscribe templates
       for (const t of selectedTemplates) {
-        await supabase.functions.invoke("asaas-subscribe-template", {
-          body: { client_id: clientId, template_id: t.id },
-        });
+        await agencyInvoke("asaas-subscribe-template", { client_id: clientId, template_id: t.id });
       }
 
       toast.success("Cliente cadastrado com sucesso!");

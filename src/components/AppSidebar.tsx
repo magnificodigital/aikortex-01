@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useModuleAccess } from "@/hooks/use-module-access";
+import { useClientPermissions } from "@/hooks/use-client-permissions";
 import { useMonthlyUsage } from "@/hooks/use-monthly-usage";
 import aikortexLogoWhite from "@/assets/aikortex-logo-white.png";
 import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";
@@ -139,6 +140,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   const { signOut, isPlatform } = useAuth();
   const { agencyName, clients, activeWorkspace, switchToAgency, switchToClient } = useWorkspace();
   const { canAccess } = useModuleAccess();
+  const { canView, isClientMode } = useClientPermissions();
   const { messageCount, monthlyLimit, hasByok, isNearLimit, isUnlimited } = useMonthlyUsage();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -176,7 +178,9 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
     const isExpanded = expandedItems[item.path];
     const basePath = item.path.split("?")[0];
     const moduleKey = MODULE_KEY_MAP[basePath];
-    const isLocked = moduleKey ? !canAccess(moduleKey) : false;
+    const isLocked = moduleKey
+      ? (isClientMode ? !canView(moduleKey) : !canAccess(moduleKey))
+      : false;
 
     return (
       <div key={item.path}>
@@ -318,7 +322,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
 
           {renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)}
           {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
-          {renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
+          {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
 
           {/* Seção Conta & Suporte */}
           <div>

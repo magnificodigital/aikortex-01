@@ -2,9 +2,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Client } from "@/types/client";
 import ClientTimeline from "./ClientTimeline";
+import { ClientPermissionsPanel } from "./ClientPermissionsPanel";
 import {
   FolderKanban, CheckSquare, UserPlus, Zap, Bot, MessageSquare,
-  Phone, Globe, DollarSign, Clock
+  Phone, Globe, DollarSign, Clock, ShieldCheck
 } from "lucide-react";
 
 interface ClientProfileTabsProps {
@@ -30,6 +31,7 @@ const tabConfig = [
   { value: "voice", label: "Voz", icon: Phone },
   { value: "websites", label: "Sites", icon: Globe },
   { value: "financial", label: "Financeiro", icon: DollarSign },
+  { value: "permissions", label: "Permissões", icon: ShieldCheck },
 ];
 
 const ClientProfileTabs = ({ client }: ClientProfileTabsProps) => {
@@ -126,6 +128,13 @@ const ClientProfileTabs = ({ client }: ClientProfileTabsProps) => {
           />
         </TabsContent>
       ))}
+
+      <TabsContent value="permissions" className="mt-4">
+        <ClientPermissionsPanel
+          clientId={client.id}
+          initialPermissions={(client as unknown as { client_permissions?: Record<string, boolean> }).client_permissions ?? {}}
+        />
+      </TabsContent>
     </Tabs>
   );
 };

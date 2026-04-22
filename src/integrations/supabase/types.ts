@@ -22,6 +22,7 @@ export type Database = {
           client_email: string | null
           client_logo_url: string | null
           client_name: string
+          client_permissions: Json | null
           client_phone: string | null
           client_primary_color: string | null
           client_user_id: string | null
@@ -39,6 +40,7 @@ export type Database = {
           client_email?: string | null
           client_logo_url?: string | null
           client_name: string
+          client_permissions?: Json | null
           client_phone?: string | null
           client_primary_color?: string | null
           client_user_id?: string | null
@@ -56,6 +58,7 @@ export type Database = {
           client_email?: string | null
           client_logo_url?: string | null
           client_name?: string
+          client_permissions?: Json | null
           client_phone?: string | null
           client_primary_color?: string | null
           client_user_id?: string | null

@@ -140,6 +140,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   const { signOut, isPlatform } = useAuth();
   const { agencyName, clients, activeWorkspace, switchToAgency, switchToClient } = useWorkspace();
   const { canAccess } = useModuleAccess();
+  const { canView, isClientMode } = useClientPermissions();
   const { messageCount, monthlyLimit, hasByok, isNearLimit, isUnlimited } = useMonthlyUsage();
   const navigate = useNavigate();
   const isMobile = useIsMobile();

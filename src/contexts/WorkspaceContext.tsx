@@ -24,6 +24,7 @@ interface WorkspaceContextType {
   switchToClient: (client: AgencyClient) => void;
   loading: boolean;
   refreshClients: () => Promise<void>;
+  isClientMode: boolean;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -121,6 +122,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       agencyName, agencyProfileId, clients,
       activeWorkspace, switchToAgency, switchToClient,
       loading, refreshClients,
+      isClientMode: activeWorkspace.type === "client",
     }}>
       {children}
     </WorkspaceContext.Provider>

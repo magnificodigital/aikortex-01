@@ -203,11 +203,14 @@ const Home = () => {
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-3.5rem)] px-4">
         {/* Greeting */}
         <h1 className="text-3xl lg:text-5xl font-light text-foreground mb-3 text-center">
-          {getGreeting()}, <span className="italic">{isClientMode ? activeWorkspace.name : userName}</span>
+          {getGreeting()}, <span className="italic">{activeWorkspace.type === "client" ? activeWorkspace.name : userName}</span>
         </h1>
         <p className="text-sm lg:text-base text-muted-foreground mb-10 text-center max-w-lg">
-          Crie Agentes, Fluxos inteligentes e apps em<br />
-          minutos conversando com IA.
+          {activeWorkspace.type === "client"
+            ? "Bem-vindo ao seu painel. Acesse seus recursos abaixo."
+            : activeWorkspace.type === "agency"
+            ? "Crie Agentes, Fluxos inteligentes e apps em minutos conversando com IA."
+            : "Gerencie toda a plataforma Aikortex a partir daqui."}
         </p>
 
         {/* Prompt Box */}

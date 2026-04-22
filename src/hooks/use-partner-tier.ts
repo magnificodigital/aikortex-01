@@ -63,17 +63,59 @@ export function usePartnerTier() {
 
       if (error) throw error;
 
-      if (existing) return existing as PartnerTierData;
+      let tierRecord: PartnerTierData;
+      if (existing) {
+        tierRecord = existing as PartnerTierData;
+      } else {
+        // Auto-create starter tier on first access
+        const { data: created, error: insertError } = await supabase
+          .from("partner_tiers")
+          .insert({ user_id: user!.id, tier: "starter" })
+          .select()
+          .single();
+        if (insertError) throw insertError;
+        tierRecord = created as PartnerTierData;
+      }
 
-      // Auto-create starter tier on first access
-      const { data: created, error: insertError } = await supabase
-        .from("partner_tiers")
-        .insert({ user_id: user!.id, tier: "starter" })
-        .select()
-        .single();
+      // 1. Buscar agency_profile do usuário
+      const { data: agency } = await supabase
+        .from("agency_profiles")
+        .select("id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
 
-      if (insertError) throw insertError;
-      return created as PartnerTierData;
+      // 2. Contar clientes ativos reais
+      let realClients = 0;
+      if (agency?.id) {
+        const { count } = await supabase
+          .from("agency_clients")
+          .select("id", { count: "exact", head: true })
+          .eq("agency_id", agency.id)
+          .eq("status", "active");
+        realClients = count ?? 0;
+      }
+
+      // 3. Calcular tier real baseado nos clientes
+      const realTier: PartnerTier =
+        realClients >= 15 ? "hack" :
+        realClients >= 5  ? "explorer" :
+        "starter";
+
+      // 4. Atualizar partner_tiers se clients_served ou tier estiverem desatualizados
+      const needsUpdate =
+        (tierRecord.clients_served ?? 0) !== realClients ||
+        tierRecord.tier !== realTier;
+
+      if (needsUpdate) {
+        await supabase
+          .from("partner_tiers")
+          .update({ clients_served: realClients, tier: realTier })
+          .eq("user_id", user!.id);
+
+        return { ...tierRecord, clients_served: realClients, tier: realTier } as PartnerTierData;
+      }
+
+      return tierRecord;
     },
   });
 

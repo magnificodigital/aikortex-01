@@ -182,6 +182,12 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
       ? (isClientMode ? !canView(moduleKey) : !canAccess(moduleKey))
       : false;
 
+    // Ocultar completamente itens sem acesso no modo cliente
+    if (isClientMode && isLocked) return null;
+
+    // Ocultar completamente itens sem acesso no modo cliente
+    if (isClientMode && isLocked) return null;
+
     return (
       <div key={item.path}>
         <div className="flex items-center">

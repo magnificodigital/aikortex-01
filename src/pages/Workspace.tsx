@@ -249,10 +249,11 @@ const Workspace = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const isActive = (path: string) =>
-    path === "/workspace"
-      ? location.pathname === "/workspace"
-      : location.pathname.startsWith(path);
+  const isActive = (path: string) => {
+    if (path === "/workspace") return location.pathname === "/workspace";
+    const segment = path.split("/workspace/")[1];
+    return segment ? location.pathname.includes(`/workspace/${segment}`) : false;
+  };
 
   const linkClasses = (active: boolean) =>
     `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
@@ -362,18 +363,26 @@ const Workspace = () => {
               <Menu className="h-5 w-5" />
             </button>
           )}
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando...</div>}>
-            <Routes>
-              <Route index element={<WorkspaceHome />} />
-              <Route path="dashboard/*" element={<DashboardIndex />} />
-              <Route path="clients" element={<WorkspaceClients />} />
-              <Route path="crm/*" element={<AikortexCRM />} />
-              <Route path="messages/*" element={<AikortexMessages />} />
-              <Route path="tasks/*" element={<Tasks />} />
-              <Route path="financial/*" element={<Financial />} />
-              <Route path="settings/*" element={<SettingsPage />} />
-            </Routes>
-          </Suspense>
+          <WorkspaceErrorBoundary>
+            <Suspense
+              fallback={
+                <div className="p-6 text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Carregando...
+                </div>
+              }
+            >
+              <Routes>
+                <Route index element={<WorkspaceHome />} />
+                <Route path="dashboard" element={<DashboardIndex />} />
+                <Route path="clients" element={<WorkspaceClients />} />
+                <Route path="crm" element={<AikortexCRM />} />
+                <Route path="messages" element={<AikortexMessages />} />
+                <Route path="tasks" element={<Tasks />} />
+                <Route path="financial" element={<Financial />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Routes>
+            </Suspense>
+          </WorkspaceErrorBoundary>
         </main>
       </div>
     </RightPanelProvider>

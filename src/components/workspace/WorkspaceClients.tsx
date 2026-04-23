@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspaceOwner } from "@/hooks/use-workspace-owner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -55,9 +55,8 @@ const statusVariant: Record<ContactStatus, "default" | "secondary" | "outline"> 
 };
 
 export const WorkspaceClients = () => {
-  const { user } = useAuth();
-  const { activeClientUserId, isReadOnlyView } = useWorkspace();
-  const dataUserId = activeClientUserId ?? user?.id;
+  const { isReadOnlyView } = useWorkspace();
+  const { ownerId: dataUserId } = useWorkspaceOwner();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

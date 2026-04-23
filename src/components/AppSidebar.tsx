@@ -327,7 +327,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
           </div>
 
           {!isClientMode && renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)}
-          {!isClientMode && renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
+          {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
           {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
 
           {/* Seção Conta & Suporte */}

@@ -115,6 +115,17 @@ const Workspace = () => {
 
   useEffect(() => { if (isMobile) setMobileSidebarOpen(false); }, [location.pathname]);
 
+  const renderContent = () => {
+    const path = location.pathname;
+    if (path === "/workspace/tasks") return <WorkspaceTasks />;
+    if (path === "/workspace/crm") return <WorkspaceCRM />;
+    if (path === "/workspace/financial") return <WorkspaceFinancial />;
+    if (path === "/workspace/contracts") return <WorkspaceContracts />;
+    if (path === "/workspace/projects") return <WorkspaceProjects />;
+    if (path === "/workspace/settings") return <WorkspaceSettings />;
+    return <WorkspaceHome />;
+  };
+
   return (
     <RightPanelProvider>
       <div className="flex min-h-screen w-full overflow-hidden">
@@ -175,31 +186,15 @@ const Workspace = () => {
         </aside>
 
         <main className="relative flex-1 min-w-0 overflow-y-auto bg-background">
-          <div className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-lg px-3 py-2">
-            {isMobile ? (
-              <button onClick={() => setMobileSidebarOpen(true)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground">
-                <Menu className="h-5 w-5" />
-              </button>
-            ) : <div />}
-            <div />
-          </div>
-
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando...</div>}>
-            <Routes>
-              <Route index element={
-                <div className="p-6">
-                  <h1 className="text-2xl font-bold mb-4">Bem-vindo ao seu workspace</h1>
-                  <p className="text-muted-foreground">Use o menu lateral para navegar entre os módulos disponíveis.</p>
-                </div>
-              } />
-              <Route path="crm" element={<AikortexCRM />} />
-              <Route path="projects" element={<Projects />} />
-              <Route path="tasks" element={<Tasks />} />
-              <Route path="financial" element={<Financial />} />
-              <Route path="contracts" element={<Contracts />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Routes>
-          </Suspense>
+          {isMobile && (
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="absolute top-3 left-3 z-30 p-2 rounded-lg bg-background/80 backdrop-blur-sm border border-border text-muted-foreground hover:text-foreground"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+          {renderContent()}
         </main>
       </div>
     </RightPanelProvider>

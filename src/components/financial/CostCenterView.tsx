@@ -46,7 +46,8 @@ const chartColors = [
 ];
 
 const CostCenterView = () => {
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(initialCostCenters);
+  const { isClient } = useFinancialData();
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(isClient ? [] : initialCostCenters);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<CostCenter | null>(null);
   const [viewing, setViewing] = useState<CostCenter | null>(null);

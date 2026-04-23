@@ -137,7 +137,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
 
   const location = useLocation();
   const { theme, toggle } = useTheme();
-  const { signOut, isPlatform } = useAuth();
+  const { signOut, isPlatform, profile } = useAuth();
   const { agencyName, clients, activeWorkspace, switchToAgency, switchToClient } = useWorkspace();
   const { canAccess } = useModuleAccess();
   const { canView, isClientMode } = useClientPermissions();
@@ -253,6 +253,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   );
 
   const usagePercent = isUnlimited || monthlyLimit <= 0 ? 0 : Math.min(100, (messageCount / monthlyLimit) * 100);
+  const isDirectClient = profile?.tenant_type === "client";
 
   return (
     <>
@@ -290,7 +291,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
           )}
         </div>
 
-        {(!collapsed || isMobile) && (
+        {(!collapsed || isMobile) && !isDirectClient && (
           <div className="px-2 pt-3">
             <Select
               value={activeWorkspace.type === "agency" ? "__agency__" : activeWorkspace.id}
@@ -311,6 +312,17 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        )}
+
+        {(!collapsed || isMobile) && isDirectClient && (
+          <div className="px-3 pt-3 pb-1">
+            <p className="text-sm font-medium text-foreground truncate">
+              {agencyName || profile?.full_name}
+            </p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">
+              Workspace do cliente
+            </p>
           </div>
         )}
 

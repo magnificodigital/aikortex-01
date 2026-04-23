@@ -4,7 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockAccountsReceivable, mockAccountsPayable, mockTransactions, TransactionType } from "@/types/financial";
+import { TransactionType } from "@/types/financial";
+import { useFinancialData } from "@/hooks/use-financial-data";
 import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, CheckCircle2, Circle } from "lucide-react";
 
 const typeConfig: Record<TransactionType, { label: string; icon: typeof ArrowDownLeft; color: string }> = {
@@ -14,6 +15,7 @@ const typeConfig: Record<TransactionType, { label: string; icon: typeof ArrowDow
 };
 
 const FinancialOverview = () => {
+  const { accountsReceivable: mockAccountsReceivable, accountsPayable: mockAccountsPayable, transactions: mockTransactions } = useFinancialData();
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");

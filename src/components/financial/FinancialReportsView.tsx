@@ -2,15 +2,10 @@ import { useState } from "react";
 import { TrendingUp, TrendingDown, DollarSign, AlertTriangle, RefreshCw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import {
-  mockInvoices,
-  mockExpenses,
-  mockSubscriptions,
-  mockAccountsReceivable,
-  mockCashFlow,
-} from "@/types/financial";
+import { useFinancialData } from "@/hooks/use-financial-data";
 
 const FinancialReportsView = () => {
+  const { invoices: mockInvoices, expenses: mockExpenses, subscriptions: mockSubscriptions, accountsReceivable: mockAccountsReceivable, cashFlow: mockCashFlow } = useFinancialData();
   const [period, setPeriod] = useState("12");
 
   // Metrics

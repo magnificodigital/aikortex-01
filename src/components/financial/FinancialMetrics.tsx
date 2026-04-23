@@ -1,7 +1,8 @@
 import { DollarSign, TrendingUp, Clock, AlertTriangle, Wallet, PiggyBank, CreditCard, BarChart3 } from "lucide-react";
-import { mockInvoices, mockSubscriptions, mockExpenses, mockBankAccounts, mockAccountsReceivable, mockAccountsPayable } from "@/types/financial";
+import { useFinancialData } from "@/hooks/use-financial-data";
 
 const FinancialMetrics = () => {
+  const { invoices: mockInvoices, subscriptions: mockSubscriptions, expenses: mockExpenses, bankAccounts: mockBankAccounts, accountsReceivable: mockAccountsReceivable, accountsPayable: mockAccountsPayable } = useFinancialData();
   const totalPaid = mockInvoices.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
   const totalPending = mockInvoices.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0);
   const totalOverdue = mockInvoices.filter(i => i.status === "overdue").reduce((s, i) => s + i.amount, 0);

@@ -149,12 +149,40 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
     if (isMobile) onMobileClose?.();
   }, [location.pathname, location.search, isMobile, onMobileClose]);
 
+  const isDirectClient = profile?.tenant_type === "client";
+
+  const toWorkspacePath = (agencyPath: string): string => {
+    if (!isDirectClient) return agencyPath;
+    const map: Record<string, string> = {
+      "/home":                "/workspace",
+      "/dashboard":           "/workspace/dashboard",
+      "/clients":             "/workspace/clients",
+      "/contracts":           "/workspace/clients",
+      "/sales":               "/workspace/crm",
+      "/aikortex/crm":        "/workspace/crm",
+      "/meetings":            "/workspace/crm",
+      "/aikortex/messages":   "/workspace/messages",
+      "/aikortex/broadcasts": "/workspace/messages",
+      "/tasks":               "/workspace/tasks",
+      "/financial":           "/workspace/financial",
+      "/financeiro":          "/workspace/financial",
+      "/team":                "/workspace/settings",
+      "/settings":            "/workspace/settings",
+      "/aikortex/agents":     "/workspace/messages",
+      "/calls":               "/workspace/messages",
+      "/aikortex/automations":"/workspace/messages",
+      "/apps":                "/workspace/messages",
+    };
+    return map[agencyPath] ?? agencyPath;
+  };
+
   const isItemActive = (path: string) => {
-    if (path.includes("?tab=")) {
-      const [base, query] = path.split("?");
+    const resolved = toWorkspacePath(path);
+    if (resolved.includes("?tab=")) {
+      const [base, query] = resolved.split("?");
       return location.pathname === base && location.search === `?${query}`;
     }
-    return location.pathname === path;
+    return location.pathname === resolved;
   };
 
   const toggleExpand = (path: string) => {
@@ -173,6 +201,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
     }`;
 
   const renderItem = (item: NavItem, depth = 0) => {
+    const resolvedPath = toWorkspacePath(item.path);
     const isActive = isItemActive(item.path);
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems[item.path];
@@ -203,7 +232,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
             </button>
           ) : (
             <Link
-              to={item.path}
+              to={resolvedPath}
               onClick={handleNavigate}
               className={`${linkClasses(isActive)} flex-1`}
               style={!collapsed && depth > 0 ? { paddingLeft: "2.75rem" } : undefined}
@@ -213,7 +242,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
               {(!collapsed || isMobile) && <span className="flex-1 truncate">{item.label}</span>}
             </Link>
           )}
-          {hasChildren && !collapsed && !isMobile && !isLocked && (
+          {hasChildren && !collapsed && !isMobile && !isLocked && !isDirectClient && (
             <button
               onClick={() => toggleExpand(item.path)}
               className="p-1 mr-1 text-muted-foreground hover:text-foreground rounded transition-colors"
@@ -222,7 +251,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
             </button>
           )}
         </div>
-        {hasChildren && !isLocked && (isExpanded || collapsed || isMobile) && (!collapsed || isMobile) && (
+        {hasChildren && !isLocked && !isDirectClient && (isExpanded || collapsed || isMobile) && (!collapsed || isMobile) && (
           <div className="space-y-0.5">
             {item.children!.map((child) => renderItem(child, depth + 1))}
           </div>
@@ -253,7 +282,6 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   );
 
   const usagePercent = isUnlimited || monthlyLimit <= 0 ? 0 : Math.min(100, (messageCount / monthlyLimit) * 100);
-  const isDirectClient = profile?.tenant_type === "client";
 
   return (
     <>
@@ -328,11 +356,11 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
 
         <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5 scrollbar-thin">
           <div className="mt-2 space-y-0.5">
-            <Link to="/home" onClick={handleNavigate} className={linkClasses(isItemActive("/home"))} title={collapsed && !isMobile ? "Home" : undefined}>
+            <Link to={toWorkspacePath("/home")} onClick={handleNavigate} className={linkClasses(isItemActive("/home"))} title={collapsed && !isMobile ? "Home" : undefined}>
               <Home className={`w-4 h-4 shrink-0 ${isItemActive("/home") ? "text-primary" : ""}`} />
               {(!collapsed || isMobile) && <span>Home</span>}
             </Link>
-            <Link to="/dashboard" onClick={handleNavigate} className={linkClasses(isItemActive("/dashboard"))} title={collapsed && !isMobile ? "Dashboard" : undefined}>
+            <Link to={toWorkspacePath("/dashboard")} onClick={handleNavigate} className={linkClasses(isItemActive("/dashboard"))} title={collapsed && !isMobile ? "Dashboard" : undefined}>
               <LayoutDashboard className={`w-4 h-4 shrink-0 ${isItemActive("/dashboard") ? "text-primary" : ""}`} />
               {(!collapsed || isMobile) && <span>Dashboard</span>}
             </Link>
@@ -413,11 +441,11 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
                 </button>
               )}
 
-              <Link to="/settings" onClick={handleNavigate} className={linkClasses(isItemActive("/settings"))} title={collapsed && !isMobile ? "Configurações" : undefined}>
+              <Link to={toWorkspacePath("/settings")} onClick={handleNavigate} className={linkClasses(isItemActive("/settings"))} title={collapsed && !isMobile ? "Configurações" : undefined}>
                 <Settings className={`w-4 h-4 shrink-0 ${isItemActive("/settings") ? "text-primary" : ""}`} />
                 {(!collapsed || isMobile) && <span className="truncate">Configurações</span>}
               </Link>
-              {isPlatform && (
+              {isPlatform && !isDirectClient && (
                 <Link to="/admin" onClick={handleNavigate} className={linkClasses(isItemActive("/admin"))} title={collapsed && !isMobile ? "Painel Admin" : undefined}>
                   <ShieldCheck className={`w-4 h-4 shrink-0 ${isItemActive("/admin") ? "text-primary" : ""}`} />
                   {(!collapsed || isMobile) && <span className="truncate">Painel Admin</span>}

@@ -13,9 +13,11 @@ import TaskTeamView from "@/components/tasks/TaskTeamView";
 import TaskDetailDialog from "@/components/tasks/TaskDetailDialog";
 import NewTaskDialog from "@/components/tasks/NewTaskDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 const Tasks = () => {
   const { profile } = useAuth();
+  const { isReadOnlyView } = useWorkspace();
   const isClient = profile?.tenant_type === 'client';
   const allTasks = isClient ? [] : mockTasks;
   const [tasks, setTasks] = useState<Task[]>(allTasks);
@@ -71,7 +73,7 @@ const Tasks = () => {
           priorityFilter={priorityFilter} onPriorityChange={setPriorityFilter}
           assigneeFilter={assigneeFilter} onAssigneeChange={setAssigneeFilter}
           projectFilter={projectFilter} onProjectChange={setProjectFilter}
-          onNewTask={() => setShowNewTask(true)}
+          onNewTask={isReadOnlyView ? undefined : () => setShowNewTask(true)}
           taskCount={filteredTasks.length}
         />
 

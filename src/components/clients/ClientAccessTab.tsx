@@ -26,10 +26,22 @@ export const ClientAccessTab = ({ client, onUpdated }: Props) => {
   const invoke = async (action: string, payload: Record<string, unknown>, key: string) => {
     setLoading(key);
     try {
-      const { data, error } = await supabase.functions.invoke("manage-client-access", {
-        body: { action, client_id: client.id, ...payload },
-      });
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Sessão expirada. Faça login novamente.");
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-client-access`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ action, client_id: client.id, ...payload }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "Erro na operação");
       if (data?.error) throw new Error(data.error);
       toast.success(data?.message ?? "Operação concluída");
       onUpdated();

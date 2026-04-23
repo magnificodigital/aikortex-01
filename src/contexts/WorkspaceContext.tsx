@@ -119,7 +119,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, [agencyProfileId, agencyName]);
 
   const switchToClient = useCallback((client: AgencyClient) => {
-    const ws: ActiveWorkspace = { type: "client", id: client.id, name: client.client_name };
+    const ws: ActiveWorkspace = {
+      type: "client",
+      id: client.id,
+      name: client.client_name,
+      clientUserId: client.client_user_id ?? undefined,
+    };
     setActiveWorkspace(ws);
     localStorage.setItem(WS_ACTIVE_KEY, JSON.stringify(ws));
   }, []);
@@ -128,7 +133,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     if (!agencyProfileId) return;
     const { data } = await supabase
       .from("agency_clients")
-      .select("id, client_name, client_email, status")
+      .select("id, client_name, client_email, status, client_user_id")
       .eq("agency_id", agencyProfileId)
       .eq("status", "active")
       .order("client_name");
@@ -141,6 +146,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       activeWorkspace, switchToAgency, switchToClient,
       loading, refreshClients,
       isClientMode: activeWorkspace.type === "client",
+      activeClientUserId: activeWorkspace.type === "client" ? activeWorkspace.clientUserId : undefined,
     }}>
       {children}
     </WorkspaceContext.Provider>

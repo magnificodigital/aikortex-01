@@ -97,11 +97,11 @@ const Loading = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <WorkspaceProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <WorkspaceProvider>
           <Suspense fallback={<Loading />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -154,9 +154,9 @@ const App = () => (
             </Routes>
             <HelpBubble />
           </Suspense>
+          </WorkspaceProvider>
         </BrowserRouter>
       </TooltipProvider>
-      </WorkspaceProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

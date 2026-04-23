@@ -56,7 +56,7 @@ const statusVariant: Record<ContactStatus, "default" | "secondary" | "outline"> 
 
 export const WorkspaceClients = () => {
   const { user } = useAuth();
-  const { activeClientUserId } = useWorkspace();
+  const { activeClientUserId, isReadOnlyView } = useWorkspace();
   const dataUserId = activeClientUserId ?? user?.id;
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,7 +146,11 @@ export const WorkspaceClients = () => {
           <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus clientes e contatos</p>
         </div>
-        <Button onClick={openNew}>
+        <Button
+          onClick={openNew}
+          disabled={isReadOnlyView}
+          title={isReadOnlyView ? "Apenas o cliente pode gerenciar contatos" : undefined}
+        >
           <Plus className="w-4 h-4 mr-1" /> Novo Cliente
         </Button>
       </div>

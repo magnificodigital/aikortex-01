@@ -85,7 +85,18 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           <div className="space-stars-layer2" />
           <div className="space-stars-layer3" />
 
-          <div className="relative z-10">{children}</div>
+          <div className="relative z-10">
+            {isClientMode && profile?.tenant_type !== "client" && (
+              <div className="flex items-center gap-2 bg-primary/10 border-b border-primary/20 px-4 py-2.5 text-sm">
+                <Eye className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-foreground">
+                  Você está visualizando o workspace de <strong>{activeWorkspace.name}</strong> como leitura.
+                  O cliente gerencia os próprios dados.
+                </span>
+              </div>
+            )}
+            {children}
+          </div>
         </main>
         <LightboxNotificationModal />
       </div>

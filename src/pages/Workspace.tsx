@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useRef, useEffect } from "react";
+import { lazy, Suspense, useState, useRef, useEffect, Component, type ReactNode } from "react";
 import { Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -26,6 +26,36 @@ const AikortexMessages = lazy(() => import("./AikortexMessages"));
 const Tasks = lazy(() => import("./Tasks"));
 const Financial = lazy(() => import("./Financial"));
 const SettingsPage = lazy(() => import("./SettingsPage"));
+
+class WorkspaceErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: "" };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+  componentDidCatch(error: Error, info: unknown) {
+    console.error("[Workspace] Module error:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center space-y-2">
+          <p className="text-destructive font-medium">Erro ao carregar o módulo</p>
+          <p className="text-sm text-muted-foreground">{this.state.error}</p>
+          <button
+            className="text-sm text-primary underline mt-2"
+            onClick={() => this.setState({ hasError: false, error: "" })}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 type NavItem = { label: string; icon: typeof Home; path: string; key: string | null };
 

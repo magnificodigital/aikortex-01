@@ -102,10 +102,7 @@ const WorkspaceHomeChat = () => {
           disabled={loading}
         />
         <div className="flex items-center justify-between px-4 pb-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Assistente com acesso aos seus dados</span>
-          </div>
+          <div />
           <Button
             size="sm"
             className="h-9 px-5 rounded-full bg-primary hover:bg-primary/90 gap-1.5"
@@ -117,12 +114,19 @@ const WorkspaceHomeChat = () => {
         </div>
       </div>
       <div className="flex items-center gap-3 flex-wrap justify-center">
-        {["Quantos clientes ativos tenho?", "Quais tarefas estão atrasadas?", "Resumo financeiro do mês", "Propostas abertas no CRM"].map(s => (
+        {currentSuggestions.map(s => (
           <button key={s} onClick={() => setInput(s)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors">
             <Sparkles className="w-4 h-4" />{s}
           </button>
         ))}
+        <button
+          onClick={refreshSuggestions}
+          className="flex items-center justify-center w-10 h-10 rounded-full border border-border text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Atualizar sugestões"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
       </div>
     </>
   );

@@ -394,12 +394,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
                 );
               })()
           }
-          {renderGroup(
-            "Gestão",
-            isDirectClient ? gestaoItems.filter(item => item.path !== "/team") : gestaoItems,
-            gestaoOpen,
-            setGestaoOpen
-          )}
+          {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
           {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
 
           {/* Seção Conta & Suporte */}

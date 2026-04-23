@@ -56,6 +56,8 @@ const statusVariant: Record<ContactStatus, "default" | "secondary" | "outline"> 
 
 export const WorkspaceClients = () => {
   const { user } = useAuth();
+  const { activeClientUserId } = useWorkspace();
+  const dataUserId = activeClientUserId ?? user?.id;
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -66,18 +68,18 @@ export const WorkspaceClients = () => {
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
-    if (!user) return;
+    if (!dataUserId) return;
     setLoading(true);
     const { data } = await supabase
       .from("client_contacts")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", dataUserId)
       .order("created_at", { ascending: false });
     setContacts((data as Contact[]) ?? []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [user]);
+  useEffect(() => { load(); }, [dataUserId]);
 
   const filtered = contacts.filter(c => {
     const q = search.toLowerCase();
@@ -114,9 +116,9 @@ export const WorkspaceClients = () => {
   };
 
   const save = async () => {
-    if (!form.name.trim() || !user) return;
+    if (!form.name.trim() || !dataUserId) return;
     setSaving(true);
-    const payload = { ...form, user_id: user.id };
+    const payload = { ...form, user_id: dataUserId };
     let error;
     if (editingId) {
       ({ error } = await supabase.from("client_contacts").update(payload).eq("id", editingId));

@@ -66,6 +66,7 @@ const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Credits = lazy(() => import("./pages/Credits"));
 const ClientDetailPage = lazy(() => import("./pages/ClientDetail"));
 const Workspace = lazy(() => import("./pages/Workspace"));
+const WorkspaceRedirect = lazy(() => import("./pages/WorkspaceRedirect"));
 
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Templates = lazy(() => import("./pages/Templates"));

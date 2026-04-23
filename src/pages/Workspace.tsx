@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { Link, useLocation, useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/use-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useClientPermissions } from "@/hooks/use-client-permissions";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import aikortexLogoWhite from "@/assets/aikortex-logo-white.png";
 import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";
 import {
@@ -10,6 +12,13 @@ import {
   LogOut, Sun, Moon, ChevronLeft, ChevronRight, Menu, X, Contact,
 } from "lucide-react";
 import { RightPanelProvider } from "@/components/RightPanel";
+
+const AikortexCRM = lazy(() => import("./AikortexCRM"));
+const Tasks = lazy(() => import("./Tasks"));
+const Financial = lazy(() => import("./Financial"));
+const Contracts = lazy(() => import("./Contracts"));
+const SettingsPage = lazy(() => import("./SettingsPage"));
+const Projects = lazy(() => import("./Projects"));
 
 type NavItem = { label: string; icon: typeof LayoutDashboard; path: string };
 
@@ -23,12 +32,22 @@ const clientNavItems: NavItem[] = [
   { label: "Configurações", icon: Settings, path: "/workspace/settings" },
 ];
 
+const CLIENT_MODULE_KEYS: Record<string, string> = {
+  "/workspace/crm": "gestao.crm",
+  "/workspace/projects": "gestao.projetos",
+  "/workspace/tasks": "gestao.tarefas",
+  "/workspace/financial": "gestao.financeiro",
+  "/workspace/contracts": "gestao.contratos",
+};
+
 const Workspace = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
   const { profile, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const { canView } = useClientPermissions();
+  const { activeWorkspace } = useWorkspace();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -63,18 +82,23 @@ const Workspace = () => {
 
           {(!collapsed || isMobile) && (
             <div className="px-4 py-3 border-b border-sidebar-border">
-              <p className="text-xs text-muted-foreground">Olá, {profile?.full_name?.split(" ")[0] ?? "Cliente"}</p>
+              <p className="text-xs text-muted-foreground">Olá, {activeWorkspace?.name ?? profile?.full_name?.split(" ")[0] ?? "Cliente"}</p>
               <p className="text-[10px] text-muted-foreground/70 mt-0.5">Workspace do cliente</p>
             </div>
           )}
 
           <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-            {clientNavItems.map(item => (
-              <Link key={item.path} to={item.path} className={linkClasses(isActive(item.path))}>
-                <item.icon className={`w-4 h-4 shrink-0 ${isActive(item.path) ? "text-primary" : ""}`} />
-                {(!collapsed || isMobile) && <span className="truncate">{item.label}</span>}
-              </Link>
-            ))}
+            {clientNavItems
+              .filter(item => {
+                const key = CLIENT_MODULE_KEYS[item.path];
+                return !key || canView(key);
+              })
+              .map(item => (
+                <Link key={item.path} to={item.path} className={linkClasses(isActive(item.path))}>
+                  <item.icon className={`w-4 h-4 shrink-0 ${isActive(item.path) ? "text-primary" : ""}`} />
+                  {(!collapsed || isMobile) && <span className="truncate">{item.label}</span>}
+                </Link>
+              ))}
           </nav>
 
           <div className="space-y-0.5 border-t border-sidebar-border px-2 py-2">
@@ -104,10 +128,22 @@ const Workspace = () => {
             <div />
           </div>
 
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Bem-vindo ao seu workspace</h1>
-            <p className="text-muted-foreground">Este é o seu espaço de trabalho. Use o menu lateral para navegar entre os módulos disponíveis.</p>
-          </div>
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando...</div>}>
+            <Routes>
+              <Route index element={
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold mb-4">Bem-vindo ao seu workspace</h1>
+                  <p className="text-muted-foreground">Use o menu lateral para navegar entre os módulos disponíveis.</p>
+                </div>
+              } />
+              <Route path="crm" element={<AikortexCRM />} />
+              <Route path="projects" element={<Projects />} />
+              <Route path="tasks" element={<Tasks />} />
+              <Route path="financial" element={<Financial />} />
+              <Route path="contracts" element={<Contracts />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </RightPanelProvider>

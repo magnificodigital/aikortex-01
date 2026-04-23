@@ -32,7 +32,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 const WS_ACTIVE_KEY = "aikortex_active_workspace";
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [agencyName, setAgencyName] = useState("Meu Workspace");
   const [agencyProfileId, setAgencyProfileId] = useState<string | null>(null);
   const [clients, setClients] = useState<AgencyClient[]>([]);
@@ -46,6 +46,16 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
     const load = async () => {
       try {
+        // Direct client login — no agency profile, force client workspace
+        if (profile?.tenant_type === "client") {
+          const clientName = profile?.full_name ?? user.email ?? "Cliente";
+          setAgencyName(clientName);
+          setAgencyProfileId(null);
+          setClients([]);
+          setActiveWorkspace({ type: "client", id: user.id, name: clientName });
+          return;
+        }
+
         const { data: agency } = await supabase
           .from("agency_profiles")
           .select("id, agency_name")
@@ -92,7 +102,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     load();
-  }, [user]);
+  }, [user, profile]);
 
   const switchToAgency = useCallback(() => {
     const ws: ActiveWorkspace = { type: "agency", id: agencyProfileId ?? "", name: agencyName };

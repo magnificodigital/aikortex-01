@@ -159,7 +159,7 @@ const Financeiro = () => {
       : templates.reduce((s: number, t: any) => s + Number(t.platform_price_monthly), 0) / templates.length;
     const revenue = avgPrice * projClients;
     const cost = avgCost * projClients;
-    const projTier = projClients >= 15 ? "hack" : projClients >= 5 ? "explorer" : "starter";
+    const projTier = projClients >= 15 ? "growth" : projClients >= 5 ? "hack" : "starter";
     return { revenue, cost, profit: revenue - cost, tier: projTier };
   }, [projClients, templates, activeSubs, receitaBruta, custoPlataforma]);
 

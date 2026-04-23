@@ -302,7 +302,7 @@ const EditAgencyModal = ({ open, onClose, agency, onSuccess }: { open: boolean; 
             <Label>Tier</Label>
             <Select value={tier} onValueChange={v => { setTier(v); setOverride(true); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="explorer">Explorer</SelectItem><SelectItem value="hack">Hack</SelectItem></SelectContent>
+              <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="hack">Hack</SelectItem><SelectItem value="growth">Growth</SelectItem></SelectContent>
             </Select>
             {override && <p className="text-xs text-yellow-600 mt-1">⚠ Override manual — ignora contagem de clientes</p>}
             {override && <Button variant="link" size="sm" className="text-xs p-0 h-auto" onClick={handleRemoveOverride}>Remover override</Button>}

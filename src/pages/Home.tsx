@@ -439,22 +439,7 @@ const Home = () => {
             </div>
           </>
         ) : (
-          <div className="grid grid-cols-2 gap-3 w-full max-w-md mt-4">
-            {[
-              { label: "Mensagens", path: "/aikortex/messages" },
-              { label: "Tarefas", path: "/tasks" },
-              { label: "Clientes", path: "/clients" },
-              { label: "Financeiro", path: "/financeiro" },
-            ].map(item => (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className="rounded-xl border border-border bg-card p-5 text-sm font-medium hover:border-primary/40 transition-all text-left"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <WorkspaceHomeChat />
         )}
       </div>
     </DashboardLayout>

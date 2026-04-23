@@ -201,6 +201,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
     }`;
 
   const renderItem = (item: NavItem, depth = 0) => {
+    const resolvedPath = toWorkspacePath(item.path);
     const isActive = isItemActive(item.path);
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems[item.path];
@@ -231,7 +232,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
             </button>
           ) : (
             <Link
-              to={item.path}
+              to={resolvedPath}
               onClick={handleNavigate}
               className={`${linkClasses(isActive)} flex-1`}
               style={!collapsed && depth > 0 ? { paddingLeft: "2.75rem" } : undefined}
@@ -241,7 +242,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
               {(!collapsed || isMobile) && <span className="flex-1 truncate">{item.label}</span>}
             </Link>
           )}
-          {hasChildren && !collapsed && !isMobile && !isLocked && (
+          {hasChildren && !collapsed && !isMobile && !isLocked && !isDirectClient && (
             <button
               onClick={() => toggleExpand(item.path)}
               className="p-1 mr-1 text-muted-foreground hover:text-foreground rounded transition-colors"
@@ -250,7 +251,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
             </button>
           )}
         </div>
-        {hasChildren && !isLocked && (isExpanded || collapsed || isMobile) && (!collapsed || isMobile) && (
+        {hasChildren && !isLocked && !isDirectClient && (isExpanded || collapsed || isMobile) && (!collapsed || isMobile) && (
           <div className="space-y-0.5">
             {item.children!.map((child) => renderItem(child, depth + 1))}
           </div>

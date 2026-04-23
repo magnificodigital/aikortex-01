@@ -16,8 +16,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   ArrowLeft, Mail, Phone, FileText, DollarSign, LayoutTemplate,
-  Settings, AlertTriangle, Ban, Trash2, Loader2,
+  Settings, AlertTriangle, Ban, Trash2, Loader2, KeyRound, Bell,
 } from "lucide-react";
+import { ClientAccessTab } from "@/components/clients/ClientAccessTab";
+import { ClientLightboxTab } from "@/components/clients/ClientLightboxTab";
+import { ClientTemplatesTab } from "@/components/clients/ClientTemplatesTab";
 
 const STATUS_MAP: Record<string, { label: string; class: string }> = {
   active: { label: "Ativo", class: "bg-green-500/10 text-green-600 border-green-500/20" },
@@ -105,8 +108,10 @@ const ClientDetail = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="access"><KeyRound className="w-3.5 h-3.5 mr-1" />Acesso</TabsTrigger>
+            <TabsTrigger value="lightbox"><Bell className="w-3.5 h-3.5 mr-1" />Notificações</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="billing">Financeiro</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>

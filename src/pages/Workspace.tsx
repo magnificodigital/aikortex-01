@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { Link, useLocation, useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/use-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,6 +12,13 @@ import {
   LogOut, Sun, Moon, ChevronLeft, ChevronRight, Menu, X, Contact, Sparkles,
 } from "lucide-react";
 import { RightPanelProvider } from "@/components/RightPanel";
+
+const Tasks = lazy(() => import("./Tasks"));
+const Financial = lazy(() => import("./Financial"));
+const Contracts = lazy(() => import("./Contracts"));
+const Projects = lazy(() => import("./Projects"));
+const AikortexCRM = lazy(() => import("./AikortexCRM"));
+const SettingsPage = lazy(() => import("./SettingsPage"));
 
 type NavItem = { label: string; icon: typeof LayoutDashboard; path: string };
 

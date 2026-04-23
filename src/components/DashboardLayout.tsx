@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMonthlyUsage } from "@/hooks/use-monthly-usage";
 import { LightboxNotificationModal } from "@/components/clients/LightboxNotificationModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const isClient = profile?.tenant_type === "client";
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const handleMobileClose = useCallback(() => setMobileSidebarOpen(false), []);
   const { messageCount, monthlyLimit, isNearLimit, hasByok, planSlug } = useMonthlyUsage();
@@ -28,6 +31,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   };
 
   const showBanner = isNearLimit && !hasByok && !bannerDismissed;
+
+  if (isClient) {
+    return <>{children}</>;
+  }
 
   return (
     <RightPanelProvider>

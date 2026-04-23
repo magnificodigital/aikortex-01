@@ -1,5 +1,5 @@
-import { useState, useEffect, lazy, Suspense } from "react";
-import { Link, useLocation, useNavigate, Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/use-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -9,16 +9,9 @@ import aikortexLogoWhite from "@/assets/aikortex-logo-white.png";
 import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";
 import {
   LayoutDashboard, Users, CheckSquare, DollarSign, FileText, Settings,
-  LogOut, Sun, Moon, ChevronLeft, ChevronRight, Menu, X, Contact,
+  LogOut, Sun, Moon, ChevronLeft, ChevronRight, Menu, X, Contact, Sparkles,
 } from "lucide-react";
 import { RightPanelProvider } from "@/components/RightPanel";
-
-const AikortexCRM = lazy(() => import("./AikortexCRM"));
-const Tasks = lazy(() => import("./Tasks"));
-const Financial = lazy(() => import("./Financial"));
-const Contracts = lazy(() => import("./Contracts"));
-const SettingsPage = lazy(() => import("./SettingsPage"));
-const Projects = lazy(() => import("./Projects"));
 
 type NavItem = { label: string; icon: typeof LayoutDashboard; path: string };
 
@@ -39,6 +32,69 @@ const CLIENT_MODULE_KEYS: Record<string, string> = {
   "/workspace/financial": "gestao.financeiro",
   "/workspace/contracts": "gestao.contratos",
 };
+
+// ---------- Section components (self-contained, client-scoped) ----------
+
+const SectionShell = ({ title, description, children }: { title: string; description: string; children?: React.ReactNode }) => (
+  <div className="p-6 lg:p-8 max-w-[1400px] space-y-5">
+    <div>
+      <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+      <p className="text-sm text-muted-foreground mt-1">{description}</p>
+    </div>
+    {children}
+  </div>
+);
+
+const ComingSoon = ({ name }: { name: string }) => (
+  <div className="rounded-lg border border-dashed border-border bg-card/50 p-10 flex flex-col items-center justify-center text-center">
+    <Sparkles className="w-8 h-8 text-muted-foreground mb-3" />
+    <p className="text-sm font-medium text-foreground">Em breve</p>
+    <p className="text-xs text-muted-foreground mt-1">Em breve: gestão de {name} do cliente.</p>
+  </div>
+);
+
+const WorkspaceHome = () => (
+  <div className="p-6 space-y-4">
+    <h1 className="text-2xl font-bold">Bem-vindo ao seu workspace</h1>
+    <p className="text-muted-foreground">Use o menu lateral para navegar entre os módulos disponíveis.</p>
+  </div>
+);
+
+const WorkspaceTasks = () => (
+  <SectionShell title="Tarefas" description="Suas tarefas e atividades.">
+    <ComingSoon name="tarefas" />
+  </SectionShell>
+);
+
+const WorkspaceCRM = () => (
+  <SectionShell title="CRM" description="Acompanhe seus leads e oportunidades.">
+    <ComingSoon name="CRM" />
+  </SectionShell>
+);
+
+const WorkspaceFinancial = () => (
+  <SectionShell title="Financeiro" description="Faturas, cobranças e pagamentos.">
+    <ComingSoon name="financeiro" />
+  </SectionShell>
+);
+
+const WorkspaceContracts = () => (
+  <SectionShell title="Contratos" description="Seus contratos ativos e histórico.">
+    <ComingSoon name="contratos" />
+  </SectionShell>
+);
+
+const WorkspaceProjects = () => (
+  <SectionShell title="Projetos" description="Acompanhe o andamento dos seus projetos.">
+    <ComingSoon name="projetos" />
+  </SectionShell>
+);
+
+const WorkspaceSettings = () => (
+  <SectionShell title="Configurações" description="Preferências do seu workspace.">
+    <ComingSoon name="configurações" />
+  </SectionShell>
+);
 
 const Workspace = () => {
   const location = useLocation();

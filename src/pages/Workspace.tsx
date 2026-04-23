@@ -169,19 +169,25 @@ const WorkspaceHome = () => {
           </div>
         </ScrollArea>
 
-        {/* Input area — same style as agency textarea bottom bar */}
-        <div className="flex items-end gap-2 px-6 py-4 border-t border-border bg-muted/30">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Pergunte sobre seus clientes, tarefas, financeiro..."
-            className="flex-1 bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/50 py-1 min-h-[36px] max-h-[80px]"
-            disabled={loading}
-          />
+        {/* Textarea — no border, full width, same as agency */}
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+          placeholder="Pergunte sobre seus clientes, tarefas, financeiro, vendas ou contratos..."
+          className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/50 px-5 py-3 min-h-[72px]"
+          disabled={loading}
+        />
+
+        {/* Bottom action bar — matches agency style */}
+        <div className="flex items-center justify-between px-4 pb-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Bot className="w-3.5 h-3.5" />
+            <span>Assistente com acesso aos seus dados</span>
+          </div>
           <Button
             size="sm"
-            className="h-9 px-4 rounded-full bg-primary hover:bg-primary/90 gap-1.5 shrink-0"
+            className="h-9 px-5 rounded-full bg-primary hover:bg-primary/90 gap-1.5"
             disabled={!input.trim() || loading}
             onClick={send}
           >

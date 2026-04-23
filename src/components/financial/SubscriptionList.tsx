@@ -47,6 +47,7 @@ const SubscriptionList = () => {
       </TableBody>
     </Table>
   </div>
-);
+  );
+};
 
 export default SubscriptionList;

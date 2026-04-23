@@ -26,7 +26,7 @@ const AsaasConfigTab = () => {
       if (!user) return;
       // Sensitive columns (asaas_api_key, asaas_wallet_id) are no longer client-readable.
       // Use a SECURITY DEFINER RPC that returns only a boolean + masked tail.
-      const { data } = await supabase.rpc("get_asaas_status");
+      const { data } = await (supabase.rpc as any)("get_asaas_status");
       if (data?.connected) {
         setExistingKey(true);
         setConnected(true);

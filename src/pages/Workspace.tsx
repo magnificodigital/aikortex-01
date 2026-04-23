@@ -99,7 +99,7 @@ const WorkspaceHome = () => {
       {/* Greeting — same style as agency Home */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
-          {getGreeting()}, {clientName}
+          {getGreeting()}, {displayName}
         </h1>
         <p className="text-muted-foreground text-lg">
           Pergunte ao assistente sobre clientes, tarefas, financeiro, vendas ou contratos do seu sistema.

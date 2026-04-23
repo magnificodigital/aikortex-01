@@ -206,6 +206,12 @@ const SettingsPage = () => {
   const saved = loadBrand();
   const savedIntegrations = loadIntegrations();
 
+  const { profile, user } = useAuth();
+  const isClient = profile?.tenant_type === 'client';
+  const defaultTab =
+    new URLSearchParams(window.location.search).get("tab") ||
+    (isClient ? "conta" : "colors");
+
   const [colors, setColors] = useState<BrandColors>(saved?.colors ?? defaultColors);
   const [logoUrl, setLogoUrl] = useState<string | null>(saved?.logoUrl ?? null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(saved?.faviconUrl ?? null);
@@ -312,8 +318,6 @@ const SettingsPage = () => {
     navigator.clipboard.writeText(`https://aihub.app/bio/${agencyName.toLowerCase().replace(/\s+/g, "-")}`);
     toast({ title: "Link copiado!" });
   };
-
-  const { user } = useAuth();
 
   const saveBrand = async () => {
     const data = { colors, logoUrl, faviconUrl, agencyName, agencySlogan, bioLinks, bioTitle, bioDescription, sections };

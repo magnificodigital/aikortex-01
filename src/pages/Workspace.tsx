@@ -128,10 +128,22 @@ const Workspace = () => {
             <div />
           </div>
 
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Bem-vindo ao seu workspace</h1>
-            <p className="text-muted-foreground">Este é o seu espaço de trabalho. Use o menu lateral para navegar entre os módulos disponíveis.</p>
-          </div>
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando...</div>}>
+            <Routes>
+              <Route index element={
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold mb-4">Bem-vindo ao seu workspace</h1>
+                  <p className="text-muted-foreground">Use o menu lateral para navegar entre os módulos disponíveis.</p>
+                </div>
+              } />
+              <Route path="crm" element={<AikortexCRM />} />
+              <Route path="projects" element={<Projects />} />
+              <Route path="tasks" element={<Tasks />} />
+              <Route path="financial" element={<Financial />} />
+              <Route path="contracts" element={<Contracts />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </RightPanelProvider>

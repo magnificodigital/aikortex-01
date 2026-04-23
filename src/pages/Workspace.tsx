@@ -1,5 +1,5 @@
 import { lazy, Suspense, Component, useState, useEffect, createContext, useContext, type ReactNode } from "react";
-import { Routes, Route, useParams } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import { RightPanelProvider } from "@/components/RightPanel";
 import { Loader2, Eye } from "lucide-react";
@@ -56,44 +56,31 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: string }> 
 }
 
 const Workspace = () => {
-  const { slug } = useParams<{ slug: string }>();
   const { user, profile } = useAuth();
   const [ownerId, setOwnerId] = useState("");
   const [clientName, setClientName] = useState("");
   const [loading, setLoading] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // isReadOnly = agency is viewing (not the client themselves)
-  const isReadOnly = profile?.tenant_type !== "client";
+  // Workspace is always the logged-in client's own space
+  const isReadOnly = false;
 
   useEffect(() => {
-    if (!slug || !user) return;
+    if (!user) return;
     const resolve = async () => {
       setLoading(true);
-
-      if (profile?.tenant_type === "client") {
-        // Direct client login: use their own user ID
-        setOwnerId(user.id);
-        const { data } = await supabase
-          .from("agency_clients")
-          .select("client_name")
-          .eq("client_user_id", user.id)
-          .maybeSingle();
-        setClientName(data?.client_name ?? profile?.full_name ?? "Cliente");
-      } else {
-        // Agency viewing client workspace: find client by slug
-        const { data } = await supabase
-          .from("agency_clients")
-          .select("client_user_id, client_name")
-          .eq("workspace_slug", slug)
-          .maybeSingle();
-        setOwnerId(data?.client_user_id ?? "");
-        setClientName(data?.client_name ?? slug);
-      }
+      // Always use the logged-in user's own ID — no URL lookup
+      setOwnerId(user.id);
+      const { data } = await supabase
+        .from("agency_clients")
+        .select("client_name")
+        .eq("client_user_id", user.id)
+        .maybeSingle();
+      setClientName(data?.client_name ?? profile?.full_name ?? "Cliente");
       setLoading(false);
     };
     resolve();
-  }, [slug, user, profile]);
+  }, [user, profile]);
 
   if (loading) {
     return (

@@ -147,11 +147,9 @@ const App = () => (
               {/* Admin routes - platform only */}
               <Route path="/admin" element={<ProtectedRoute roles={['platform_owner','platform_admin']}><AdminPanel /></ProtectedRoute>} />
 
-              {/* Client workspace routes - slug-based, accessible to both clients and their agency */}
-              <Route path="/workspace" element={<ProtectedRoute><WorkspaceRedirect /></ProtectedRoute>} />
-              <Route path="/workspace/" element={<ProtectedRoute><WorkspaceRedirect /></ProtectedRoute>} />
-              <Route path="/workspace/:slug" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
-              <Route path="/workspace/:slug/*" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
+              {/* Client workspace routes - resolved from auth profile, not URL */}
+              <Route path="/workspace" element={<ClientRoute><Workspace /></ClientRoute>} />
+              <Route path="/workspace/*" element={<ClientRoute><Workspace /></ClientRoute>} />
 
               <Route path="/tutorials" element={<Navigate to="/home" replace />} />
               <Route path="*" element={<NotFound />} />

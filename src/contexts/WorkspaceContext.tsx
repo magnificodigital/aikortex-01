@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,6 +17,7 @@ export interface ActiveWorkspace {
   id: string;
   name: string;
   clientUserId?: string;
+  slug?: string;
 }
 
 interface WorkspaceContextType {
@@ -40,6 +41,7 @@ const WS_ACTIVE_KEY = "aikortex_active_workspace";
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [agencyName, setAgencyName] = useState("Meu Workspace");
   const [agencyProfileId, setAgencyProfileId] = useState<string | null>(null);
   const [clients, setClients] = useState<AgencyClient[]>([]);

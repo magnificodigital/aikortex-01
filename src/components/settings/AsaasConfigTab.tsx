@@ -24,17 +24,13 @@ const AsaasConfigTab = () => {
   useEffect(() => {
     const load = async () => {
       if (!user) return;
-      // Only fetch wallet id + a boolean indicator. Never load the full API key into the browser.
-      const { data } = await supabase
-        .from("agency_profiles")
-        .select("asaas_wallet_id, asaas_api_key")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (data?.asaas_api_key) {
+      // Sensitive columns (asaas_api_key, asaas_wallet_id) are no longer client-readable.
+      // Use a SECURITY DEFINER RPC that returns only a boolean + masked tail.
+      const { data } = await supabase.rpc("get_asaas_status");
+      if (data?.connected) {
         setExistingKey(true);
         setConnected(true);
-        // Display a masked placeholder instead of the real key
-        const masked = "••••••••••••" + String(data.asaas_api_key).slice(-4);
+        const masked = "••••••••••••" + (data.last4 ?? "");
         setApiKey(masked);
       }
     };

@@ -82,18 +82,23 @@ const Workspace = () => {
 
           {(!collapsed || isMobile) && (
             <div className="px-4 py-3 border-b border-sidebar-border">
-              <p className="text-xs text-muted-foreground">Olá, {profile?.full_name?.split(" ")[0] ?? "Cliente"}</p>
+              <p className="text-xs text-muted-foreground">Olá, {activeWorkspace?.name ?? profile?.full_name?.split(" ")[0] ?? "Cliente"}</p>
               <p className="text-[10px] text-muted-foreground/70 mt-0.5">Workspace do cliente</p>
             </div>
           )}
 
           <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-            {clientNavItems.map(item => (
-              <Link key={item.path} to={item.path} className={linkClasses(isActive(item.path))}>
-                <item.icon className={`w-4 h-4 shrink-0 ${isActive(item.path) ? "text-primary" : ""}`} />
-                {(!collapsed || isMobile) && <span className="truncate">{item.label}</span>}
-              </Link>
-            ))}
+            {clientNavItems
+              .filter(item => {
+                const key = CLIENT_MODULE_KEYS[item.path];
+                return !key || canView(key);
+              })
+              .map(item => (
+                <Link key={item.path} to={item.path} className={linkClasses(isActive(item.path))}>
+                  <item.icon className={`w-4 h-4 shrink-0 ${isActive(item.path) ? "text-primary" : ""}`} />
+                  {(!collapsed || isMobile) && <span className="truncate">{item.label}</span>}
+                </Link>
+              ))}
           </nav>
 
           <div className="space-y-0.5 border-t border-sidebar-border px-2 py-2">

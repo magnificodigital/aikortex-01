@@ -565,20 +565,26 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [agenciesRes, subsRes, usersData, clientsRes] = await Promise.all([
-        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, asaas_api_key, asaas_wallet_id, created_at, custom_pricing, tier_manually_overridden").then((res: any) => {
-          if (res.data) {
-            res.data = res.data.map((row: any) => ({
-              ...row,
-              asaas_api_key: row.asaas_api_key ? "connected" : null,
-            }));
-          }
-          return res;
-        }),
+      const [agenciesRes, subsRes, usersData, clientsRes, asaasStatusRes] = await Promise.all([
+        // Sensitive Asaas columns are not selectable; fetched via secure RPC below
+        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, created_at, custom_pricing, tier_manually_overridden"),
         supabase.from("client_template_subscriptions").select("agency_id, agency_price_monthly, platform_price_monthly, status").in("status", ["active", "trial"]),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
         supabase.from("agency_clients").select("id, status, agency_id"),
+        (supabase.rpc as any)("admin_list_asaas_status"),
       ]);
+
+      const asaasMap = new Map<string, { connected: boolean; wallet_last4: string | null }>();
+      ((asaasStatusRes as any)?.data || []).forEach((r: any) => {
+        asaasMap.set(r.agency_id, { connected: !!r.connected, wallet_last4: r.wallet_last4 });
+      });
+      if (agenciesRes.data) {
+        (agenciesRes.data as any[]).forEach((row) => {
+          const s = asaasMap.get(row.id);
+          row.asaas_api_key = s?.connected ? "connected" : null;
+          row.asaas_wallet_id = s?.wallet_last4 ? `••••${s.wallet_last4}` : null;
+        });
+      }
 
       const usersMap = new Map<string, string>();
       (usersData?.data?.users || []).forEach((u: any) => usersMap.set(u.user_id, u.email || ""));

@@ -83,20 +83,25 @@ const AdminAgenciesTab = ({ initialTierFilter, initialAgencyId, onOpenClient }: 
   const fetchAgencies = async () => {
     setLoading(true);
     try {
-      const [agenciesRes, subsRes, usersData] = await Promise.all([
-        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, asaas_api_key, asaas_wallet_id, created_at, custom_pricing").then((res: any) => {
-          // Convert sensitive payment key into boolean indicator before exposing to UI
-          if (res.data) {
-            res.data = res.data.map((row: any) => ({
-              ...row,
-              asaas_api_key: row.asaas_api_key ? "connected" : null,
-            }));
-          }
-          return res;
-        }),
+      const [agenciesRes, subsRes, usersData, asaasStatusRes] = await Promise.all([
+        // Sensitive Asaas columns are not selectable; fetched via secure RPC below
+        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, created_at, custom_pricing"),
         supabase.from("client_template_subscriptions").select("agency_id, agency_price_monthly, platform_price_monthly, status").in("status", ["active", "trial"]),
         supabase.functions.invoke("admin-get-users"),
+        (supabase.rpc as any)("admin_list_asaas_status"),
       ]);
+
+      const asaasMap = new Map<string, { connected: boolean; wallet_last4: string | null }>();
+      ((asaasStatusRes as any)?.data || []).forEach((r: any) => {
+        asaasMap.set(r.agency_id, { connected: !!r.connected, wallet_last4: r.wallet_last4 });
+      });
+      if (agenciesRes.data) {
+        (agenciesRes.data as any[]).forEach((row) => {
+          const s = asaasMap.get(row.id);
+          row.asaas_api_key = s?.connected ? "connected" : null;
+          row.asaas_wallet_id = s?.wallet_last4 ? `••••${s.wallet_last4}` : null;
+        });
+      }
 
       const usersMap = new Map<string, string>();
       (usersData?.data?.users || []).forEach((u: any) => usersMap.set(u.user_id, u.email || ""));
@@ -108,12 +113,12 @@ const AdminAgenciesTab = ({ initialTierFilter, initialAgencyId, onOpenClient }: 
         platformMap.set(s.agency_id, (platformMap.get(s.agency_id) || 0) + (s.platform_price_monthly || 0));
       });
 
-      setAgencies((agenciesRes.data || []).map(a => ({
+      setAgencies(((agenciesRes.data || []) as any[]).map((a: any) => ({
         ...a,
         email: usersMap.get(a.user_id) || "",
         mrr: mrrMap.get(a.id) || 0,
         platformRevenue: platformMap.get(a.id) || 0,
-      })));
+      })) as AgencyRow[]);
     } catch {
       toast.error("Erro ao carregar agências");
     }

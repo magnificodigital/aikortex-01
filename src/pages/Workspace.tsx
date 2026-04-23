@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useRef, useEffect } from "react";
 import { Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useClientPermissions } from "@/hooks/use-client-permissions";
 import { useTheme } from "@/hooks/use-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -40,8 +41,9 @@ const navItems: NavItem[] = [
 ];
 
 const WorkspaceHome = () => {
-  const { user } = useAuth();
-  const [clientName, setClientName] = useState("Cliente");
+  const { user, profile } = useAuth();
+  const { activeWorkspace } = useWorkspace();
+  const displayName = activeWorkspace?.name?.split(" ")[0] ?? profile?.full_name?.split(" ")[0] ?? "Cliente";
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
     {
       role: "assistant",
@@ -51,18 +53,6 @@ const WorkspaceHome = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("user_id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (data?.full_name) setClientName(data.full_name.split(" ")[0]);
-      });
-  }, [user]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -109,7 +99,7 @@ const WorkspaceHome = () => {
       {/* Greeting — same style as agency Home */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
-          {getGreeting()}, {clientName}
+          {getGreeting()}, {displayName}
         </h1>
         <p className="text-muted-foreground text-lg">
           Pergunte ao assistente sobre clientes, tarefas, financeiro, vendas ou contratos do seu sistema.

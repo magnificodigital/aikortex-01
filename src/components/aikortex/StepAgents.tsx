@@ -243,7 +243,7 @@ const StepAgents = ({ selected, onSelect }: Props) => {
               <div className="space-y-2 min-w-0">
                 <h3 className="text-sm font-bold text-foreground">Novo Agente</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Disponível a partir do tier Explorer (5 clientes ativos).
+                  Disponível a partir do tier Hack (5 clientes ativos).
                 </p>
               </div>
             </div>

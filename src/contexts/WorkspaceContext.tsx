@@ -7,6 +7,7 @@ interface AgencyClient {
   client_name: string;
   client_email: string | null;
   status: string | null;
+  client_user_id?: string | null;
 }
 
 export interface ActiveWorkspace {

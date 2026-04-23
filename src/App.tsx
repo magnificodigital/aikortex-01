@@ -147,7 +147,6 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute roles={['platform_owner','platform_admin']}><AdminPanel /></ProtectedRoute>} />
 
               {/* Client workspace routes */}
-              <Route path="/workspace" element={<ClientRoute><Workspace /></ClientRoute>} />
               <Route path="/workspace/*" element={<ClientRoute><Workspace /></ClientRoute>} />
 
               <Route path="/tutorials" element={<Navigate to="/home" replace />} />

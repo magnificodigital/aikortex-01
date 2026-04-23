@@ -327,12 +327,12 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
         {(!collapsed || isMobile) && !isDirectClient && (
           <div className="px-2 pt-3">
             <Select
-              value={activeWorkspace.type === "agency" ? "__agency__" : activeWorkspace.id}
+              value={activeWorkspace.type === "agency" ? "__agency__" : (activeWorkspace.slug ?? activeWorkspace.id)}
               onValueChange={(val) => {
                 if (val === "__agency__") {
                   switchToAgency();
                 } else {
-                  const client = clients.find(c => c.id === val);
+                  const client = clients.find(c => (c.workspace_slug ?? c.id) === val);
                   if (client) switchToClient(client);
                 }
               }}
@@ -341,7 +341,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
               <SelectContent>
                 <SelectItem value="__agency__">{agencyName}</SelectItem>
                 {clients.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>
+                  <SelectItem key={c.id} value={c.workspace_slug ?? c.id}>{c.client_name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

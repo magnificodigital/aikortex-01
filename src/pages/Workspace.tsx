@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { Link, useLocation, useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/use-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useClientPermissions } from "@/hooks/use-client-permissions";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import aikortexLogoWhite from "@/assets/aikortex-logo-white.png";
 import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";
 import {
@@ -10,6 +12,13 @@ import {
   LogOut, Sun, Moon, ChevronLeft, ChevronRight, Menu, X, Contact,
 } from "lucide-react";
 import { RightPanelProvider } from "@/components/RightPanel";
+
+const AikortexCRM = lazy(() => import("./AikortexCRM"));
+const Tasks = lazy(() => import("./Tasks"));
+const Financial = lazy(() => import("./Financial"));
+const Contracts = lazy(() => import("./Contracts"));
+const SettingsPage = lazy(() => import("./SettingsPage"));
+const Projects = lazy(() => import("./Projects"));
 
 type NavItem = { label: string; icon: typeof LayoutDashboard; path: string };
 
@@ -23,12 +32,22 @@ const clientNavItems: NavItem[] = [
   { label: "Configurações", icon: Settings, path: "/workspace/settings" },
 ];
 
+const CLIENT_MODULE_KEYS: Record<string, string> = {
+  "/workspace/crm": "gestao.crm",
+  "/workspace/projects": "gestao.projetos",
+  "/workspace/tasks": "gestao.tarefas",
+  "/workspace/financial": "gestao.financeiro",
+  "/workspace/contracts": "gestao.contratos",
+};
+
 const Workspace = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
   const { profile, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const { canView } = useClientPermissions();
+  const { activeWorkspace } = useWorkspace();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 

@@ -10,7 +10,7 @@ import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";
 import {
   Home, LayoutDashboard, Users, Contact, MessageSquare,
   CheckSquare, DollarSign, Settings, LogOut, Sun, Moon,
-  ChevronLeft, ChevronRight, Menu, X, Send, Bot, Loader2,
+  ChevronLeft, ChevronRight, Menu, X, Send, Bot, Loader2, ArrowUp,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

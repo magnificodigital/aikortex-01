@@ -326,7 +326,29 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
             </Link>
           </div>
 
-          {!isClientMode && renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)}
+          {!isClientMode
+            ? renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)
+            : (() => {
+                const visibleAikortexItems = aikortexItems.filter(item => {
+                  const key = MODULE_KEY_MAP[item.path.split("?")[0]];
+                  return key ? canView(key) : false;
+                });
+                if (visibleAikortexItems.length === 0) return null;
+                return (
+                  <div className="mt-2 space-y-0.5">
+                    {(!collapsed || isMobile) && (
+                      <div className="px-3 py-2 mt-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                        Ferramentas
+                      </div>
+                    )}
+                    {collapsed && !isMobile && <div className="border-t border-sidebar-border my-2" />}
+                    <div className="space-y-0.5">
+                      {visibleAikortexItems.map(item => renderItem(item))}
+                    </div>
+                  </div>
+                );
+              })()
+          }
           {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
           {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
 

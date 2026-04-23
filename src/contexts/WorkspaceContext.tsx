@@ -7,12 +7,14 @@ interface AgencyClient {
   client_name: string;
   client_email: string | null;
   status: string | null;
+  client_user_id?: string | null;
 }
 
 export interface ActiveWorkspace {
   type: "agency" | "client";
   id: string;
   name: string;
+  clientUserId?: string;
 }
 
 interface WorkspaceContextType {
@@ -25,6 +27,7 @@ interface WorkspaceContextType {
   loading: boolean;
   refreshClients: () => Promise<void>;
   isClientMode: boolean;
+  activeClientUserId?: string;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -70,7 +73,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         if (agency?.id) {
           const { data } = await supabase
             .from("agency_clients")
-            .select("id, client_name, client_email, status")
+            .select("id, client_name, client_email, status, client_user_id")
             .eq("agency_id", agency.id)
             .eq("status", "active")
             .order("client_name");
@@ -86,7 +89,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
             if (parsed.type === "client") {
               const exists = loadedClients.find(c => c.id === parsed.id);
               if (exists) {
-                setActiveWorkspace({ type: "client", id: parsed.id, name: parsed.name });
+                setActiveWorkspace({
+                  type: "client",
+                  id: parsed.id,
+                  name: parsed.name,
+                  clientUserId: exists.client_user_id ?? undefined,
+                });
                 return;
               }
             }
@@ -111,7 +119,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, [agencyProfileId, agencyName]);
 
   const switchToClient = useCallback((client: AgencyClient) => {
-    const ws: ActiveWorkspace = { type: "client", id: client.id, name: client.client_name };
+    const ws: ActiveWorkspace = {
+      type: "client",
+      id: client.id,
+      name: client.client_name,
+      clientUserId: client.client_user_id ?? undefined,
+    };
     setActiveWorkspace(ws);
     localStorage.setItem(WS_ACTIVE_KEY, JSON.stringify(ws));
   }, []);
@@ -120,7 +133,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     if (!agencyProfileId) return;
     const { data } = await supabase
       .from("agency_clients")
-      .select("id, client_name, client_email, status")
+      .select("id, client_name, client_email, status, client_user_id")
       .eq("agency_id", agencyProfileId)
       .eq("status", "active")
       .order("client_name");
@@ -133,6 +146,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       activeWorkspace, switchToAgency, switchToClient,
       loading, refreshClients,
       isClientMode: activeWorkspace.type === "client",
+      activeClientUserId: activeWorkspace.type === "client" ? activeWorkspace.clientUserId : undefined,
     }}>
       {children}
     </WorkspaceContext.Provider>

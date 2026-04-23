@@ -1,6 +1,7 @@
-import { lazy, Suspense, Component, type ReactNode } from "react";
+import { lazy, Suspense, Component, useState, type ReactNode } from "react";
 import { Routes, Route } from "react-router-dom";
-import DashboardLayout from "@/components/DashboardLayout";
+import AppSidebar from "@/components/AppSidebar";
+import { RightPanelProvider } from "@/components/RightPanel";
 import { Loader2 } from "lucide-react";
 import { WorkspaceHomeChat } from "@/components/workspace/WorkspaceHomeChat";
 import { WorkspaceClients } from "@/components/workspace/WorkspaceClients";
@@ -12,29 +13,23 @@ const Tasks = lazy(() => import("./Tasks"));
 const Financial = lazy(() => import("./Financial"));
 const SettingsPage = lazy(() => import("./SettingsPage"));
 
-class WorkspaceErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean; msg: string }
-> {
+class ErrorBoundary extends Component<{ children: ReactNode }, { err: string }> {
   constructor(props: { children: ReactNode }) {
     super(props);
-    this.state = { hasError: false, msg: "" };
+    this.state = { err: "" };
   }
   static getDerivedStateFromError(e: Error) {
-    return { hasError: true, msg: e.message };
-  }
-  componentDidCatch(error: Error, info: unknown) {
-    console.error("[Workspace] Module error:", error, info);
+    return { err: e.message };
   }
   render() {
-    if (this.state.hasError) {
+    if (this.state.err) {
       return (
         <div className="p-8 text-center space-y-2">
-          <p className="text-destructive font-medium">Erro ao carregar o módulo</p>
-          <p className="text-sm text-muted-foreground">{this.state.msg}</p>
+          <p className="text-destructive font-medium">Erro ao carregar módulo</p>
+          <p className="text-sm text-muted-foreground">{this.state.err}</p>
           <button
             className="text-sm text-primary underline mt-2"
-            onClick={() => this.setState({ hasError: false, msg: "" })}
+            onClick={() => this.setState({ err: "" })}
           >
             Tentar novamente
           </button>
@@ -45,29 +40,41 @@ class WorkspaceErrorBoundary extends Component<
   }
 }
 
-const Loader = () => (
-  <div className="p-6 text-muted-foreground flex items-center gap-2">
-    <Loader2 className="w-4 h-4 animate-spin" /> Carregando...
-  </div>
-);
+const Workspace = () => {
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-const Workspace = () => (
-  <DashboardLayout>
-    <WorkspaceErrorBoundary>
-      <Suspense fallback={<Loader />}>
-        <Routes>
-          <Route index element={<WorkspaceHomeChat />} />
-          <Route path="dashboard" element={<DashboardIndex />} />
-          <Route path="clients" element={<WorkspaceClients />} />
-          <Route path="crm" element={<AikortexCRM />} />
-          <Route path="messages" element={<AikortexMessages />} />
-          <Route path="tasks" element={<Tasks />} />
-          <Route path="financial" element={<Financial />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Routes>
-      </Suspense>
-    </WorkspaceErrorBoundary>
-  </DashboardLayout>
-);
+  return (
+    <RightPanelProvider>
+      <div className="flex h-screen bg-background">
+        <AppSidebar
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
+        />
+        <main className="flex-1 overflow-auto">
+          <ErrorBoundary>
+            <Suspense
+              fallback={
+                <div className="p-6 text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Carregando...
+                </div>
+              }
+            >
+              <Routes>
+                <Route index element={<WorkspaceHomeChat />} />
+                <Route path="dashboard" element={<DashboardIndex />} />
+                <Route path="clients" element={<WorkspaceClients />} />
+                <Route path="crm" element={<AikortexCRM />} />
+                <Route path="messages" element={<AikortexMessages />} />
+                <Route path="tasks" element={<Tasks />} />
+                <Route path="financial" element={<Financial />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+      </div>
+    </RightPanelProvider>
+  );
+};
 
 export default Workspace;

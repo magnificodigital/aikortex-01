@@ -12,9 +12,13 @@ import TaskMyView from "@/components/tasks/TaskMyView";
 import TaskTeamView from "@/components/tasks/TaskTeamView";
 import TaskDetailDialog from "@/components/tasks/TaskDetailDialog";
 import NewTaskDialog from "@/components/tasks/NewTaskDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const { profile } = useAuth();
+  const isClient = profile?.tenant_type === 'client';
+  const allTasks = isClient ? [] : mockTasks;
+  const [tasks, setTasks] = useState<Task[]>(allTasks);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");

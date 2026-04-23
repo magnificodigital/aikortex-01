@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       agency_clients: {
         Row: {
+          address: string | null
           agency_id: string
           asaas_customer_id: string | null
           client_document: string | null
@@ -26,6 +27,7 @@ export type Database = {
           client_phone: string | null
           client_primary_color: string | null
           client_user_id: string | null
+          cnpj: string | null
           created_at: string | null
           id: string
           platform_subscription_id: string | null
@@ -34,6 +36,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
           agency_id: string
           asaas_customer_id?: string | null
           client_document?: string | null
@@ -44,6 +47,7 @@ export type Database = {
           client_phone?: string | null
           client_primary_color?: string | null
           client_user_id?: string | null
+          cnpj?: string | null
           created_at?: string | null
           id?: string
           platform_subscription_id?: string | null
@@ -52,6 +56,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
           agency_id?: string
           asaas_customer_id?: string | null
           client_document?: string | null
@@ -62,6 +67,7 @@ export type Database = {
           client_phone?: string | null
           client_primary_color?: string | null
           client_user_id?: string | null
+          cnpj?: string | null
           created_at?: string | null
           id?: string
           platform_subscription_id?: string | null

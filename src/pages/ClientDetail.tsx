@@ -140,40 +140,30 @@ const ClientDetail = () => {
             </div>
           </TabsContent>
 
-          {/* Templates */}
+          {/* Acesso */}
+          <TabsContent value="access" className="space-y-4">
+            <ClientAccessTab
+              client={{
+                id: client.id,
+                client_email: client.client_email,
+                client_user_id: client.client_user_id,
+              }}
+              onUpdated={() => {
+                supabase.from("agency_clients").select("*").eq("id", clientId!).single().then(({ data }) => {
+                  if (data) setClient(data);
+                });
+              }}
+            />
+          </TabsContent>
+
+          {/* Lightbox notifications */}
+          <TabsContent value="lightbox" className="space-y-4">
+            <ClientLightboxTab clientId={client.id} agencyId={client.agency_id} />
+          </TabsContent>
+
+          {/* Templates — gerenciamento completo */}
           <TabsContent value="templates" className="space-y-4">
-            {subs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Nenhum template assinado.</p>
-            ) : (
-              <div className="space-y-3">
-                {subs.map((s: any) => {
-                  const subSt = STATUS_MAP[s.status] ?? STATUS_MAP.pending;
-                  const trialDays = s.trial_ends_at ? Math.max(0, Math.ceil((new Date(s.trial_ends_at).getTime() - Date.now()) / 86400000)) : 0;
-                  return (
-                    <Card key={s.id}>
-                      <CardContent className="p-4 flex items-center justify-between flex-wrap gap-3">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{s.platform_templates?.name ?? "Template"}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className={`${subSt.class} border text-xs`}>{subSt.label}</Badge>
-                            {s.status === "trial" && trialDays > 0 && (
-                              <span className="text-xs text-amber-600 flex items-center gap-1">
-                                <AlertTriangle className="w-3 h-3" /> {trialDays} dias restantes
-                              </span>
-                            )}
-                            {s.activated_channel && <Badge variant="secondary" className="text-xs">{s.activated_channel}</Badge>}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-foreground">R$ {Number(s.agency_price_monthly).toFixed(0)}/mês</p>
-                          <p className="text-xs text-muted-foreground">Custo: R$ {Number(s.platform_price_monthly).toFixed(0)}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+            <ClientTemplatesTab clientId={client.id} agencyId={client.agency_id} />
           </TabsContent>
 
           {/* Billing */}

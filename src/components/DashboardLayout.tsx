@@ -6,6 +6,7 @@ import { RightPanelProvider } from "./RightPanel";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMonthlyUsage } from "@/hooks/use-monthly-usage";
+import { LightboxNotificationModal } from "@/components/clients/LightboxNotificationModal";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
@@ -78,6 +79,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
           <div className="relative z-10">{children}</div>
         </main>
+        <LightboxNotificationModal />
       </div>
     </RightPanelProvider>
   );

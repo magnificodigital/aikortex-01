@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.agent-structure]
 verify_jwt = false
+
+[functions.manage-client-access]
+verify_jwt = true

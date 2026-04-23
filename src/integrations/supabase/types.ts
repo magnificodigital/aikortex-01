@@ -583,6 +583,98 @@ export type Database = {
           },
         ]
       }
+      client_lightbox_dismissals: {
+        Row: {
+          dismissed_at: string
+          id: string
+          notification_id: string
+          user_id: string
+        }
+        Insert: {
+          dismissed_at?: string
+          id?: string
+          notification_id: string
+          user_id: string
+        }
+        Update: {
+          dismissed_at?: string
+          id?: string
+          notification_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_lightbox_dismissals_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "client_lightbox_notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_lightbox_notifications: {
+        Row: {
+          action_label: string | null
+          action_url: string | null
+          agency_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          message: string
+          priority: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_label?: string | null
+          action_url?: string | null
+          agency_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          message: string
+          priority?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_label?: string | null
+          action_url?: string | null
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          message?: string
+          priority?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_lightbox_notifications_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_lightbox_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "agency_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_template_subscriptions: {
         Row: {
           activated_at: string | null

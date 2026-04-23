@@ -10,7 +10,7 @@ import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";
 import {
   Home, LayoutDashboard, Users, Contact, MessageSquare,
   CheckSquare, DollarSign, Settings, LogOut, Sun, Moon,
-  ChevronLeft, ChevronRight, Menu, X, Send, Bot, Loader2,
+  ChevronLeft, ChevronRight, Menu, X, Send, Bot, Loader2, ArrowUp,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,24 +39,41 @@ const navItems: NavItem[] = [
   { label: "Configurações", icon: Settings, path: "/workspace/settings", key: null },
 ];
 
-// ---------- AI Chat Home ----------
-type ChatMsg = { role: "user" | "assistant"; text: string };
-
 const WorkspaceHome = () => {
-  const { profile } = useAuth();
-  const [messages, setMessages] = useState<ChatMsg[]>([
+  const { user } = useAuth();
+  const [clientName, setClientName] = useState("Cliente");
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
     {
       role: "assistant",
-      text: `Olá${profile?.full_name ? ", " + profile.full_name.split(" ")[0] : ""}! Sou seu assistente. Posso te ajudar a buscar informações sobre clientes, tarefas, financeiro, vendas e contratos. Como posso ajudar?`,
+      text: "Olá! Sou seu assistente de IA. Posso te ajudar a buscar informações sobre seus clientes, tarefas, financeiro, vendas e contratos. Como posso ajudar?",
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.full_name) setClientName(data.full_name.split(" ")[0]);
+      });
+  }, [user]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Bom dia";
+    if (h < 18) return "Boa tarde";
+    return "Boa noite";
+  };
 
   const send = async () => {
     const text = input.trim();
@@ -72,84 +89,124 @@ const WorkspaceHome = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${session?.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({ message: text }),
         }
       );
-      const data = await res.json().catch(() => ({}));
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: data?.reply ?? "Não consegui processar sua solicitação." },
-      ]);
+      const data = await res.json();
+      setMessages((prev) => [...prev, { role: "assistant", text: data.reply ?? "Não consegui processar sua solicitação." }]);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "Erro ao conectar com o assistente. Tente novamente." },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", text: "Erro ao conectar com o assistente. Tente novamente em instantes." }]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-full max-h-screen p-4 lg:p-6">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Bot className="w-6 h-6 text-primary" /> Assistente IA
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6">
+      {/* Greeting — same style as agency Home */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
+          {getGreeting()}, {clientName}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Pergunte sobre clientes, tarefas, financeiro, vendas ou contratos.
+        <p className="text-muted-foreground text-lg">
+          Pergunte ao assistente sobre clientes, tarefas, financeiro, vendas ou contratos do seu sistema.
         </p>
       </div>
 
-      <ScrollArea className="flex-1 rounded-lg border border-border bg-card/50 p-4">
-        <div className="space-y-4">
-          {messages.map((m, i) => (
-            <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              {m.role === "assistant" && (
+      {/* Chat card — same dimensions and style as the creation box */}
+      <div className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        {/* Chat header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Bot className="w-4 h-4 text-primary" />
+            </div>
+            <span className="font-medium text-foreground">Assistente IA</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            Online
+          </div>
+        </div>
+
+        {/* Messages area */}
+        <ScrollArea className="h-[320px] px-6 py-4">
+          <div className="space-y-4">
+            {messages.map((m, i) => (
+              <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                {m.role === "assistant" && (
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Bot className="w-4 h-4 text-primary" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                    m.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-md"
+                      : "bg-muted text-foreground rounded-bl-md"
+                  }`}
+                >
+                  {m.text}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex gap-3 justify-start">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <Bot className="w-4 h-4 text-primary" />
                 </div>
-              )}
-              <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
-                  m.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                }`}
-              >
-                {m.text}
+                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:150ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:300ms]" />
+                </div>
               </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-primary" />
-              </div>
-              <div className="bg-muted rounded-lg px-4 py-2">
-                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-              </div>
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-      </ScrollArea>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        </ScrollArea>
 
-      <div className="flex gap-2 mt-4">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
-          placeholder="Digite sua pergunta..."
-          disabled={loading}
-          className="flex-1"
-        />
-        <Button onClick={send} disabled={loading || !input.trim()}>
-          <Send className="w-4 h-4" />
-        </Button>
+        {/* Input area — same style as agency textarea bottom bar */}
+        <div className="flex items-end gap-2 px-6 py-4 border-t border-border bg-muted/30">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder="Pergunte sobre seus clientes, tarefas, financeiro..."
+            className="flex-1 bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/50 py-1 min-h-[36px] max-h-[80px]"
+            disabled={loading}
+          />
+          <Button
+            size="sm"
+            className="h-9 px-4 rounded-full bg-primary hover:bg-primary/90 gap-1.5 shrink-0"
+            disabled={!input.trim() || loading}
+            onClick={send}
+          >
+            <ArrowUp className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Quick question suggestions */}
+      <div className="flex items-center gap-3 flex-wrap justify-center">
+        {[
+          "Quantos clientes ativos tenho?",
+          "Quais tarefas estão atrasadas?",
+          "Resumo financeiro do mês",
+          "Propostas abertas no CRM",
+        ].map((suggestion) => (
+          <button
+            key={suggestion}
+            onClick={() => { setInput(suggestion); }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors"
+          >
+            <Bot className="w-4 h-4" />
+            {suggestion}
+          </button>
+        ))}
       </div>
     </div>
   );

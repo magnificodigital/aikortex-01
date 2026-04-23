@@ -23,17 +23,23 @@ const ProtectedRoute = ({ children, roles, tenantTypes }: ProtectedRouteProps) =
     return <Navigate to="/" replace />;
   }
 
-  if (roles && roles.length > 0 && profile) {
-    if (!roles.includes(profile.role)) {
-      // Redirect to their correct area instead of access denied
-      return <Navigate to={getRedirectPath()} replace />;
-    }
+  // Deny access when role/tenant constraints are required but the profile
+  // hasn't been confirmed (or is missing a real id from the database).
+  // This prevents privilege escalation if the in-memory default profile
+  // is ever applied before the real one loads.
+  const requiresRole = roles && roles.length > 0;
+  const requiresTenant = tenantTypes && tenantTypes.length > 0;
+
+  if ((requiresRole || requiresTenant) && (!profile || !profile.id)) {
+    return <AccessDenied />;
   }
 
-  if (tenantTypes && tenantTypes.length > 0 && profile) {
-    if (!tenantTypes.includes(profile.tenant_type)) {
-      return <Navigate to={getRedirectPath()} replace />;
-    }
+  if (requiresRole && profile && !roles!.includes(profile.role)) {
+    return <Navigate to={getRedirectPath()} replace />;
+  }
+
+  if (requiresTenant && profile && !tenantTypes!.includes(profile.tenant_type)) {
+    return <Navigate to={getRedirectPath()} replace />;
   }
 
   return <>{children}</>;

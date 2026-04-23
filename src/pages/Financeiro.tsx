@@ -22,8 +22,8 @@ import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const tierInfo: Record<string, { label: string; color: string; next: string | null; threshold: number; icon: typeof Star }> = {
-  starter: { label: "Starter", color: "text-muted-foreground", next: "growth", threshold: 5, icon: Star },
-  growth: { label: "Growth", color: "text-[hsl(var(--warning))]", next: "growth", threshold: 15, icon: Zap },
+  starter: { label: "Starter", color: "text-muted-foreground", next: "hack", threshold: 5, icon: Star },
+  hack: { label: "Hack", color: "text-[hsl(var(--warning))]", next: "growth", threshold: 15, icon: Zap },
   growth: { label: "Growth", color: "text-primary", next: null, threshold: 999, icon: Trophy },
 };
 

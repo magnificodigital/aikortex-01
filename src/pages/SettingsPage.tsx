@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -384,7 +383,11 @@ const SettingsPage = () => {
                 <TabsTrigger value="biolink" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Link2 className="h-3.5 w-3.5" /> Bio Link</TabsTrigger>
                 <TabsTrigger value="integrations" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Plug className="h-3.5 w-3.5" /> Integrações</TabsTrigger>
                 <TabsTrigger value="channels" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Radio className="h-3.5 w-3.5" /> Canais</TabsTrigger>
-                <TabsTrigger value="subscription" className="shrink-0 gap-1 whitespace-primeiro, deixe-me verificar o arquivo atual para entender a estrutura existente:</think><|tool_calls_section_begin|><|tool_call_begin|>functions.code--view:7<|tool_call_argument_begin|>{
+                <TabsTrigger value="subscription" className="shrink-0 gap-1 whitespace-nowrap text-xs"><CreditCard className="h-3.5 w-3.5" /> Assinatura & Planos</TabsTrigger>
+                <TabsTrigger value="financeiro" className="shrink-0 gap-1 whitespace-nowrap text-xs"><DollarSign className="h-3.5 w-3.5" /> Financeiro</TabsTrigger>
+              </>
+            )}
+          </TabsList>
 
           {/* ── CORES ──────────────────────────────── */}
           <TabsContent value="colors" className="space-y-6">

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,6 +17,7 @@ export interface ActiveWorkspace {
   id: string;
   name: string;
   clientUserId?: string;
+  slug?: string;
 }
 
 interface WorkspaceContextType {
@@ -40,6 +41,7 @@ const WS_ACTIVE_KEY = "aikortex_active_workspace";
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [agencyName, setAgencyName] = useState("Meu Workspace");
   const [agencyProfileId, setAgencyProfileId] = useState<string | null>(null);
   const [clients, setClients] = useState<AgencyClient[]>([]);
@@ -117,23 +119,52 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, [user, profile]);
 
   const switchToAgency = useCallback(() => {
-    const ws: ActiveWorkspace = { type: "agency", id: agencyProfileId ?? "", name: agencyName };
-    setActiveWorkspace(ws);
-    localStorage.setItem(WS_ACTIVE_KEY, JSON.stringify(ws));
-  }, [agencyProfileId, agencyName]);
+    navigate("/home");
+    // Context will auto-update via the location watcher below
+  }, [navigate]);
 
   const switchToClient = useCallback((client: AgencyClient) => {
-    const ws: ActiveWorkspace = {
-      type: "client",
-      id: client.id,
-      name: client.client_name,
-      clientUserId: client.client_user_id ?? undefined,
-    };
-    setActiveWorkspace(ws);
-    localStorage.setItem(WS_ACTIVE_KEY, JSON.stringify(ws));
     const slug = client.workspace_slug ?? client.id;
     navigate(`/workspace/${slug}`);
+    // Context will auto-update via the location watcher below
   }, [navigate]);
+
+  // Auto-sync activeWorkspace with the current URL
+  useEffect(() => {
+    if (!user || profile?.tenant_type === "client") return;
+
+    const match = location.pathname.match(/^\/workspace\/([^/]+)/);
+    if (!match) {
+      if (activeWorkspace.type === "client" && agencyProfileId) {
+        const ws: ActiveWorkspace = { type: "agency", id: agencyProfileId, name: agencyName };
+        setActiveWorkspace(ws);
+        localStorage.setItem(WS_ACTIVE_KEY, JSON.stringify(ws));
+      }
+      return;
+    }
+
+    const slug = match[1];
+    if (activeWorkspace.type === "client" && activeWorkspace.slug === slug) return;
+
+    supabase
+      .from("agency_clients")
+      .select("id, client_name, client_user_id, workspace_slug")
+      .eq("workspace_slug", slug)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          const ws: ActiveWorkspace = {
+            type: "client",
+            id: data.id,
+            name: data.client_name,
+            clientUserId: data.client_user_id ?? undefined,
+            slug: data.workspace_slug ?? undefined,
+          };
+          setActiveWorkspace(ws);
+          localStorage.setItem(WS_ACTIVE_KEY, JSON.stringify(ws));
+        }
+      });
+  }, [location.pathname, user, profile, agencyProfileId, agencyName, activeWorkspace.type, activeWorkspace.slug]);
 
   const refreshClients = useCallback(async () => {
     if (!agencyProfileId) return;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Monitor, Sparkles, Globe, ArrowUp, RefreshCw } from "lucide-react";
@@ -11,6 +11,123 @@ import { AGENT_PRESETS } from "@/types/agent-presets";
 import type { AgentType } from "@/types/agent-builder";
 // AgencyOnboarding disabled for now
 // import AgencyOnboarding from "@/components/onboarding/AgencyOnboarding";
+
+const WorkspaceHomeChat = () => {
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
+    { role: "assistant", text: "Olá! Sou seu assistente de IA. Posso te ajudar a buscar informações sobre seus clientes, tarefas, financeiro, vendas e contratos. Como posso ajudar?" }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput("");
+    setMessages(prev => [...prev, { role: "user", text }]);
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/workspace-assistant`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ message: text }),
+        }
+      );
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: "assistant", text: data.reply ?? "Não consegui processar sua solicitação." }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", text: "Erro ao conectar com o assistente." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="w-full max-w-2xl rounded-2xl border border-border bg-card shadow-xl shadow-black/5 overflow-hidden mb-8">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">Assistente IA</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-xs text-muted-foreground">Online</span>
+          </div>
+        </div>
+        <div className="px-4 py-4 space-y-4 max-h-[320px] overflow-y-auto">
+          {messages.map((m, i) => (
+            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              {m.role === "assistant" && (
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-2 shrink-0">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                </div>
+              )}
+              <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted text-foreground rounded-bl-none"}`}>
+                {m.text}
+              </div>
+            </div>
+          ))}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-2 shrink-0">
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+              <div className="bg-muted rounded-2xl rounded-bl-none px-4 py-2.5 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce" />
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce delay-75" />
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce delay-150" />
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+        <textarea
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+          placeholder="Pergunte sobre seus clientes, tarefas, financeiro, vendas ou contratos..."
+          className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/50 px-5 py-3 min-h-[72px]"
+          disabled={loading}
+        />
+        <div className="flex items-center justify-between px-4 pb-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Assistente com acesso aos seus dados</span>
+          </div>
+          <Button
+            size="sm"
+            className="h-9 px-5 rounded-full bg-primary hover:bg-primary/90 gap-1.5"
+            disabled={!input.trim() || loading}
+            onClick={send}
+          >
+            <ArrowUp className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 flex-wrap justify-center">
+        {["Quantos clientes ativos tenho?", "Quais tarefas estão atrasadas?", "Resumo financeiro do mês", "Propostas abertas no CRM"].map(s => (
+          <button key={s} onClick={() => setInput(s)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors">
+            <Sparkles className="w-4 h-4" />{s}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+};
 
 const suggestionsByTab = {
   app: [

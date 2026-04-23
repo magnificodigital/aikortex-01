@@ -13,6 +13,7 @@ export interface ActiveWorkspace {
   type: "agency" | "client";
   id: string;
   name: string;
+  clientUserId?: string;
 }
 
 interface WorkspaceContextType {
@@ -25,6 +26,7 @@ interface WorkspaceContextType {
   loading: boolean;
   refreshClients: () => Promise<void>;
   isClientMode: boolean;
+  activeClientUserId?: string;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);

@@ -10,7 +10,6 @@ import { LightboxNotificationModal } from "@/components/clients/LightboxNotifica
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
-  if (location.pathname.startsWith("/workspace")) return <>{children}</>;
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -23,6 +22,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!isMobile) setMobileSidebarOpen(false);
   }, [isMobile]);
+
+  // Workspace routes provide their own outer DashboardLayout — skip the inner one.
+  if (location.pathname.startsWith("/workspace")) return <>{children}</>;
 
   const dismissBanner = () => {
     setBannerDismissed(true);

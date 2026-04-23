@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { Link, useLocation, useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/use-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,6 +12,13 @@ import {
   LogOut, Sun, Moon, ChevronLeft, ChevronRight, Menu, X, Contact, Sparkles,
 } from "lucide-react";
 import { RightPanelProvider } from "@/components/RightPanel";
+
+const Tasks = lazy(() => import("./Tasks"));
+const Financial = lazy(() => import("./Financial"));
+const Contracts = lazy(() => import("./Contracts"));
+const Projects = lazy(() => import("./Projects"));
+const AikortexCRM = lazy(() => import("./AikortexCRM"));
+const SettingsPage = lazy(() => import("./SettingsPage"));
 
 type NavItem = { label: string; icon: typeof LayoutDashboard; path: string };
 
@@ -115,17 +122,6 @@ const Workspace = () => {
 
   useEffect(() => { if (isMobile) setMobileSidebarOpen(false); }, [location.pathname]);
 
-  const renderContent = () => {
-    const path = location.pathname;
-    if (path === "/workspace/tasks") return <WorkspaceTasks />;
-    if (path === "/workspace/crm") return <WorkspaceCRM />;
-    if (path === "/workspace/financial") return <WorkspaceFinancial />;
-    if (path === "/workspace/contracts") return <WorkspaceContracts />;
-    if (path === "/workspace/projects") return <WorkspaceProjects />;
-    if (path === "/workspace/settings") return <WorkspaceSettings />;
-    return <WorkspaceHome />;
-  };
-
   return (
     <RightPanelProvider>
       <div className="flex min-h-screen w-full overflow-hidden">
@@ -194,7 +190,17 @@ const Workspace = () => {
               <Menu className="h-5 w-5" />
             </button>
           )}
-          {renderContent()}
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando...</div>}>
+            <Routes>
+              <Route index element={<WorkspaceHome />} />
+              <Route path="crm/*" element={<AikortexCRM />} />
+              <Route path="projects/*" element={<Projects />} />
+              <Route path="tasks/*" element={<Tasks />} />
+              <Route path="financial/*" element={<Financial />} />
+              <Route path="contracts/*" element={<Contracts />} />
+              <Route path="settings/*" element={<SettingsPage />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </RightPanelProvider>

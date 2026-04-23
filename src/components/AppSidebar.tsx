@@ -441,11 +441,11 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
                 </button>
               )}
 
-              <Link to="/settings" onClick={handleNavigate} className={linkClasses(isItemActive("/settings"))} title={collapsed && !isMobile ? "Configurações" : undefined}>
+              <Link to={toWorkspacePath("/settings")} onClick={handleNavigate} className={linkClasses(isItemActive("/settings"))} title={collapsed && !isMobile ? "Configurações" : undefined}>
                 <Settings className={`w-4 h-4 shrink-0 ${isItemActive("/settings") ? "text-primary" : ""}`} />
                 {(!collapsed || isMobile) && <span className="truncate">Configurações</span>}
               </Link>
-              {isPlatform && (
+              {isPlatform && !isDirectClient && (
                 <Link to="/admin" onClick={handleNavigate} className={linkClasses(isItemActive("/admin"))} title={collapsed && !isMobile ? "Painel Admin" : undefined}>
                   <ShieldCheck className={`w-4 h-4 shrink-0 ${isItemActive("/admin") ? "text-primary" : ""}`} />
                   {(!collapsed || isMobile) && <span className="truncate">Painel Admin</span>}

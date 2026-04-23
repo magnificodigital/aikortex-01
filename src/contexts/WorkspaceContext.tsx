@@ -73,7 +73,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         if (agency?.id) {
           const { data } = await supabase
             .from("agency_clients")
-            .select("id, client_name, client_email, status")
+            .select("id, client_name, client_email, status, client_user_id")
             .eq("agency_id", agency.id)
             .eq("status", "active")
             .order("client_name");
@@ -89,7 +89,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
             if (parsed.type === "client") {
               const exists = loadedClients.find(c => c.id === parsed.id);
               if (exists) {
-                setActiveWorkspace({ type: "client", id: parsed.id, name: parsed.name });
+                setActiveWorkspace({
+                  type: "client",
+                  id: parsed.id,
+                  name: parsed.name,
+                  clientUserId: exists.client_user_id ?? undefined,
+                });
                 return;
               }
             }

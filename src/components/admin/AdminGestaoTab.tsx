@@ -25,6 +25,7 @@ import {
 import { ROLE_CONFIG } from "@/types/rbac";
 import EditUserDialog from "@/components/admin/EditUserDialog";
 import CreateUserDialog from "@/components/shared/CreateUserDialog";
+import CreateAgencyWizard from "@/components/admin/CreateAgencyWizard";
 
 /* ────────────────────── types ────────────────────── */
 
@@ -60,8 +61,8 @@ interface SubscriptionDetail {
 
 const TIER_BADGES: Record<string, { label: string; className: string }> = {
   starter: { label: "Starter", className: "bg-muted text-muted-foreground" },
-  explorer: { label: "Explorer", className: "bg-blue-500/10 text-blue-600" },
-  hack: { label: "Hack", className: "bg-purple-500/10 text-purple-600" },
+  hack: { label: "Hack", className: "bg-blue-500/10 text-blue-600" },
+  growth: { label: "Growth", className: "bg-purple-500/10 text-purple-600" },
 };
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
@@ -85,9 +86,9 @@ const relativeDate = (d: string | null) => {
 };
 
 const getTierProgress = (tier: string, clients: number) => {
-  if (tier === "hack") return { target: 15, pct: 100, next: null };
-  if (tier === "explorer") return { target: 15, pct: Math.min(100, (clients / 15) * 100), next: "Hack" };
-  return { target: 5, pct: Math.min(100, (clients / 5) * 100), next: "Explorer" };
+  if (tier === "growth") return { target: null, pct: 100, next: null };
+  if (tier === "hack") return { target: 15, pct: Math.min(100, (clients / 15) * 100), next: "Growth" };
+  return { target: 5, pct: Math.min(100, (clients / 5) * 100), next: "Hack" };
 };
 
 const generatePassword = () => {
@@ -240,7 +241,7 @@ const CreateAgencyModal = ({ open, onClose, onSuccess }: { open: boolean; onClos
             </div>
             <div><Label>Tier inicial</Label>
               <Select value={tier} onValueChange={setTier}><SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="explorer">Explorer</SelectItem><SelectItem value="hack">Hack</SelectItem></SelectContent>
+                <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="hack">Hack</SelectItem><SelectItem value="growth">Growth</SelectItem></SelectContent>
               </Select>
             </div>
           </div>
@@ -550,7 +551,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState(initialTier || "all");
   const [showCreate, setShowCreate] = useState(false);
-  const [stats, setStats] = useState({ totalAgencies: 0, totalClients: 0, platformMRR: 0, templatesSold: 0, tierBreakdown: { starter: { agencies: 0, clients: 0, mrr: 0 }, explorer: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 } } });
+  const [stats, setStats] = useState({ totalAgencies: 0, totalClients: 0, platformMRR: 0, templatesSold: 0, tierBreakdown: { starter: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 }, growth: { agencies: 0, clients: 0, mrr: 0 } } });
 
   useEffect(() => { fetchData(); }, []);
   useEffect(() => { if (initialTier) setTierFilter(initialTier); }, [initialTier]);
@@ -601,7 +602,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
       const activeSubs = subsRes.data || [];
       const platformMRR = activeSubs.reduce((sum: number, s: any) => sum + (s.platform_price_monthly || 0), 0);
 
-      const tb = { starter: { agencies: 0, clients: 0, mrr: 0 }, explorer: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 } };
+      const tb = { starter: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 }, growth: { agencies: 0, clients: 0, mrr: 0 } };
       agenciesData.forEach(a => { const t = a.tier as keyof typeof tb; if (tb[t]) { tb[t].agencies++; tb[t].clients += a.active_clients_count || 0; } });
       activeSubs.forEach((s: any) => {
         const agTier = agenciesData.find(a => a.id === s.agency_id)?.tier as keyof typeof tb;
@@ -621,8 +622,8 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
 
   const tierRows = [
     { key: "starter" as const, label: "Starter", cls: "bg-muted", textCls: "text-muted-foreground" },
-    { key: "explorer" as const, label: "Explorer", cls: "bg-blue-500/10", textCls: "text-blue-600" },
-    { key: "hack" as const, label: "Hack", cls: "bg-purple-500/10", textCls: "text-purple-600" },
+    { key: "hack" as const, label: "Hack", cls: "bg-blue-500/10", textCls: "text-blue-600" },
+    { key: "growth" as const, label: "Growth", cls: "bg-purple-500/10", textCls: "text-purple-600" },
   ];
 
   if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
@@ -682,7 +683,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
           </div>
           <Select value={tierFilter} onValueChange={setTierFilter}>
             <SelectTrigger className="w-36"><SelectValue placeholder="Tier" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Todos os tiers</SelectItem><SelectItem value="starter">Starter</SelectItem><SelectItem value="explorer">Explorer</SelectItem><SelectItem value="hack">Hack</SelectItem></SelectContent>
+            <SelectContent><SelectItem value="all">Todos os tiers</SelectItem><SelectItem value="starter">Starter</SelectItem><SelectItem value="hack">Hack</SelectItem><SelectItem value="growth">Growth</SelectItem></SelectContent>
           </Select>
           <Button size="sm" variant="outline" onClick={fetchData}><RefreshCw className="w-4 h-4 mr-1.5" /> Atualizar</Button>
           <Button size="sm" onClick={() => setShowCreate(true)}><Plus className="w-4 h-4 mr-1.5" /> Criar agência</Button>
@@ -736,7 +737,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
         </Card>
       </div>
 
-      <CreateAgencyModal open={showCreate} onClose={() => setShowCreate(false)} onSuccess={fetchData} />
+      <CreateAgencyWizard open={showCreate} onClose={() => setShowCreate(false)} onSuccess={fetchData} />
     </div>
   );
 };

@@ -36,7 +36,7 @@ type Template = {
   min_tier: string;
 };
 
-const TIER_ORDER: Record<string, number> = { starter: 0, explorer: 1, hack: 2 };
+const TIER_ORDER: Record<string, number> = { starter: 0, hack: 1, growth: 2 };
 
 const SEGMENTS = [
   "Agência de Marketing", "Consultoria", "E-commerce", "Educação",

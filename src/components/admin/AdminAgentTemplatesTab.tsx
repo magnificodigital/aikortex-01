@@ -525,8 +525,8 @@ const AdminAgentTemplatesTab = () => {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="starter">Starter</SelectItem>
-                      <SelectItem value="explorer">Explorer</SelectItem>
                       <SelectItem value="hack">Hack</SelectItem>
+                      <SelectItem value="growth">Growth</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -551,7 +551,7 @@ const AdminAgentTemplatesTab = () => {
                   <Switch checked={form.is_active} onCheckedChange={(v) => setForm((p) => ({ ...p, is_active: v }))} />
                 </div>
                 <div className="flex items-center justify-between col-span-2 rounded-md border p-3">
-                  <Label className="text-sm">Exclusivo Hack</Label>
+                  <Label className="text-sm">Exclusivo Growth</Label>
                   <Switch checked={form.is_exclusive} onCheckedChange={(v) => setForm((p) => ({ ...p, is_exclusive: v }))} />
                 </div>
               </div>

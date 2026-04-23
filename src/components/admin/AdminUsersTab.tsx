@@ -42,8 +42,8 @@ interface AdminUsersProps {
 
 const TIER_BADGES: Record<string, { label: string; className: string }> = {
   starter: { label: "Starter", className: "bg-muted text-muted-foreground" },
-  explorer: { label: "Explorer", className: "bg-blue-500/10 text-blue-600" },
-  hack: { label: "Hack", className: "bg-purple-500/10 text-purple-600" },
+  hack: { label: "Hack", className: "bg-blue-500/10 text-blue-600" },
+  growth: { label: "Growth", className: "bg-purple-500/10 text-purple-600" },
 };
 
 const AdminUsersTab = ({ onNavigateToAgency, onNavigateToClient }: AdminUsersProps) => {

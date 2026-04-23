@@ -725,6 +725,44 @@ const SettingsPage = () => {
           <TabsContent value="financeiro">
             <AsaasConfigTab />
           </TabsContent>
+
+          {/* ── MINHA CONTA (CLIENT ONLY) ─────────── */}
+          <TabsContent value="conta" className="space-y-6">
+            <div className="max-w-xl space-y-5">
+              <div>
+                <h2 className="text-lg font-semibold mb-1">Perfil</h2>
+                <p className="text-sm text-muted-foreground mb-4">Atualize suas informações pessoais.</p>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Nome completo</Label>
+                    <Input defaultValue={profile?.full_name ?? ""} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input defaultValue={user?.email ?? ""} disabled className="mt-1 opacity-60" />
+                    <p className="text-xs text-muted-foreground mt-1">O email não pode ser alterado aqui.</p>
+                  </div>
+                  <Button className="mt-2">Salvar alterações</Button>
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <h2 className="text-lg font-semibold mb-1">Segurança</h2>
+                <p className="text-sm text-muted-foreground mb-4">Altere sua senha de acesso.</p>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Nova senha</Label>
+                    <Input type="password" placeholder="Mínimo 8 caracteres" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Confirmar nova senha</Label>
+                    <Input type="password" placeholder="Repita a nova senha" className="mt-1" />
+                  </div>
+                  <Button variant="outline">Atualizar senha</Button>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>

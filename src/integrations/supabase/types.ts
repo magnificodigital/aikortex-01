@@ -34,6 +34,7 @@ export type Database = {
           platform_subscription_status: string | null
           status: string | null
           updated_at: string | null
+          workspace_slug: string | null
         }
         Insert: {
           address?: string | null
@@ -54,6 +55,7 @@ export type Database = {
           platform_subscription_status?: string | null
           status?: string | null
           updated_at?: string | null
+          workspace_slug?: string | null
         }
         Update: {
           address?: string | null
@@ -74,6 +76,7 @@ export type Database = {
           platform_subscription_status?: string | null
           status?: string | null
           updated_at?: string | null
+          workspace_slug?: string | null
         }
         Relationships: [
           {

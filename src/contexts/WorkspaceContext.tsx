@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -8,6 +9,7 @@ interface AgencyClient {
   client_email: string | null;
   status: string | null;
   client_user_id?: string | null;
+  workspace_slug?: string | null;
 }
 
 export interface ActiveWorkspace {
@@ -37,6 +39,7 @@ const WS_ACTIVE_KEY = "aikortex_active_workspace";
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [agencyName, setAgencyName] = useState("Meu Workspace");
   const [agencyProfileId, setAgencyProfileId] = useState<string | null>(null);
   const [clients, setClients] = useState<AgencyClient[]>([]);
@@ -74,7 +77,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         if (agency?.id) {
           const { data } = await supabase
             .from("agency_clients")
-            .select("id, client_name, client_email, status, client_user_id")
+            .select("id, client_name, client_email, status, client_user_id, workspace_slug")
             .eq("agency_id", agency.id)
             .eq("status", "active")
             .order("client_name");
@@ -128,13 +131,15 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     };
     setActiveWorkspace(ws);
     localStorage.setItem(WS_ACTIVE_KEY, JSON.stringify(ws));
-  }, []);
+    const slug = client.workspace_slug ?? client.id;
+    navigate(`/workspace/${slug}`);
+  }, [navigate]);
 
   const refreshClients = useCallback(async () => {
     if (!agencyProfileId) return;
     const { data } = await supabase
       .from("agency_clients")
-      .select("id, client_name, client_email, status, client_user_id")
+      .select("id, client_name, client_email, status, client_user_id, workspace_slug")
       .eq("agency_id", agencyProfileId)
       .eq("status", "active")
       .order("client_name");

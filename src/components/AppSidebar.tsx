@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useModuleAccess } from "@/hooks/use-module-access";
@@ -144,34 +144,40 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   const { messageCount, monthlyLimit, hasByok, isNearLimit, isUnlimited } = useMonthlyUsage();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { slug: routeSlug } = useParams<{ slug?: string }>();
 
   useEffect(() => {
     if (isMobile) onMobileClose?.();
   }, [location.pathname, location.search, isMobile, onMobileClose]);
 
   const isDirectClient = profile?.tenant_type === "client";
+  const inWorkspaceRoute = location.pathname.startsWith("/workspace/");
+  const workspaceBase = routeSlug
+    ? `/workspace/${routeSlug}`
+    : (activeWorkspace.type === "client" ? `/workspace/${activeWorkspace.id}` : "/workspace");
 
   const toWorkspacePath = (agencyPath: string): string => {
-    if (!isDirectClient) return agencyPath;
+    // Use workspace paths for direct clients always, and for agencies when inside a workspace route
+    if (!isDirectClient && !inWorkspaceRoute && !isClientMode) return agencyPath;
     const map: Record<string, string> = {
-      "/home":                "/workspace",
-      "/dashboard":           "/workspace/dashboard",
-      "/clients":             "/workspace/clients",
-      "/contracts":           "/workspace/clients",
-      "/sales":               "/workspace/crm",
-      "/aikortex/crm":        "/workspace/crm",
-      "/meetings":            "/workspace/crm",
-      "/aikortex/messages":   "/workspace/messages",
-      "/aikortex/broadcasts": "/workspace/messages",
-      "/tasks":               "/workspace/tasks",
-      "/financial":           "/workspace/financial",
-      "/financeiro":          "/workspace/financial",
-      "/team":                "/workspace/settings",
-      "/settings":            "/workspace/settings",
-      "/aikortex/agents":     "/workspace/messages",
-      "/calls":               "/workspace/messages",
-      "/aikortex/automations":"/workspace/messages",
-      "/apps":                "/workspace/messages",
+      "/home":                 `${workspaceBase}`,
+      "/dashboard":            `${workspaceBase}/dashboard`,
+      "/clients":              `${workspaceBase}/clients`,
+      "/contracts":            `${workspaceBase}/clients`,
+      "/sales":                `${workspaceBase}/crm`,
+      "/aikortex/crm":         `${workspaceBase}/crm`,
+      "/meetings":             `${workspaceBase}/crm`,
+      "/aikortex/messages":    `${workspaceBase}/messages`,
+      "/aikortex/broadcasts":  `${workspaceBase}/messages`,
+      "/tasks":                `${workspaceBase}/tasks`,
+      "/financial":            `${workspaceBase}/financial`,
+      "/financeiro":           `${workspaceBase}/financial`,
+      "/team":                 `${workspaceBase}/settings`,
+      "/settings":             `${workspaceBase}/settings`,
+      "/aikortex/agents":      `${workspaceBase}/messages`,
+      "/calls":                `${workspaceBase}/messages`,
+      "/aikortex/automations": `${workspaceBase}/messages`,
+      "/apps":                 `${workspaceBase}/messages`,
     };
     return map[agencyPath] ?? agencyPath;
   };
@@ -182,7 +188,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
       const [base, query] = resolved.split("?");
       return location.pathname === base && location.search === `?${query}`;
     }
-    return location.pathname === resolved;
+    return location.pathname === resolved || location.pathname.startsWith(resolved + "/");
   };
 
   const toggleExpand = (path: string) => {

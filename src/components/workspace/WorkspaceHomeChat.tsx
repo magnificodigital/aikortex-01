@@ -87,9 +87,6 @@ export const WorkspaceHomeChat = () => {
         <h1 className="text-3xl lg:text-5xl font-light text-foreground mb-3">
           {getGreeting()}, <span className="italic">{displayName}</span>
         </h1>
-        <p className="text-sm lg:text-base text-muted-foreground max-w-lg">
-          Pergunte ao assistente sobre clientes, tarefas, financeiro, vendas ou contratos do seu sistema.
-        </p>
       </div>
 
       <div className="w-full max-w-2xl rounded-2xl border border-border bg-card shadow-xl shadow-black/5 overflow-hidden mb-8">
@@ -136,7 +133,7 @@ export const WorkspaceHomeChat = () => {
               send();
             }
           }}
-          placeholder="Pergunte sobre seus clientes, tarefas, financeiro, vendas ou contratos..."
+          placeholder="Pergunte ao assistente..."
           className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/50 px-5 py-3 min-h-[72px]"
           disabled={loading}
         />

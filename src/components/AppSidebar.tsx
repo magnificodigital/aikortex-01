@@ -149,12 +149,40 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
     if (isMobile) onMobileClose?.();
   }, [location.pathname, location.search, isMobile, onMobileClose]);
 
+  const isDirectClient = profile?.tenant_type === "client";
+
+  const toWorkspacePath = (agencyPath: string): string => {
+    if (!isDirectClient) return agencyPath;
+    const map: Record<string, string> = {
+      "/home":                "/workspace",
+      "/dashboard":           "/workspace/dashboard",
+      "/clients":             "/workspace/clients",
+      "/contracts":           "/workspace/clients",
+      "/sales":               "/workspace/crm",
+      "/aikortex/crm":        "/workspace/crm",
+      "/meetings":            "/workspace/crm",
+      "/aikortex/messages":   "/workspace/messages",
+      "/aikortex/broadcasts": "/workspace/messages",
+      "/tasks":               "/workspace/tasks",
+      "/financial":           "/workspace/financial",
+      "/financeiro":          "/workspace/financial",
+      "/team":                "/workspace/settings",
+      "/settings":            "/workspace/settings",
+      "/aikortex/agents":     "/workspace/messages",
+      "/calls":               "/workspace/messages",
+      "/aikortex/automations":"/workspace/messages",
+      "/apps":                "/workspace/messages",
+    };
+    return map[agencyPath] ?? agencyPath;
+  };
+
   const isItemActive = (path: string) => {
-    if (path.includes("?tab=")) {
-      const [base, query] = path.split("?");
+    const resolved = toWorkspacePath(path);
+    if (resolved.includes("?tab=")) {
+      const [base, query] = resolved.split("?");
       return location.pathname === base && location.search === `?${query}`;
     }
-    return location.pathname === path;
+    return location.pathname === resolved;
   };
 
   const toggleExpand = (path: string) => {

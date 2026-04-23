@@ -148,6 +148,9 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute roles={['platform_owner','platform_admin']}><AdminPanel /></ProtectedRoute>} />
 
               {/* Client workspace routes - slug-based, accessible to both clients and their agency */}
+              <Route path="/workspace" element={<ProtectedRoute><WorkspaceRedirect /></ProtectedRoute>} />
+              <Route path="/workspace/" element={<ProtectedRoute><WorkspaceRedirect /></ProtectedRoute>} />
+              <Route path="/workspace/:slug" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
               <Route path="/workspace/:slug/*" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
 
               <Route path="/tutorials" element={<Navigate to="/home" replace />} />

@@ -66,6 +66,7 @@ const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Credits = lazy(() => import("./pages/Credits"));
 const ClientDetailPage = lazy(() => import("./pages/ClientDetail"));
 const Workspace = lazy(() => import("./pages/Workspace"));
+const WorkspaceRedirect = lazy(() => import("./pages/WorkspaceRedirect"));
 
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Templates = lazy(() => import("./pages/Templates"));
@@ -147,6 +148,9 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute roles={['platform_owner','platform_admin']}><AdminPanel /></ProtectedRoute>} />
 
               {/* Client workspace routes - slug-based, accessible to both clients and their agency */}
+              <Route path="/workspace" element={<ProtectedRoute><WorkspaceRedirect /></ProtectedRoute>} />
+              <Route path="/workspace/" element={<ProtectedRoute><WorkspaceRedirect /></ProtectedRoute>} />
+              <Route path="/workspace/:slug" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
               <Route path="/workspace/:slug/*" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
 
               <Route path="/tutorials" element={<Navigate to="/home" replace />} />

@@ -735,8 +735,8 @@ const SettingsPage = () => {
             <AsaasConfigTab />
           </TabsContent>
 
-          {/* ── MINHA CONTA (CLIENT ONLY) ─────────── */}
-          <TabsContent value="conta" className="space-y-6">
+          {/* ── PERFIL (CLIENT ONLY) ──────────────── */}
+          <TabsContent value="perfil" className="space-y-6">
             <div className="max-w-xl space-y-5">
               <div>
                 <h2 className="text-lg font-semibold mb-1">Perfil</h2>

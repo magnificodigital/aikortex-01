@@ -23,15 +23,19 @@ import FinancialReportsView from "@/components/financial/FinancialReportsView";
 import QuickSaleDialog from "@/components/financial/QuickSaleDialog";
 import { mockInvoices, Invoice } from "@/types/financial";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Financial = () => {
+  const { profile } = useAuth();
+  const isClient = profile?.tenant_type === "client";
   const [search, setSearch] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [showNewExpense, setShowNewExpense] = useState(false);
   const [showQuickSale, setShowQuickSale] = useState(false);
 
-  const filteredInvoices = mockInvoices.filter(i =>
+  const sourceInvoices = isClient ? [] : mockInvoices;
+  const filteredInvoices = sourceInvoices.filter(i =>
     i.client.toLowerCase().includes(search.toLowerCase()) ||
     i.id.toLowerCase().includes(search.toLowerCase()) ||
     i.description.toLowerCase().includes(search.toLowerCase())

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -207,10 +209,9 @@ const SettingsPage = () => {
   const savedIntegrations = loadIntegrations();
 
   const { profile, user } = useAuth();
-  const isClient = profile?.tenant_type === 'client';
-  const defaultTab =
-    new URLSearchParams(window.location.search).get("tab") ||
-    (isClient ? "conta" : "colors");
+  const { isClientMode } = useWorkspace();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") ?? (isClientMode ? "perfil" : "colors");
 
   const [colors, setColors] = useState<BrandColors>(saved?.colors ?? defaultColors);
   const [logoUrl, setLogoUrl] = useState<string | null>(saved?.logoUrl ?? null);
@@ -368,17 +369,22 @@ const SettingsPage = () => {
 
         <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList className="flex h-auto w-full max-w-full gap-1 overflow-x-auto bg-muted/50 p-1 justify-start [scrollbar-width:none]">
-            {!isClient && <TabsTrigger value="colors" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Palette className="h-3.5 w-3.5" /> Cores</TabsTrigger>}
-            {!isClient && <TabsTrigger value="logo" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Image className="h-3.5 w-3.5" /> Logo</TabsTrigger>}
-            {!isClient && <TabsTrigger value="landing" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Globe className="h-3.5 w-3.5" /> Landing Page</TabsTrigger>}
-            {!isClient && <TabsTrigger value="biolink" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Link2 className="h-3.5 w-3.5" /> Bio Link</TabsTrigger>}
-            <TabsTrigger value="integrations" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Plug className="h-3.5 w-3.5" /> Integrações</TabsTrigger>
-            <TabsTrigger value="channels" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Radio className="h-3.5 w-3.5" /> Canais</TabsTrigger>
-            
-            <TabsTrigger value="subscription" className="shrink-0 gap-1 whitespace-nowrap text-xs"><CreditCard className="h-3.5 w-3.5" /> Assinatura & Planos</TabsTrigger>
-            {!isClient && <TabsTrigger value="financeiro" className="shrink-0 gap-1 whitespace-nowrap text-xs"><DollarSign className="h-3.5 w-3.5" /> Financeiro</TabsTrigger>}
-            {isClient && <TabsTrigger value="conta" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Settings className="h-3.5 w-3.5" /> Minha Conta</TabsTrigger>}
-          </TabsList>
+            {isClientMode ? (
+              <>
+                <TabsTrigger value="perfil" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Settings className="h-3.5 w-3.5" /> Perfil</TabsTrigger>
+                <TabsTrigger value="channels" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Radio className="h-3.5 w-3.5" /> Canais</TabsTrigger>
+                <TabsTrigger value="integrations" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Plug className="h-3.5 w-3.5" /> Integrações</TabsTrigger>
+                <TabsTrigger value="subscription" className="shrink-0 gap-1 whitespace-nowrap text-xs"><CreditCard className="h-3.5 w-3.5" /> Assinatura & Planos</TabsTrigger>
+              </>
+            ) : (
+              <>
+                <TabsTrigger value="colors" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Palette className="h-3.5 w-3.5" /> Cores</TabsTrigger>
+                <TabsTrigger value="logo" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Image className="h-3.5 w-3.5" /> Logo</TabsTrigger>
+                <TabsTrigger value="landing" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Globe className="h-3.5 w-3.5" /> Landing Page</TabsTrigger>
+                <TabsTrigger value="biolink" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Link2 className="h-3.5 w-3.5" /> Bio Link</TabsTrigger>
+                <TabsTrigger value="integrations" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Plug className="h-3.5 w-3.5" /> Integrações</TabsTrigger>
+                <TabsTrigger value="channels" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Radio className="h-3.5 w-3.5" /> Canais</TabsTrigger>
+                <TabsTrigger value="subscription" className="shrink-0 gap-1 whitespace-primeiro, deixe-me verificar o arquivo atual para entender a estrutura existente:</think><|tool_calls_section_begin|><|tool_call_begin|>functions.code--view:7<|tool_call_argument_begin|>{
 
           {/* ── CORES ──────────────────────────────── */}
           <TabsContent value="colors" className="space-y-6">

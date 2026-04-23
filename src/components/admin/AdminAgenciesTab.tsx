@@ -113,12 +113,12 @@ const AdminAgenciesTab = ({ initialTierFilter, initialAgencyId, onOpenClient }: 
         platformMap.set(s.agency_id, (platformMap.get(s.agency_id) || 0) + (s.platform_price_monthly || 0));
       });
 
-      setAgencies((agenciesRes.data || []).map(a => ({
+      setAgencies(((agenciesRes.data || []) as any[]).map((a: any) => ({
         ...a,
         email: usersMap.get(a.user_id) || "",
         mrr: mrrMap.get(a.id) || 0,
         platformRevenue: platformMap.get(a.id) || 0,
-      })));
+      })) as AgencyRow[]);
     } catch {
       toast.error("Erro ao carregar agências");
     }

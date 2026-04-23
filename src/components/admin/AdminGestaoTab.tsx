@@ -596,12 +596,12 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
         platformMap.set(s.agency_id, (platformMap.get(s.agency_id) || 0) + (s.platform_price_monthly || 0));
       });
 
-      const agenciesData = (agenciesRes.data || []).map(a => ({
+      const agenciesData = ((agenciesRes.data || []) as any[]).map((a: any) => ({
         ...a,
         email: usersMap.get(a.user_id) || "",
         mrr: mrrMap.get(a.id) || 0,
         platformRevenue: platformMap.get(a.id) || 0,
-      }));
+      })) as AgencyRow[];
       setAgencies(agenciesData);
 
       const activeClients = (clientsRes.data || []).filter(c => c.status === "active");

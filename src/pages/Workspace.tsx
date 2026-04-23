@@ -16,10 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RightPanelProvider } from "@/components/RightPanel";
+import { WorkspaceClients } from "@/components/workspace/WorkspaceClients";
 
 // Reuse agency pages (DashboardLayout is transparent for clients)
 const DashboardIndex = lazy(() => import("./Index"));
-const Clients = lazy(() => import("./Clients"));
 const AikortexCRM = lazy(() => import("./AikortexCRM"));
 const AikortexMessages = lazy(() => import("./AikortexMessages"));
 const Tasks = lazy(() => import("./Tasks"));
@@ -346,7 +346,7 @@ const Workspace = () => {
             <Routes>
               <Route index element={<WorkspaceHome />} />
               <Route path="dashboard/*" element={<DashboardIndex />} />
-              <Route path="clients/*" element={<Clients />} />
+              <Route path="clients" element={<WorkspaceClients />} />
               <Route path="crm/*" element={<AikortexCRM />} />
               <Route path="messages/*" element={<AikortexMessages />} />
               <Route path="tasks/*" element={<Tasks />} />

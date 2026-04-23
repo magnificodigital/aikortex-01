@@ -281,32 +281,6 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   );
 
   const usagePercent = isUnlimited || monthlyLimit <= 0 ? 0 : Math.min(100, (messageCount / monthlyLimit) * 100);
-  const isDirectClient = profile?.tenant_type === "client";
-
-  const toWorkspacePath = (agencyPath: string): string => {
-    if (!isDirectClient) return agencyPath;
-    const map: Record<string, string> = {
-      "/home":                "/workspace",
-      "/dashboard":           "/workspace/dashboard",
-      "/clients":             "/workspace/clients",
-      "/contracts":           "/workspace/clients",
-      "/sales":               "/workspace/crm",
-      "/aikortex/crm":        "/workspace/crm",
-      "/meetings":            "/workspace/crm",
-      "/aikortex/messages":   "/workspace/messages",
-      "/aikortex/broadcasts": "/workspace/messages",
-      "/tasks":               "/workspace/tasks",
-      "/financial":           "/workspace/financial",
-      "/financeiro":          "/workspace/financial",
-      "/team":                "/workspace/settings",
-      "/settings":            "/workspace/settings",
-      "/aikortex/agents":     "/workspace/messages",
-      "/calls":               "/workspace/messages",
-      "/aikortex/automations":"/workspace/messages",
-      "/apps":                "/workspace/messages",
-    };
-    return map[agencyPath] ?? agencyPath;
-  };
 
   return (
     <>

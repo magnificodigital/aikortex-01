@@ -1,6 +1,6 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { Menu, X, AlertTriangle, Key, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import { RightPanelProvider } from "./RightPanel";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useMonthlyUsage } from "@/hooks/use-monthly-usage";
 import { LightboxNotificationModal } from "@/components/clients/LightboxNotificationModal";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
+  const location = useLocation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -21,6 +22,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!isMobile) setMobileSidebarOpen(false);
   }, [isMobile]);
+
+  // Workspace routes provide their own outer DashboardLayout — skip the inner one.
+  if (location.pathname.startsWith("/workspace")) return <>{children}</>;
 
   const dismissBanner = () => {
     setBannerDismissed(true);

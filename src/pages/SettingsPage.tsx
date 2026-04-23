@@ -208,10 +208,9 @@ const SettingsPage = () => {
   const savedIntegrations = loadIntegrations();
 
   const { profile, user } = useAuth();
-  const isClient = profile?.tenant_type === 'client';
-  const defaultTab =
-    new URLSearchParams(window.location.search).get("tab") ||
-    (isClient ? "conta" : "colors");
+  const { isClientMode } = useWorkspace();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") ?? (isClientMode ? "perfil" : "colors");
 
   const [colors, setColors] = useState<BrandColors>(saved?.colors ?? defaultColors);
   const [logoUrl, setLogoUrl] = useState<string | null>(saved?.logoUrl ?? null);

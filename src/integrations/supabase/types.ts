@@ -2282,6 +2282,15 @@ export type Database = {
         Args: { consumed: number; user_uuid: string }
         Returns: undefined
       }
+      admin_list_asaas_status: {
+        Args: never
+        Returns: {
+          agency_id: string
+          connected: boolean
+          wallet_last4: string
+        }[]
+      }
+      get_asaas_status: { Args: never; Returns: Json }
       is_platform_admin: { Args: never; Returns: boolean }
       is_platform_user: { Args: { check_user_id: string }; Returns: boolean }
     }

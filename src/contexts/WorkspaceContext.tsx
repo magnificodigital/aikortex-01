@@ -28,6 +28,7 @@ interface WorkspaceContextType {
   refreshClients: () => Promise<void>;
   isClientMode: boolean;
   activeClientUserId?: string;
+  isReadOnlyView: boolean;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -147,6 +148,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       loading, refreshClients,
       isClientMode: activeWorkspace.type === "client",
       activeClientUserId: activeWorkspace.type === "client" ? activeWorkspace.clientUserId : undefined,
+      isReadOnlyView: activeWorkspace.type === "client" && profile?.tenant_type !== "client",
     }}>
       {children}
     </WorkspaceContext.Provider>

@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
-import { Menu, X, AlertTriangle, Key, TrendingUp } from "lucide-react";
+import { Menu, X, AlertTriangle, Key, TrendingUp, Eye } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import { RightPanelProvider } from "./RightPanel";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMonthlyUsage } from "@/hooks/use-monthly-usage";
 import { LightboxNotificationModal } from "@/components/clients/LightboxNotificationModal";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
@@ -15,6 +17,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const handleMobileClose = useCallback(() => setMobileSidebarOpen(false), []);
   const { messageCount, monthlyLimit, isNearLimit, hasByok, planSlug } = useMonthlyUsage();
+  const { isClientMode, activeWorkspace } = useWorkspace();
+  const { profile } = useAuth();
   const [bannerDismissed, setBannerDismissed] = useState(() =>
     sessionStorage.getItem("usage-banner-dismissed") === "true"
   );

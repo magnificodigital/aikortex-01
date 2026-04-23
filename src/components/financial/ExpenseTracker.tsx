@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Plus, Pencil, Trash2, Eye, Filter } from "lucide-react";
-import { Expense, mockExpenses, costCenterLabels, frequencyLabels } from "@/types/financial";
+import { Expense, costCenterLabels, frequencyLabels } from "@/types/financial";
+import { useFinancialData } from "@/hooks/use-financial-data";
 import { toast } from "@/hooks/use-toast";
 import NewExpenseDialog from "./NewExpenseDialog";
 import EditExpenseDialog from "./EditExpenseDialog";
@@ -22,7 +23,8 @@ const categoryColors: Record<string, string> = {
 };
 
 const ExpenseTracker = () => {
-  const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
+  const { expenses: initialExpenses } = useFinancialData();
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [showNew, setShowNew] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);

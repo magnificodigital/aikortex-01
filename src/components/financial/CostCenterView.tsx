@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Plus, Pencil, Trash2, Eye, TrendingUp, TrendingDown, AlertTriangle, Building2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { CostCenterType, costCenterLabels, mockExpenses } from "@/types/financial";
+import { CostCenterType, costCenterLabels } from "@/types/financial";
+import { useFinancialData } from "@/hooks/use-financial-data";
 import { toast } from "@/hooks/use-toast";
 
 interface CostCenter {
@@ -45,7 +46,8 @@ const chartColors = [
 ];
 
 const CostCenterView = () => {
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(initialCostCenters);
+  const { isClient } = useFinancialData();
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(isClient ? [] : initialCostCenters);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<CostCenter | null>(null);
   const [viewing, setViewing] = useState<CostCenter | null>(null);

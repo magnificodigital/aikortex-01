@@ -8,15 +8,17 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockAccountsPayable, mockAccountsReceivable, paymentStatusConfig, costCenterLabels, AccountPayable, AccountReceivable, PaymentStatus, CostCenterType } from "@/types/financial";
+import { paymentStatusConfig, costCenterLabels, AccountPayable, AccountReceivable, PaymentStatus, CostCenterType } from "@/types/financial";
+import { useFinancialData } from "@/hooks/use-financial-data";
 import { ArrowDownLeft, ArrowUpRight, AlertTriangle, Clock, Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 type DialogMode = "view" | "edit" | "create";
 
 const AccountsView = () => {
-  const [payables, setPayables] = useState<AccountPayable[]>(mockAccountsPayable);
-  const [receivables, setReceivables] = useState<AccountReceivable[]>(mockAccountsReceivable);
+  const { accountsPayable: initialPayables, accountsReceivable: initialReceivables } = useFinancialData();
+  const [payables, setPayables] = useState<AccountPayable[]>(initialPayables);
+  const [receivables, setReceivables] = useState<AccountReceivable[]>(initialReceivables);
 
   // Payable dialog state
   const [payableDialog, setPayableDialog] = useState<{ open: boolean; mode: DialogMode; item: AccountPayable | null }>({ open: false, mode: "view", item: null });

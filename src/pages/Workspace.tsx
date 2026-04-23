@@ -97,8 +97,8 @@ const Workspace = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background text-muted-foreground gap-2">
-        <Loader2 className="w-5 h-5 animate-spin" /> Carregando workspace...
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -131,8 +131,8 @@ const Workspace = () => {
             <ErrorBoundary>
               <Suspense
                 fallback={
-                  <div className="p-6 text-muted-foreground flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Carregando...
+                  <div className="flex h-full min-h-[60vh] items-center justify-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                   </div>
                 }
               >

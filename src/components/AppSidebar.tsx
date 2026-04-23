@@ -64,7 +64,6 @@ const gestaoItems: NavItem[] = [
   { label: "Clientes", icon: Users, path: "/clients", children: [{ label: "Contratos", icon: FileText, path: "/contracts" }] },
   { label: "Vendas", icon: ShoppingCart, path: "/sales", children: [{ label: "CRM", icon: Contact, path: "/aikortex/crm" }, { label: "Reuniões", icon: Video, path: "/meetings" }] },
   { label: "Financeiro", icon: DollarSign, path: "/financeiro", children: [{ label: "Gestão Fin.", icon: DollarSign, path: "/financial" }] },
-  { label: "Equipe", icon: UserCheck, path: "/team" },
   { label: "Tarefas", icon: CheckSquare, path: "/tasks" },
 ];
 
@@ -395,12 +394,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
                 );
               })()
           }
-          {renderGroup(
-            "Gestão",
-            isDirectClient ? gestaoItems.filter(item => item.path !== "/team") : gestaoItems,
-            gestaoOpen,
-            setGestaoOpen
-          )}
+          {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
           {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
 
           {/* Seção Conta & Suporte */}

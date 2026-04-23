@@ -206,6 +206,12 @@ const SettingsPage = () => {
   const saved = loadBrand();
   const savedIntegrations = loadIntegrations();
 
+  const { profile, user } = useAuth();
+  const isClient = profile?.tenant_type === 'client';
+  const defaultTab =
+    new URLSearchParams(window.location.search).get("tab") ||
+    (isClient ? "conta" : "colors");
+
   const [colors, setColors] = useState<BrandColors>(saved?.colors ?? defaultColors);
   const [logoUrl, setLogoUrl] = useState<string | null>(saved?.logoUrl ?? null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(saved?.faviconUrl ?? null);
@@ -313,8 +319,6 @@ const SettingsPage = () => {
     toast({ title: "Link copiado!" });
   };
 
-  const { user } = useAuth();
-
   const saveBrand = async () => {
     const data = { colors, logoUrl, faviconUrl, agencyName, agencySlogan, bioLinks, bioTitle, bioDescription, sections };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -362,17 +366,18 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") || "colors"} className="space-y-4">
+        <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList className="flex h-auto w-full max-w-full gap-1 overflow-x-auto bg-muted/50 p-1 justify-start [scrollbar-width:none]">
-            <TabsTrigger value="colors" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Palette className="h-3.5 w-3.5" /> Cores</TabsTrigger>
-            <TabsTrigger value="logo" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Image className="h-3.5 w-3.5" /> Logo</TabsTrigger>
-            <TabsTrigger value="landing" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Globe className="h-3.5 w-3.5" /> Landing Page</TabsTrigger>
-            <TabsTrigger value="biolink" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Link2 className="h-3.5 w-3.5" /> Bio Link</TabsTrigger>
+            {!isClient && <TabsTrigger value="colors" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Palette className="h-3.5 w-3.5" /> Cores</TabsTrigger>}
+            {!isClient && <TabsTrigger value="logo" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Image className="h-3.5 w-3.5" /> Logo</TabsTrigger>}
+            {!isClient && <TabsTrigger value="landing" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Globe className="h-3.5 w-3.5" /> Landing Page</TabsTrigger>}
+            {!isClient && <TabsTrigger value="biolink" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Link2 className="h-3.5 w-3.5" /> Bio Link</TabsTrigger>}
             <TabsTrigger value="integrations" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Plug className="h-3.5 w-3.5" /> Integrações</TabsTrigger>
             <TabsTrigger value="channels" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Radio className="h-3.5 w-3.5" /> Canais</TabsTrigger>
             
             <TabsTrigger value="subscription" className="shrink-0 gap-1 whitespace-nowrap text-xs"><CreditCard className="h-3.5 w-3.5" /> Assinatura & Planos</TabsTrigger>
-            <TabsTrigger value="financeiro" className="shrink-0 gap-1 whitespace-nowrap text-xs"><DollarSign className="h-3.5 w-3.5" /> Financeiro</TabsTrigger>
+            {!isClient && <TabsTrigger value="financeiro" className="shrink-0 gap-1 whitespace-nowrap text-xs"><DollarSign className="h-3.5 w-3.5" /> Financeiro</TabsTrigger>}
+            {isClient && <TabsTrigger value="conta" className="shrink-0 gap-1 whitespace-nowrap text-xs"><Settings className="h-3.5 w-3.5" /> Minha Conta</TabsTrigger>}
           </TabsList>
 
           {/* ── CORES ──────────────────────────────── */}
@@ -719,6 +724,44 @@ const SettingsPage = () => {
           {/* ── FINANCEIRO (ASAAS) ────────────────── */}
           <TabsContent value="financeiro">
             <AsaasConfigTab />
+          </TabsContent>
+
+          {/* ── MINHA CONTA (CLIENT ONLY) ─────────── */}
+          <TabsContent value="conta" className="space-y-6">
+            <div className="max-w-xl space-y-5">
+              <div>
+                <h2 className="text-lg font-semibold mb-1">Perfil</h2>
+                <p className="text-sm text-muted-foreground mb-4">Atualize suas informações pessoais.</p>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Nome completo</Label>
+                    <Input defaultValue={profile?.full_name ?? ""} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input defaultValue={user?.email ?? ""} disabled className="mt-1 opacity-60" />
+                    <p className="text-xs text-muted-foreground mt-1">O email não pode ser alterado aqui.</p>
+                  </div>
+                  <Button className="mt-2">Salvar alterações</Button>
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <h2 className="text-lg font-semibold mb-1">Segurança</h2>
+                <p className="text-sm text-muted-foreground mb-4">Altere sua senha de acesso.</p>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Nova senha</Label>
+                    <Input type="password" placeholder="Mínimo 8 caracteres" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Confirmar nova senha</Label>
+                    <Input type="password" placeholder="Repita a nova senha" className="mt-1" />
+                  </div>
+                  <Button variant="outline">Atualizar senha</Button>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

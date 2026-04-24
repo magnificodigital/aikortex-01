@@ -55,6 +55,15 @@ import {
 
 type Msg = { role: "user" | "assistant"; text: string };
 
+/**
+ * Returns the owner_id of the workspace context, or "" when not inside a
+ * client workspace. The rewritten Workspace is owner-agnostic, so we always
+ * return "" and let callers fall back to the authenticated user.id.
+ */
+export const useWorkspaceOwner = (): { ownerId: string } => {
+  return { ownerId: "" };
+};
+
 /* ---------------- HOME ---------------- */
 const HomeSection = ({ name }: { name: string }) => {
   const [messages, setMessages] = useState<Msg[]>([

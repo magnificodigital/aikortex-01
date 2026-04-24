@@ -455,6 +455,7 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
           onMobileClose={close}
           readOnly={readOnly}
           overrideName={readOnly ? clientName : undefined}
+          basePath={readOnly && clientId ? `/clients/${clientId}/workspace` : "/workspace"}
         />
         <main className="relative flex-1 min-w-0 overflow-y-auto overflow-x-hidden bg-background">
           {isMobile && (

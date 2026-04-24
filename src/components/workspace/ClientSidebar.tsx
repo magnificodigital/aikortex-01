@@ -200,12 +200,12 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
         <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5 scrollbar-thin">
           <div className="mt-2 space-y-0.5">
             <Link
-              to="/workspace"
+              to={basePath}
               onClick={() => isMobile && onMobileClose?.()}
-              className={linkClasses(location.pathname === "/workspace")}
+              className={linkClasses(location.pathname === basePath)}
               title={collapsed && !isMobile ? "Home" : undefined}
             >
-              <Home className={`w-4 h-4 shrink-0 ${location.pathname === "/workspace" ? "text-primary" : ""}`} />
+              <Home className={`w-4 h-4 shrink-0 ${location.pathname === basePath ? "text-primary" : ""}`} />
               {(!collapsed || isMobile) && <span>Home</span>}
             </Link>
           </div>

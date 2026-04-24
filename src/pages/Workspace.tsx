@@ -450,16 +450,7 @@ const Workspace = () => (
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route index element={<WorkspaceHomeChat />} />
-          <Route
-            path="mensagens"
-            element={
-              <Placeholder
-                icon={MessageSquare}
-                title="Mensagens"
-                description="Conversas e atendimentos"
-              />
-            }
-          />
+          <Route path="mensagens" element={<MensagensSection />} />
           <Route path="clientes" element={<ClientesSection />} />
           <Route path="vendas" element={<VendasSection />} />
           <Route path="financeiro" element={<FinanceiroSection />} />

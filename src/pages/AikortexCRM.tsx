@@ -149,14 +149,13 @@ const AikortexCRM = () => {
   };
 
   const handleNewLead = async (data: Omit<Lead, "id" | "activities" | "createdAt" | "updatedAt">) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error("Faça login para criar um lead."); return; }
+    if (!dataUserId) { toast.error("Faça login para criar um lead."); return; }
     const activities: LeadActivity[] = [{
       id: `act-${Date.now()}`, type: "note",
       description: "Lead criado manualmente", createdAt: new Date().toISOString(), createdBy: "Você",
     }];
     const { error } = await supabase.from("leads").insert({
-      user_id: user.id,
+      user_id: dataUserId,
       name: data.name, email: data.email, phone: data.phone, company: data.company, position: data.position,
       stage: data.stage, source: data.source, temperature: data.temperature, value: data.value,
       assignee: data.assignee, tags: data.tags, notes: data.notes,

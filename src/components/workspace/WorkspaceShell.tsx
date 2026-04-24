@@ -32,8 +32,8 @@ export interface WorkspaceShellProps {
   clientName?: string;
 }
 
-type ShellCtx = { mode: "owner" | "read_only"; readOnly: boolean };
-const ShellContext = createContext<ShellCtx>({ mode: "owner", readOnly: false });
+type ShellCtx = { mode: "owner" | "read_only"; readOnly: boolean; ownerId: string | null };
+const ShellContext = createContext<ShellCtx>({ mode: "owner", readOnly: false, ownerId: null });
 const useShell = () => useContext(ShellContext);
 
 class WorkspaceErrorBoundary extends Component<
@@ -132,8 +132,38 @@ const HomeSection = () => {
 };
 
 const ClientesSection = () => {
+  const { readOnly, ownerId } = useShell();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase
+      .from("client_contacts")
+      .select("*")
+      .eq("user_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setContacts(data ?? []);
+        setLoading(false);
+      });
+  }, [ownerId]);
+
+  const filtered = contacts.filter((c) => {
+    const matchSearch =
+      !search ||
+      c.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c.email?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = status === "all" || c.status === status;
+    return matchSearch && matchStatus;
+  });
+
+  const active = contacts.filter((c) => c.status === "active" || !c.status).length;
+  const monthlyTotal = contacts.reduce((s, c) => s + (Number(c.monthly_value) || 0), 0);
+
   return (
     <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
       <SectionHeader
@@ -143,9 +173,9 @@ const ClientesSection = () => {
         actionLabel="Adicionar Cliente"
       />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="Clientes ativos" value={0} />
-        <StatCard label="Receita mensal" value="R$ 0" />
-        <StatCard label="Templates ativos" value={0} />
+        <StatCard label="Clientes ativos" value={active} />
+        <StatCard label="Receita mensal" value={`R$ ${monthlyTotal.toFixed(0)}`} />
+        <StatCard label="Total de clientes" value={contacts.length} />
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -163,8 +193,8 @@ const ClientesSection = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="ativo">Ativo</SelectItem>
-            <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="active">Ativo</SelectItem>
+            <SelectItem value="inactive">Inativo</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -172,19 +202,43 @@ const ClientesSection = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Telefone</TableHead>
+              <TableHead>Valor/mês</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Templates</TableHead>
-              <TableHead>Receita/mês</TableHead>
-              <TableHead>Cadastro</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                Nenhum cliente cadastrado ainda.
-              </TableCell>
-            </TableRow>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  Carregando...
+                </TableCell>
+              </TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  Nenhum cliente encontrado.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell>{c.name}</TableCell>
+                  <TableCell>{c.email ?? "—"}</TableCell>
+                  <TableCell>{c.phone ?? "—"}</TableCell>
+                  <TableCell>
+                    {c.monthly_value ? `R$ ${Number(c.monthly_value).toFixed(0)}` : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {c.status === "active" || !c.status ? "Ativo" : "Inativo"}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -268,7 +322,51 @@ const FinanceiroSection = () => (
 );
 
 const TarefasSection = () => {
+  const { ownerId } = useShell();
   const [search, setSearch] = useState("");
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase
+      .from("workspace_tasks")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setTasks(data ?? []);
+        setLoading(false);
+      });
+  }, [ownerId]);
+
+  const counts = {
+    total: tasks.length,
+    doing: tasks.filter((t) => t.status === "doing" || t.status === "in_progress").length,
+    done: tasks.filter((t) => t.status === "done" || t.status === "completed").length,
+    late: tasks.filter(
+      (t) =>
+        t.due_date &&
+        new Date(t.due_date) < new Date() &&
+        t.status !== "done" &&
+        t.status !== "completed",
+    ).length,
+  };
+
+  const filtered = tasks.filter(
+    (t) => !search || t.title?.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const priorityLabel: Record<string, string> = { high: "Alta", medium: "Média", low: "Baixa" };
+  const statusLabel: Record<string, string> = {
+    todo: "A fazer",
+    doing: "Em andamento",
+    in_progress: "Em andamento",
+    done: "Concluída",
+    completed: "Concluída",
+  };
+
   return (
     <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
       <SectionHeader
@@ -278,10 +376,10 @@ const TarefasSection = () => {
         actionLabel="Nova Tarefa"
       />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total" value={0} />
-        <StatCard label="Em andamento" value={0} valueClassName="text-[hsl(var(--info,210_100%_50%))]" />
-        <StatCard label="Concluídas" value={0} valueClassName="text-[hsl(var(--success))]" />
-        <StatCard label="Atrasadas" value={0} valueClassName="text-destructive" />
+        <StatCard label="Total" value={counts.total} />
+        <StatCard label="Em andamento" value={counts.doing} valueClassName="text-[hsl(var(--info,210_100%_50%))]" />
+        <StatCard label="Concluídas" value={counts.done} valueClassName="text-[hsl(var(--success))]" />
+        <StatCard label="Atrasadas" value={counts.late} valueClassName="text-destructive" />
       </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -303,11 +401,38 @@ const TarefasSection = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
-                Nenhuma tarefa cadastrada ainda.
-              </TableCell>
-            </TableRow>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                  Carregando...
+                </TableCell>
+              </TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                  Nenhuma tarefa encontrada.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((t) => (
+                <TableRow key={t.id}>
+                  <TableCell>{t.title}</TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {statusLabel[t.status] ?? t.status ?? "A fazer"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      {priorityLabel[t.priority] ?? "Normal"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -442,13 +567,29 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
   const [mobileOpen, setMobileOpen] = useState(false);
   const close = () => setMobileOpen(false);
   const readOnly = mode === "read_only";
+  const { user } = useAuth();
+  const [ownerId, setOwnerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode === "owner") {
+      setOwnerId(user?.id ?? null);
+      return;
+    }
+    if (!clientId) return;
+    supabase
+      .from("agency_clients")
+      .select("client_user_id")
+      .eq("id", clientId)
+      .maybeSingle()
+      .then(({ data }) => setOwnerId(data?.client_user_id ?? null));
+  }, [mode, clientId, user?.id]);
 
   useEffect(() => {
     if (!isMobile) setMobileOpen(false);
   }, [isMobile]);
 
   return (
-    <ShellContext.Provider value={{ mode, readOnly }}>
+    <ShellContext.Provider value={{ mode, readOnly, ownerId }}>
       <div className="flex min-h-screen w-full overflow-hidden">
         <ClientSidebar
           mobileOpen={mobileOpen}

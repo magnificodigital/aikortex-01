@@ -60,6 +60,11 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
   const [displayName, setDisplayName] = useState<string>(
     overrideName ?? profile?.full_name ?? "Meu Workspace"
   );
+  const [agencyBranding, setAgencyBranding] = useState<{
+    logoUrl: string | null;
+    agencyName: string | null;
+    tier: string;
+  } | null>(null);
 
   // Load client_name from agency_clients for this user
   useEffect(() => {

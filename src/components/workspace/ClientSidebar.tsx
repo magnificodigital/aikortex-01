@@ -228,12 +228,12 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
             {(contaOpen || collapsed || isMobile) && (
               <div className="space-y-0.5">
                 <Link
-                  to="/workspace/configuracoes"
+                  to={`${basePath}/configuracoes`}
                   onClick={() => isMobile && onMobileClose?.()}
-                  className={linkClasses(location.pathname === "/workspace/configuracoes")}
+                  className={linkClasses(location.pathname === `${basePath}/configuracoes`)}
                   title={collapsed && !isMobile ? "Configurações" : undefined}
                 >
-                  <Settings className={`w-4 h-4 shrink-0 ${location.pathname === "/workspace/configuracoes" ? "text-primary" : ""}`} />
+                  <Settings className={`w-4 h-4 shrink-0 ${location.pathname === `${basePath}/configuracoes` ? "text-primary" : ""}`} />
                   {(!collapsed || isMobile) && <span className="truncate">Configurações</span>}
                 </Link>
               </div>

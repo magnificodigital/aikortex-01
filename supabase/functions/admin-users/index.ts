@@ -122,8 +122,6 @@ Deno.serve(async (req) => {
       full_name: body.full_name,
       role: body.role,
       tenant_type: body.tenant_type,
-      department: body.department ?? null,
-      job_title: body.job_title ?? null,
     }, { onConflict: "user_id" });
 
     return new Response(

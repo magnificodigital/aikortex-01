@@ -118,6 +118,8 @@ const App = () => (
               <Route path="/cadastro-cliente/:token" element={<ClientRegistration />} />
               <Route path="/clients" element={<AgencyRoute><Clients /></AgencyRoute>} />
               <Route path="/clients/:clientId" element={<AgencyRoute><ClientDetailPage /></AgencyRoute>} />
+              <Route path="/clients/:clientId/workspace" element={<AgencyRoute><ClientWorkspaceView /></AgencyRoute>} />
+              <Route path="/clients/:clientId/workspace/*" element={<AgencyRoute><ClientWorkspaceView /></AgencyRoute>} />
               <Route path="/projects" element={<AgencyRoute><Projects /></AgencyRoute>} />
               <Route path="/tasks" element={<AgencyRoute><Tasks /></AgencyRoute>} />
               <Route path="/team" element={<AgencyRoute><Team /></AgencyRoute>} />

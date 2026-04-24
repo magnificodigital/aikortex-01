@@ -94,7 +94,7 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
 
   const isActive = (path: string) =>
     location.pathname === path ||
-    (path === "/workspace" && location.pathname === "/workspace");
+    (path === basePath && location.pathname === basePath);
 
   const linkClasses = (active: boolean) =>
     `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors overflow-hidden ${

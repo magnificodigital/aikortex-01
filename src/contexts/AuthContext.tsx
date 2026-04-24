@@ -45,18 +45,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (data && !error) {
       setProfile(data as UserProfile);
-    } else {
-      // Default profile for new users before trigger fires
-      setProfile({
-        id: "",
-        user_id: userId,
-        full_name: null,
-        avatar_url: null,
-        role: "agency_owner",
-        tenant_type: "agency",
-        is_active: true,
-      });
-    }
+  } else {
+    setLoading(false);
+  }
     setLoading(false);
   };
 

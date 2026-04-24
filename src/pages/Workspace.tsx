@@ -1,6 +1,6 @@
 import { lazy, Suspense, Component, type ReactNode } from "react";
 import { Routes, Route } from "react-router-dom";
-import DashboardLayout from "@/components/DashboardLayout";
+import ClientLayout from "@/components/workspace/ClientLayout";
 import { Loader2 } from "lucide-react";
 import { WorkspaceHomeChat } from "@/components/workspace/WorkspaceHomeChat";
 import { WorkspaceClients } from "@/components/workspace/WorkspaceClients";
@@ -52,7 +52,7 @@ const Loader = () => (
 );
 
 const Workspace = () => (
-  <DashboardLayout>
+  <ClientLayout>
     <WorkspaceErrorBoundary>
       <Suspense fallback={<Loader />}>
         <Routes>
@@ -61,13 +61,14 @@ const Workspace = () => (
           <Route path="clients" element={<WorkspaceClients />} />
           <Route path="crm" element={<AikortexCRM />} />
           <Route path="messages" element={<AikortexMessages />} />
+          <Route path="mensagens" element={<AikortexMessages />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="financial" element={<Financial />} />
           <Route path="settings" element={<SettingsPage />} />
         </Routes>
       </Suspense>
     </WorkspaceErrorBoundary>
-  </DashboardLayout>
+  </ClientLayout>
 );
 
 export default Workspace;

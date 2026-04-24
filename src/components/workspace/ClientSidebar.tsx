@@ -60,6 +60,11 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
   const [displayName, setDisplayName] = useState<string>(
     overrideName ?? profile?.full_name ?? "Meu Workspace"
   );
+  const [agencyBranding, setAgencyBranding] = useState<{
+    logoUrl: string | null;
+    agencyName: string | null;
+    tier: string;
+  } | null>(null);
 
   // Load client_name from agency_clients for this user
   useEffect(() => {
@@ -86,6 +91,42 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
       active = false;
     };
   }, [user?.id, profile?.full_name, overrideName]);
+
+  // Fetch agency branding when client is in their own workspace (owner mode)
+  useEffect(() => {
+    if (readOnly) return; // agency viewing — don't apply client branding
+    if (!user?.id) return;
+
+    let active = true;
+
+    (async () => {
+      // 1. Get agency_id from client's profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("agency_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!active || !profileData?.agency_id) return;
+
+      // 2. Fetch agency branding
+      const { data: agency } = await supabase
+        .from("agency_profiles")
+        .select("logo_url, agency_name, tier")
+        .eq("id", profileData.agency_id)
+        .maybeSingle();
+
+      if (!active || !agency) return;
+
+      setAgencyBranding({
+        logoUrl: agency.logo_url,
+        agencyName: agency.agency_name,
+        tier: agency.tier,
+      });
+    })();
+
+    return () => { active = false; };
+  }, [user?.id, readOnly]);
 
   useEffect(() => {
     if (isMobile) onMobileClose?.();
@@ -143,6 +184,24 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
     </div>
   );
 
+  // Calculate which logo to display
+  const whitelabelTiers = ["hack", "growth"];
+  const useAgencyBranding =
+    !readOnly &&
+    agencyBranding?.tier &&
+    whitelabelTiers.includes(agencyBranding.tier) &&
+    !!agencyBranding.logoUrl;
+
+  const logoSrc = useAgencyBranding
+    ? agencyBranding!.logoUrl!
+    : collapsed && !isMobile
+      ? (theme === "dark" ? aikortexIconWhite : aikortexIconBlack)
+      : (theme === "dark" ? aikortexLogoWhite : aikortexLogoBlack);
+
+  const logoAlt = useAgencyBranding
+    ? (agencyBranding!.agencyName ?? "Agência")
+    : "Aikortex";
+
   return (
     <>
       {isMobile && mobileOpen && (
@@ -166,13 +225,13 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
       >
         <div className={`flex h-14 items-center border-b border-sidebar-border px-4 ${isMobile ? "justify-between" : "justify-center"}`}>
           <img
-            src={
-              collapsed && !isMobile
-                ? theme === "dark" ? aikortexIconWhite : aikortexIconBlack
-                : theme === "dark" ? aikortexLogoWhite : aikortexLogoBlack
+            src={logoSrc}
+            alt={logoAlt}
+            className={
+              collapsed && !isMobile && !useAgencyBranding
+                ? "h-7 w-7 object-contain"
+                : "h-7 w-auto max-w-[120px] object-contain"
             }
-            alt="Aikortex"
-            className={collapsed && !isMobile ? "h-7 w-7 object-contain" : "h-7 w-auto object-contain"}
           />
           {isMobile && (
             <button

@@ -32,8 +32,16 @@ export interface WorkspaceShellProps {
   clientName?: string;
 }
 
-type ShellCtx = { mode: "owner" | "read_only"; readOnly: boolean; ownerId: string | null };
-const ShellContext = createContext<ShellCtx>({ mode: "owner", readOnly: false, ownerId: null });
+type ShellCtx = {
+  mode: "owner" | "read_only";
+  readOnly: boolean;
+  ownerId: string | null;
+  enabledModules: string[];
+};
+const ShellContext = createContext<ShellCtx>({
+  mode: "owner", readOnly: false, ownerId: null,
+  enabledModules: ["mensagens"],
+});
 const useShell = () => useContext(ShellContext);
 
 class WorkspaceErrorBoundary extends Component<
@@ -716,6 +724,23 @@ const MensagensSection = () => {
     </div>
   );
 };
+
+const PlaceholderSection = ({ title }: { title: string }) => (
+  <div className="p-6 lg:p-8 max-w-[1200px]">
+    <h1 className="text-2xl font-bold text-foreground mb-2">{title}</h1>
+    <p className="text-sm text-muted-foreground">Em breve.</p>
+  </div>
+);
+
+const ContratosSection = () => <PlaceholderSection title="Contratos" />;
+const CrmSection      = () => <PlaceholderSection title="CRM" />;
+const ReunioesSection = () => <PlaceholderSection title="Reuniões" />;
+const EquipeSection   = () => <PlaceholderSection title="Equipe" />;
+const AgentesSection  = () => <PlaceholderSection title="Agentes" />;
+const FlowsSection    = () => <PlaceholderSection title="Flows" />;
+const AppsSection     = () => <PlaceholderSection title="Apps" />;
+const TemplatesSection = () => <PlaceholderSection title="Templates" />;
+const DisparosSection = () => <PlaceholderSection title="Disparos" />;
 
 const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => {
   const isMobile = useIsMobile();

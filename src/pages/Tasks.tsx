@@ -202,6 +202,7 @@ const Tasks = () => {
 };
 
 export default Tasks;
+// removed legacy mock content below
         <TaskMetrics tasks={tasks} />
 
         {/* Filters */}

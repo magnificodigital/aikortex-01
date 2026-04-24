@@ -1,6 +1,6 @@
 import { Suspense, Component, createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Loader2, MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings, Plus, Search, Users, Eye, Menu } from "lucide-react";
+import { Loader2, MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings, Plus, Search, Users, Eye, Menu, FileText, Target, Video, UsersRound, Bot, AppWindow, GitBranch, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

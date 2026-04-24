@@ -1242,12 +1242,12 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
                   <Route path="templates" element={<TemplatesSection />} />
                   <Route path="disparos" element={<DisparosSection />} />
                   <Route path="configuracoes" element={<ConfiguracoesSection />} />
-                  {/* Legacy path redirects */}
-                  <Route path="clients" element={<Navigate to="/workspace/clientes" replace />} />
-                  <Route path="messages" element={<Navigate to="/workspace/mensagens" replace />} />
-                  <Route path="tasks" element={<Navigate to="/workspace/tarefas" replace />} />
-                  <Route path="financial" element={<Navigate to="/workspace/financeiro" replace />} />
-                  <Route path="settings" element={<Navigate to="/workspace/configuracoes" replace />} />
+                  {/* Legacy path redirects — relative so they work in both owner and read_only */}
+                  <Route path="clients" element={<Navigate to="clientes" replace />} />
+                  <Route path="messages" element={<Navigate to="mensagens" replace />} />
+                  <Route path="tasks" element={<Navigate to="tarefas" replace />} />
+                  <Route path="financial" element={<Navigate to="financeiro" replace />} />
+                  <Route path="settings" element={<Navigate to="configuracoes" replace />} />
                 </Routes>
               </Suspense>
             </WorkspaceErrorBoundary>

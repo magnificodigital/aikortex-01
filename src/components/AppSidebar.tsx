@@ -398,7 +398,7 @@ onValueChange={(val) => {
                 const client = clients.find(c => c.id === val);
                 if (client) {
                   switchToClient(client);
-                  navigate(`/clients/${client.id}`);
+                  navigate(`/clients/${client.id}/workspace`);
                 }
               }
             }}

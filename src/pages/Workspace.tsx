@@ -1,10 +1,13 @@
 import { Suspense, Component, type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ClientLayout from "@/components/workspace/ClientLayout";
-import { Loader2 } from "lucide-react";
-import { WorkspaceHomeChat } from "@/components/workspace/WorkspaceHomeChat";
-import { WorkspaceClients } from "@/components/workspace/WorkspaceClients";
-import { MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
+import { WorkspaceHome } from "@/components/workspace/WorkspaceHome";
+import { WorkspaceClientsList } from "@/components/workspace/WorkspaceClientsList";
+import { WorkspaceSales } from "@/components/workspace/WorkspaceSales";
+import { WorkspaceFinancial } from "@/components/workspace/WorkspaceFinancial";
+import { WorkspaceTasks } from "@/components/workspace/WorkspaceTasks";
+import { WorkspaceSettings } from "@/components/workspace/WorkspaceSettings";
 
 class WorkspaceErrorBoundary extends Component<
   { children: ReactNode },
@@ -45,27 +48,19 @@ const Loader = () => (
   </div>
 );
 
-const Placeholder = ({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: typeof MessageSquare;
-  title: string;
-  description: string;
-}) => (
+const MessagesPlaceholder = () => (
   <div className="p-6 lg:p-8 max-w-[1200px]">
     <div className="flex items-center gap-3 mb-6">
       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-        <Icon className="w-5 h-5 text-primary" />
+        <MessageSquare className="w-5 h-5 text-primary" />
       </div>
       <div>
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h1 className="text-2xl font-bold text-foreground">Mensagens</h1>
+        <p className="text-sm text-muted-foreground">Conversas e atendimentos</p>
       </div>
     </div>
     <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-      Em breve você poderá gerenciar {title.toLowerCase()} por aqui.
+      Em breve você poderá gerenciar mensagens por aqui.
     </div>
   </div>
 );
@@ -75,58 +70,13 @@ const Workspace = () => (
     <WorkspaceErrorBoundary>
       <Suspense fallback={<Loader />}>
         <Routes>
-          <Route index element={<WorkspaceHomeChat />} />
-          <Route
-            path="mensagens"
-            element={
-              <Placeholder
-                icon={MessageSquare}
-                title="Mensagens"
-                description="Conversas e atendimentos"
-              />
-            }
-          />
-          <Route path="clientes" element={<WorkspaceClients />} />
-          <Route
-            path="vendas"
-            element={
-              <Placeholder
-                icon={ShoppingCart}
-                title="Vendas"
-                description="Pipeline e oportunidades"
-              />
-            }
-          />
-          <Route
-            path="financeiro"
-            element={
-              <Placeholder
-                icon={DollarSign}
-                title="Financeiro"
-                description="Receitas, despesas e cobranças"
-              />
-            }
-          />
-          <Route
-            path="tarefas"
-            element={
-              <Placeholder
-                icon={CheckSquare}
-                title="Tarefas"
-                description="Suas tarefas e pendências"
-              />
-            }
-          />
-          <Route
-            path="configuracoes"
-            element={
-              <Placeholder
-                icon={Settings}
-                title="Configurações"
-                description="Preferências da sua conta"
-              />
-            }
-          />
+          <Route index element={<WorkspaceHome />} />
+          <Route path="mensagens" element={<MessagesPlaceholder />} />
+          <Route path="clientes" element={<WorkspaceClientsList />} />
+          <Route path="vendas" element={<WorkspaceSales />} />
+          <Route path="financeiro" element={<WorkspaceFinancial />} />
+          <Route path="tarefas" element={<WorkspaceTasks />} />
+          <Route path="configuracoes" element={<WorkspaceSettings />} />
           {/* Legacy path redirects */}
           <Route path="clients" element={<Navigate to="/workspace/clientes" replace />} />
           <Route path="crm" element={<Navigate to="/workspace/vendas" replace />} />

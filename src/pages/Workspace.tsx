@@ -418,47 +418,11 @@ const Workspace = () => (
               />
             }
           />
-          <Route path="clientes" element={<WorkspaceClients />} />
-          <Route
-            path="vendas"
-            element={
-              <Placeholder
-                icon={ShoppingCart}
-                title="Vendas"
-                description="Pipeline e oportunidades"
-              />
-            }
-          />
-          <Route
-            path="financeiro"
-            element={
-              <Placeholder
-                icon={DollarSign}
-                title="Financeiro"
-                description="Receitas, despesas e cobranças"
-              />
-            }
-          />
-          <Route
-            path="tarefas"
-            element={
-              <Placeholder
-                icon={CheckSquare}
-                title="Tarefas"
-                description="Suas tarefas e pendências"
-              />
-            }
-          />
-          <Route
-            path="configuracoes"
-            element={
-              <Placeholder
-                icon={Settings}
-                title="Configurações"
-                description="Preferências da sua conta"
-              />
-            }
-          />
+          <Route path="clientes" element={<ClientesSection />} />
+          <Route path="vendas" element={<VendasSection />} />
+          <Route path="financeiro" element={<FinanceiroSection />} />
+          <Route path="tarefas" element={<TarefasSection />} />
+          <Route path="configuracoes" element={<ConfiguracoesSection />} />
           {/* Legacy path redirects */}
           <Route path="clients" element={<Navigate to="/workspace/clientes" replace />} />
           <Route path="crm" element={<Navigate to="/workspace/vendas" replace />} />

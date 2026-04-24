@@ -1,6 +1,6 @@
 import { Suspense, Component, createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Loader2, MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings, Plus, Search, Users, Eye, Menu } from "lucide-react";
+import { Loader2, MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings, Plus, Search, Users, Eye, Menu, FileText, Target, Video, UsersRound, Bot, AppWindow, GitBranch, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -725,22 +725,426 @@ const MensagensSection = () => {
   );
 };
 
-const PlaceholderSection = ({ title }: { title: string }) => (
+const ContratosSection = () => {
+  const { ownerId, readOnly } = useShell();
+  const [contracts, setContracts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase.from("user_contracts").select("*").eq("user_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => { setContracts(data ?? []); setLoading(false); });
+  }, [ownerId]);
+
+  const statusLabel: Record<string, string> = {
+    active: "Ativo", draft: "Rascunho", signed: "Assinado",
+    cancelled: "Cancelado", expired: "Expirado",
+  };
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader icon={FileText} title="Contratos" description="Seus contratos e acordos" actionLabel="Novo Contrato" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total" value={contracts.length} />
+        <StatCard label="Ativos" value={contracts.filter(c => c.status === "active" || c.status === "signed").length} valueClassName="text-green-600" />
+        <StatCard label="Rascunhos" value={contracts.filter(c => c.status === "draft").length} />
+        <StatCard label="Expirados" value={contracts.filter(c => c.status === "expired" || c.status === "cancelled").length} valueClassName="text-destructive" />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Data</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10"><Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : contracts.length === 0 ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10 text-muted-foreground">Nenhum contrato encontrado.</TableCell></TableRow>
+            ) : contracts.map(c => (
+              <TableRow key={c.id}>
+                <TableCell className="font-medium">{c.name}</TableCell>
+                <TableCell className="text-muted-foreground">{c.type ?? "—"}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border ${c.status === "active" || c.status === "signed" ? "bg-green-500/10 text-green-600 border-green-500/20" : c.status === "expired" || c.status === "cancelled" ? "bg-red-500/10 text-red-600 border-red-500/20" : "bg-muted text-muted-foreground border-border"}`}>
+                    {statusLabel[c.status] ?? c.status}
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {c.created_at ? new Date(c.created_at).toLocaleDateString("pt-BR") : "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const CrmSection = () => {
+  const { ownerId, readOnly } = useShell();
+  const [leads, setLeads] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase.from("leads").select("*").eq("user_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => { setLeads(data ?? []); setLoading(false); });
+  }, [ownerId]);
+
+  const stageColor: Record<string, string> = {
+    new: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    contacted: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    qualified: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+    won: "bg-green-500/10 text-green-600 border-green-500/20",
+    lost: "bg-red-500/10 text-red-600 border-red-500/20",
+  };
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader icon={Target} title="CRM" description="Pipeline de relacionamento" actionLabel="Novo Lead" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total de leads" value={leads.length} />
+        <StatCard label="Qualificados" value={leads.filter(l => l.stage === "qualified").length} valueClassName="text-purple-600" />
+        <StatCard label="Ganhos" value={leads.filter(l => l.stage === "won").length} valueClassName="text-green-600" />
+        <StatCard label="Perdidos" value={leads.filter(l => l.stage === "lost").length} valueClassName="text-destructive" />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Empresa</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Etapa</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10"><Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : leads.length === 0 ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10 text-muted-foreground">Nenhum lead encontrado.</TableCell></TableRow>
+            ) : leads.map(l => (
+              <TableRow key={l.id}>
+                <TableCell className="font-medium">{l.name}</TableCell>
+                <TableCell className="text-muted-foreground">{l.company ?? "—"}</TableCell>
+                <TableCell className="text-muted-foreground">{l.email ?? "—"}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border ${stageColor[l.stage] ?? "bg-muted text-muted-foreground border-border"}`}>
+                    {l.stage ?? "—"}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const ReunioesSection = () => {
+  const { ownerId, readOnly } = useShell();
+  const [meetings, setMeetings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase.from("meetings").select("*").eq("host_user_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => { setMeetings(data ?? []); setLoading(false); });
+  }, [ownerId]);
+
+  const statusLabel: Record<string, string> = {
+    waiting: "Aguardando", active: "Ativa", ended: "Encerrada",
+  };
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader icon={Video} title="Reuniões" description="Videochamadas e encontros" actionLabel="Nova Reunião" />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard label="Total" value={meetings.length} />
+        <StatCard label="Ativas" value={meetings.filter(m => m.status === "active").length} valueClassName="text-green-600" />
+        <StatCard label="Encerradas" value={meetings.filter(m => m.status === "ended").length} />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Título</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Início</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={3} className="text-center py-10"><Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : meetings.length === 0 ? (
+              <TableRow><TableCell colSpan={3} className="text-center py-10 text-muted-foreground">Nenhuma reunião encontrada.</TableCell></TableRow>
+            ) : meetings.map(m => (
+              <TableRow key={m.id}>
+                <TableCell className="font-medium">{m.title}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border ${m.status === "active" ? "bg-green-500/10 text-green-600 border-green-500/20" : m.status === "ended" ? "bg-muted text-muted-foreground border-border" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}`}>
+                    {statusLabel[m.status] ?? m.status}
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {m.started_at ? new Date(m.started_at).toLocaleDateString("pt-BR") : "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const EquipeSection = () => {
+  const { ownerId, readOnly } = useShell();
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase.from("workspace_members").select("*").eq("workspace_owner_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => { setMembers(data ?? []); setLoading(false); });
+  }, [ownerId]);
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader icon={UsersRound} title="Equipe" description="Membros do seu workspace" actionLabel="Convidar membro" />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard label="Total" value={members.length} />
+        <StatCard label="Ativos" value={members.filter(m => m.status === "active").length} valueClassName="text-green-600" />
+        <StatCard label="Pendentes" value={members.filter(m => m.status === "invited" || m.status === "pending").length} />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Membro</TableHead>
+              <TableHead>Cargo</TableHead>
+              <TableHead>Departamento</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10"><Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : members.length === 0 ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10 text-muted-foreground">Nenhum membro na equipe ainda.</TableCell></TableRow>
+            ) : members.map(m => (
+              <TableRow key={m.id}>
+                <TableCell className="font-medium">{m.member_user_id}</TableCell>
+                <TableCell className="text-muted-foreground">{m.job_title ?? "—"}</TableCell>
+                <TableCell className="text-muted-foreground">{m.department ?? "—"}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border ${m.status === "active" ? "bg-green-500/10 text-green-600 border-green-500/20" : "bg-muted text-muted-foreground border-border"}`}>
+                    {m.status ?? "—"}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const AgentesSection = () => {
+  const { ownerId, readOnly } = useShell();
+  const [agents, setAgents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase.from("user_agents").select("id, name, description, status, agent_type, created_at")
+      .eq("user_id", ownerId).order("created_at", { ascending: false })
+      .then(({ data }) => { setAgents(data ?? []); setLoading(false); });
+  }, [ownerId]);
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader icon={Bot} title="Agentes" description="Seus agentes de IA" actionLabel="Novo Agente" />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard label="Total" value={agents.length} />
+        <StatCard label="Ativos" value={agents.filter(a => a.status === "active").length} valueClassName="text-green-600" />
+        <StatCard label="Rascunhos" value={agents.filter(a => a.status === "draft" || !a.status).length} />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Criado em</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10"><Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : agents.length === 0 ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-10 text-muted-foreground">Nenhum agente criado ainda.</TableCell></TableRow>
+            ) : agents.map(a => (
+              <TableRow key={a.id}>
+                <TableCell className="font-medium">{a.name}</TableCell>
+                <TableCell className="text-muted-foreground">{a.agent_type ?? "—"}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border ${a.status === "active" ? "bg-green-500/10 text-green-600 border-green-500/20" : "bg-muted text-muted-foreground border-border"}`}>
+                    {a.status ?? "rascunho"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {a.created_at ? new Date(a.created_at).toLocaleDateString("pt-BR") : "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const AppsSection = () => {
+  const { ownerId, readOnly } = useShell();
+  const [apps, setApps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase.from("user_apps").select("id, name, status, created_at")
+      .eq("user_id", ownerId).order("created_at", { ascending: false })
+      .then(({ data }) => { setApps(data ?? []); setLoading(false); });
+  }, [ownerId]);
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader icon={AppWindow} title="Apps" description="Aplicações do seu workspace" actionLabel="Novo App" />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard label="Total" value={apps.length} />
+        <StatCard label="Publicados" value={apps.filter(a => a.status === "published").length} valueClassName="text-green-600" />
+        <StatCard label="Rascunhos" value={apps.filter(a => a.status !== "published").length} />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Criado em</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={3} className="text-center py-10"><Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : apps.length === 0 ? (
+              <TableRow><TableCell colSpan={3} className="text-center py-10 text-muted-foreground">Nenhum app criado ainda.</TableCell></TableRow>
+            ) : apps.map(a => (
+              <TableRow key={a.id}>
+                <TableCell className="font-medium">{a.name}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full border ${a.status === "published" ? "bg-green-500/10 text-green-600 border-green-500/20" : "bg-muted text-muted-foreground border-border"}`}>
+                    {a.status ?? "rascunho"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {a.created_at ? new Date(a.created_at).toLocaleDateString("pt-BR") : "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const FlowsSection = () => (
   <div className="p-6 lg:p-8 max-w-[1200px]">
-    <h1 className="text-2xl font-bold text-foreground mb-2">{title}</h1>
-    <p className="text-sm text-muted-foreground">Em breve.</p>
+    <SectionHeader icon={GitBranch} title="Flows" description="Automações do seu workspace" actionLabel="Novo Flow" />
+    <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+      Nenhum flow criado ainda.
+    </div>
   </div>
 );
 
-const ContratosSection = () => <PlaceholderSection title="Contratos" />;
-const CrmSection      = () => <PlaceholderSection title="CRM" />;
-const ReunioesSection = () => <PlaceholderSection title="Reuniões" />;
-const EquipeSection   = () => <PlaceholderSection title="Equipe" />;
-const AgentesSection  = () => <PlaceholderSection title="Agentes" />;
-const FlowsSection    = () => <PlaceholderSection title="Flows" />;
-const AppsSection     = () => <PlaceholderSection title="Apps" />;
-const TemplatesSection = () => <PlaceholderSection title="Templates" />;
-const DisparosSection = () => <PlaceholderSection title="Disparos" />;
+const TemplatesSection = () => (
+  <div className="p-6 lg:p-8 max-w-[1200px]">
+    <SectionHeader icon={FileText} title="Templates" description="Templates disponíveis" />
+    <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+      Nenhum template disponível ainda.
+    </div>
+  </div>
+);
+
+const DisparosSection = () => {
+  const { ownerId } = useShell();
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase.from("broadcast_logs").select("id, broadcast_name, status, created_at")
+      .eq("user_id", ownerId).order("created_at", { ascending: false })
+      .then(({ data }) => { setLogs(data ?? []); setLoading(false); });
+  }, [ownerId]);
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader icon={Send} title="Disparos" description="Histórico de broadcasts" actionLabel="Novo Disparo" />
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Data</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={3} className="text-center py-10"><Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : logs.length === 0 ? (
+              <TableRow><TableCell colSpan={3} className="text-center py-10 text-muted-foreground">Nenhum disparo realizado ainda.</TableCell></TableRow>
+            ) : logs.map(l => (
+              <TableRow key={l.id}>
+                <TableCell className="font-medium">{l.broadcast_name ?? "—"}</TableCell>
+                <TableCell>
+                  <span className="text-xs px-2 py-0.5 rounded-full border bg-muted text-muted-foreground border-border">
+                    {l.status ?? "—"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {l.created_at ? new Date(l.created_at).toLocaleDateString("pt-BR") : "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
 
 const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => {
   const isMobile = useIsMobile();

@@ -32,10 +32,10 @@ const ferramentasItems: NavItem[] = [
 ];
 
 const gestaoItems: NavItem[] = [
-  { label: "Clientes", icon: Users, path: "/workspace/clients" },
-  { label: "Vendas", icon: ShoppingCart, path: "/workspace/crm" },
-  { label: "Financeiro", icon: DollarSign, path: "/workspace/financial" },
-  { label: "Tarefas", icon: CheckSquare, path: "/workspace/tasks" },
+  { label: "Clientes", icon: Users, path: "/workspace/clientes" },
+  { label: "Vendas", icon: ShoppingCart, path: "/workspace/vendas" },
+  { label: "Financeiro", icon: DollarSign, path: "/workspace/financeiro" },
+  { label: "Tarefas", icon: CheckSquare, path: "/workspace/tarefas" },
 ];
 
 type Props = { mobileOpen?: boolean; onMobileClose?: () => void };
@@ -218,12 +218,12 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose }: Props) => {
             {(contaOpen || collapsed || isMobile) && (
               <div className="space-y-0.5">
                 <Link
-                  to="/workspace/settings"
+                  to="/workspace/configuracoes"
                   onClick={() => isMobile && onMobileClose?.()}
-                  className={linkClasses(location.pathname === "/workspace/settings")}
+                  className={linkClasses(location.pathname === "/workspace/configuracoes")}
                   title={collapsed && !isMobile ? "Configurações" : undefined}
                 >
-                  <Settings className={`w-4 h-4 shrink-0 ${location.pathname === "/workspace/settings" ? "text-primary" : ""}`} />
+                  <Settings className={`w-4 h-4 shrink-0 ${location.pathname === "/workspace/configuracoes" ? "text-primary" : ""}`} />
                   {(!collapsed || isMobile) && <span className="truncate">Configurações</span>}
                 </Link>
               </div>

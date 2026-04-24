@@ -102,6 +102,15 @@ const ClientDetail = () => {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-foreground">{client.client_name}</h1>
               <Badge variant="outline" className={`${st.class} border`}>{st.label}</Badge>
+              {client.client_user_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/clients/${clientId}/workspace`)}
+                >
+                  Ver workspace
+                </Button>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">{client.client_email}</p>
           </div>

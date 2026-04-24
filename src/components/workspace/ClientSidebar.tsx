@@ -92,6 +92,42 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
     };
   }, [user?.id, profile?.full_name, overrideName]);
 
+  // Fetch agency branding when client is in their own workspace (owner mode)
+  useEffect(() => {
+    if (readOnly) return; // agency viewing — don't apply client branding
+    if (!user?.id) return;
+
+    let active = true;
+
+    (async () => {
+      // 1. Get agency_id from client's profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("agency_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!active || !profileData?.agency_id) return;
+
+      // 2. Fetch agency branding
+      const { data: agency } = await supabase
+        .from("agency_profiles")
+        .select("logo_url, agency_name, tier")
+        .eq("id", profileData.agency_id)
+        .maybeSingle();
+
+      if (!active || !agency) return;
+
+      setAgencyBranding({
+        logoUrl: agency.logo_url,
+        agencyName: agency.agency_name,
+        tier: agency.tier,
+      });
+    })();
+
+    return () => { active = false; };
+  }, [user?.id, readOnly]);
+
   useEffect(() => {
     if (isMobile) onMobileClose?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps

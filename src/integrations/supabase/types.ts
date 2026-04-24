@@ -634,6 +634,54 @@ export type Database = {
         }
         Relationships: []
       }
+      client_invites: {
+        Row: {
+          agency_id: string
+          client_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          agency_id: string
+          client_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invites_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "agency_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_lightbox_dismissals: {
         Row: {
           dismissed_at: string
@@ -1759,6 +1807,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          agency_id: string | null
           avatar_url: string | null
           created_at: string
           full_name: string | null
@@ -1770,6 +1819,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agency_id?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -1781,6 +1831,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agency_id?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -1791,7 +1842,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales_opportunities: {
         Row: {

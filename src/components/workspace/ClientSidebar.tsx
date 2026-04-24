@@ -225,13 +225,13 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
       >
         <div className={`flex h-14 items-center border-b border-sidebar-border px-4 ${isMobile ? "justify-between" : "justify-center"}`}>
           <img
-            src={
-              collapsed && !isMobile
-                ? theme === "dark" ? aikortexIconWhite : aikortexIconBlack
-                : theme === "dark" ? aikortexLogoWhite : aikortexLogoBlack
+            src={logoSrc}
+            alt={logoAlt}
+            className={
+              collapsed && !isMobile && !useAgencyBranding
+                ? "h-7 w-7 object-contain"
+                : "h-7 w-auto max-w-[120px] object-contain"
             }
-            alt="Aikortex"
-            className={collapsed && !isMobile ? "h-7 w-7 object-contain" : "h-7 w-auto object-contain"}
           />
           {isMobile && (
             <button

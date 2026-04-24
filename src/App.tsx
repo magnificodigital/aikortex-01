@@ -65,6 +65,7 @@ const Apps = lazy(() => import("./pages/Apps"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Credits = lazy(() => import("./pages/Credits"));
 const ClientDetailPage = lazy(() => import("./pages/ClientDetail"));
+const ClientWorkspaceView = lazy(() => import("./pages/ClientWorkspaceView"));
 const Workspace = lazy(() => import("./pages/Workspace"));
 const WorkspaceRedirect = lazy(() => import("./pages/WorkspaceRedirect"));
 

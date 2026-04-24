@@ -1,0 +1,510 @@
+import { Suspense, Component, createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Loader2, MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings, Plus, Search, Users, Eye, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+import ClientSidebar from "./ClientSidebar";
+import { WorkspaceHomeChat } from "./WorkspaceHomeChat";
+
+export interface WorkspaceShellProps {
+  mode: "owner" | "read_only";
+  clientId?: string;
+  clientName?: string;
+}
+
+type ShellCtx = { mode: "owner" | "read_only"; readOnly: boolean };
+const ShellContext = createContext<ShellCtx>({ mode: "owner", readOnly: false });
+const useShell = () => useContext(ShellContext);
+
+class WorkspaceErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; msg: string }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, msg: "" };
+  }
+  static getDerivedStateFromError(e: Error) {
+    return { hasError: true, msg: e.message };
+  }
+  componentDidCatch(error: Error, info: unknown) {
+    console.error("[WorkspaceShell] Module error:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center space-y-2">
+          <p className="text-destructive font-medium">Erro ao carregar o módulo</p>
+          <p className="text-sm text-muted-foreground">{this.state.msg}</p>
+          <button
+            className="text-sm text-primary underline mt-2"
+            onClick={() => this.setState({ hasError: false, msg: "" })}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const Loader = () => (
+  <div className="p-6 text-muted-foreground flex items-center gap-2">
+    <Loader2 className="w-4 h-4 animate-spin" /> Carregando...
+  </div>
+);
+
+const SectionHeader = ({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
+}: {
+  icon: typeof MessageSquare;
+  title: string;
+  description: string;
+  actionLabel?: string;
+}) => {
+  const { readOnly } = useShell();
+  return (
+    <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Icon className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      {actionLabel && !readOnly && (
+        <Button onClick={() => toast.info("Em breve")}>
+          <Plus className="w-4 h-4 mr-1" /> {actionLabel}
+        </Button>
+      )}
+    </div>
+  );
+};
+
+const StatCard = ({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: string | number;
+  valueClassName?: string;
+}) => (
+  <div className="bg-card border border-border rounded-xl p-4">
+    <p className="text-xs text-muted-foreground mb-2">{label}</p>
+    <p className={`text-xl font-bold ${valueClassName ?? "text-foreground"}`}>{value}</p>
+  </div>
+);
+
+const HomeSection = () => {
+  const { readOnly } = useShell();
+  return (
+    <div className={readOnly ? "pointer-events-none opacity-80" : ""}>
+      <WorkspaceHomeChat />
+    </div>
+  );
+};
+
+const ClientesSection = () => {
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader
+        icon={Users}
+        title="Clientes"
+        description="Gerencie seus clientes"
+        actionLabel="Adicionar Cliente"
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="Clientes ativos" value={0} />
+        <StatCard label="Receita mensal" value="R$ 0" />
+        <StatCard label="Templates ativos" value={0} />
+      </div>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="ativo">Ativo</SelectItem>
+            <SelectItem value="pendente">Pendente</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Templates</TableHead>
+              <TableHead>Receita/mês</TableHead>
+              <TableHead>Cadastro</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                Nenhum cliente cadastrado ainda.
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const VendasSection = () => (
+  <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+    <SectionHeader
+      icon={ShoppingCart}
+      title="Vendas"
+      description="Pipeline e oportunidades"
+      actionLabel="Nova Oportunidade"
+    />
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard label="Pipeline Total" value="R$ 0" />
+      <StatCard label="Fechados" value="R$ 0" />
+      <StatCard label="Ticket Médio" value="R$ 0" />
+      <StatCard label="Oportunidades" value={0} />
+    </div>
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Valor</TableHead>
+            <TableHead>Etapa</TableHead>
+            <TableHead>Probabilidade</TableHead>
+            <TableHead>Data</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+              Nenhuma oportunidade cadastrada ainda.
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  </div>
+);
+
+const FinanceiroSection = () => (
+  <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+    <SectionHeader
+      icon={DollarSign}
+      title="Financeiro"
+      description="Controle de receitas e despesas"
+      actionLabel="Nova Transação"
+    />
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <StatCard label="Receita Total" value="R$ 0" valueClassName="text-[hsl(var(--success))]" />
+      <StatCard label="Despesas" value="R$ 0" valueClassName="text-destructive" />
+      <StatCard label="Saldo" value="R$ 0" />
+    </div>
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-border">
+        <h2 className="text-sm font-semibold text-foreground">Transações</h2>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Data</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Valor</TableHead>
+            <TableHead>Tipo</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+              Nenhuma transação registrada ainda.
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  </div>
+);
+
+const TarefasSection = () => {
+  const [search, setSearch] = useState("");
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader
+        icon={CheckSquare}
+        title="Tarefas"
+        description="Gerencie suas atividades"
+        actionLabel="Nova Tarefa"
+      />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total" value={0} />
+        <StatCard label="Em andamento" value={0} valueClassName="text-[hsl(var(--info,210_100%_50%))]" />
+        <StatCard label="Concluídas" value={0} valueClassName="text-[hsl(var(--success))]" />
+        <StatCard label="Atrasadas" value={0} valueClassName="text-destructive" />
+      </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar tarefas..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tarefa</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Prioridade</TableHead>
+              <TableHead>Vencimento</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                Nenhuma tarefa cadastrada ainda.
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const ConfiguracoesSection = () => {
+  const { user, profile } = useAuth();
+  const { readOnly } = useShell();
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não conferem");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setSaving(false);
+    if (error) {
+      toast.error("Erro ao atualizar senha");
+      return;
+    }
+    toast.success("Senha atualizada com sucesso");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[800px] space-y-6">
+      <SectionHeader
+        icon={Settings}
+        title="Configurações"
+        description="Preferências da sua conta"
+      />
+      <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <h2 className="text-sm font-semibold text-foreground">Informações da conta</h2>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Email</Label>
+            <p className="text-sm text-foreground mt-1">{user?.email ?? "—"}</p>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Nome</Label>
+            <p className="text-sm text-foreground mt-1">{profile?.full_name ?? "—"}</p>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Tipo</Label>
+            <p className="text-sm text-foreground mt-1">Cliente</p>
+          </div>
+        </div>
+      </div>
+      {!readOnly && (
+        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-foreground">Alterar senha</h2>
+          <div className="space-y-3">
+            <div>
+              <Label>Nova senha</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Confirmar nova senha</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Salvando..." : "Atualizar senha"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MensagensSection = () => {
+  const { readOnly } = useShell();
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader
+        icon={MessageSquare}
+        title="Mensagens"
+        description="Central de comunicação com seus clientes"
+        actionLabel="Nova conversa"
+      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: 520 }}>
+        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden">
+          <div className="p-3 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Buscar conversa..." className="pl-9" />
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-6">
+            <MessageSquare className="w-8 h-8 mb-2 opacity-60" />
+            <p className="text-sm">Nenhuma conversa ainda.</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden lg:col-span-2">
+          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-6">
+            <MessageSquare className="w-8 h-8 mb-2 opacity-60" />
+            <p className="text-sm">Selecione uma conversa para começar.</p>
+          </div>
+          <div className="p-3 border-t border-border flex items-center gap-2">
+            <Input placeholder="Digite uma mensagem..." disabled={readOnly || true} className="flex-1" />
+            <Button disabled>Enviar</Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => {
+  const isMobile = useIsMobile();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const close = () => setMobileOpen(false);
+  const readOnly = mode === "read_only";
+
+  useEffect(() => {
+    if (!isMobile) setMobileOpen(false);
+  }, [isMobile]);
+
+  return (
+    <ShellContext.Provider value={{ mode, readOnly }}>
+      <div className="flex min-h-screen w-full overflow-hidden">
+        <ClientSidebar
+          mobileOpen={mobileOpen}
+          onMobileClose={close}
+          readOnly={readOnly}
+          overrideName={readOnly ? clientName : undefined}
+        />
+        <main className="relative flex-1 min-w-0 overflow-y-auto overflow-x-hidden bg-background">
+          {isMobile && (
+            <div className="sticky top-0 z-30 flex items-center justify-between bg-background/80 backdrop-blur-lg px-3 py-2">
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                aria-label="Abrir menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div />
+            </div>
+          )}
+          {readOnly && (
+            <div className="sticky top-0 z-20 flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-700 dark:text-amber-300">
+              <Eye className="w-4 h-4 shrink-0" />
+              <span>
+                Você está visualizando o workspace deste cliente. Edições não são permitidas.
+              </span>
+            </div>
+          )}
+          <div className="relative z-10">
+            <WorkspaceErrorBoundary>
+              <Suspense fallback={<Loader />}>
+                <Routes>
+                  <Route index element={<HomeSection />} />
+                  <Route path="mensagens" element={<MensagensSection />} />
+                  <Route path="clientes" element={<ClientesSection />} />
+                  <Route path="vendas" element={<VendasSection />} />
+                  <Route path="financeiro" element={<FinanceiroSection />} />
+                  <Route path="tarefas" element={<TarefasSection />} />
+                  <Route path="configuracoes" element={<ConfiguracoesSection />} />
+                  {/* Legacy path redirects */}
+                  <Route path="clients" element={<Navigate to="/workspace/clientes" replace />} />
+                  <Route path="crm" element={<Navigate to="/workspace/vendas" replace />} />
+                  <Route path="messages" element={<Navigate to="/workspace/mensagens" replace />} />
+                  <Route path="tasks" element={<Navigate to="/workspace/tarefas" replace />} />
+                  <Route path="financial" element={<Navigate to="/workspace/financeiro" replace />} />
+                  <Route path="settings" element={<Navigate to="/workspace/configuracoes" replace />} />
+                </Routes>
+              </Suspense>
+            </WorkspaceErrorBoundary>
+          </div>
+        </main>
+      </div>
+    </ShellContext.Provider>
+  );
+};
+
+export default WorkspaceShell;
+// Suppress unused warning for clientId — reserved for future data-loading
+void (null as unknown as string | undefined);

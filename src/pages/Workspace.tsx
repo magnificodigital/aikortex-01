@@ -409,22 +409,48 @@ const ConfiguracoesSection = () => {
   );
 };
 
+const MensagensSection = () => (
+  <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+    <SectionHeader
+      icon={MessageSquare}
+      title="Mensagens"
+      description="Central de comunicação com seus clientes"
+      actionLabel="Nova conversa"
+    />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: 520 }}>
+      <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden">
+        <div className="p-3 border-b border-border">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Buscar conversa..." className="pl-9" />
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-6">
+          <MessageSquare className="w-8 h-8 mb-2 opacity-60" />
+          <p className="text-sm">Nenhuma conversa ainda.</p>
+        </div>
+      </div>
+      <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden lg:col-span-2">
+        <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground p-6">
+          <MessageSquare className="w-8 h-8 mb-2 opacity-60" />
+          <p className="text-sm">Selecione uma conversa para começar.</p>
+        </div>
+        <div className="p-3 border-t border-border flex items-center gap-2">
+          <Input placeholder="Digite uma mensagem..." disabled className="flex-1" />
+          <Button disabled>Enviar</Button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const Workspace = () => (
   <ClientLayout>
     <WorkspaceErrorBoundary>
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route index element={<WorkspaceHomeChat />} />
-          <Route
-            path="mensagens"
-            element={
-              <Placeholder
-                icon={MessageSquare}
-                title="Mensagens"
-                description="Conversas e atendimentos"
-              />
-            }
-          />
+          <Route path="mensagens" element={<MensagensSection />} />
           <Route path="clientes" element={<ClientesSection />} />
           <Route path="vendas" element={<VendasSection />} />
           <Route path="financeiro" element={<FinanceiroSection />} />

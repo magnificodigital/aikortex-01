@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, createContext, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/use-theme";
@@ -15,6 +15,19 @@ import {
   CheckSquare, Settings, LogOut, Sun, Moon, ChevronLeft, ChevronRight,
   Menu, X, Home, ChevronDown, ChevronUp, Send, Bot, Loader2,
 } from "lucide-react";
+
+// WorkspaceOwnerContext for useWorkspaceOwner hook
+type WorkspaceOwnerContextValue = {
+  ownerId: string;
+  clientName: string;
+  isReadOnly: boolean;
+};
+const WorkspaceOwnerContext = createContext<WorkspaceOwnerContextValue>({
+  ownerId: "",
+  clientName: "",
+  isReadOnly: false,
+});
+export const useWorkspaceOwner = () => useContext(WorkspaceOwnerContext);
 
 type Msg = { role: "user" | "assistant"; text: string };
 

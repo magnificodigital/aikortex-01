@@ -33,7 +33,7 @@ import aikortexLogoBlack from "@/assets/aikortex-logo-black.png";
 import aikortexIconWhite from "@/assets/aikortex-icon-white.png";
 import aikortexIconBlack from "@/assets/aikortex-icon-black.png";
 
-type NavItem = { label: string; icon: typeof Home; path: string };
+type NavItem = { label: string; icon: typeof Home; path: string; show?: boolean };
 
 type Props = {
   mobileOpen?: boolean;

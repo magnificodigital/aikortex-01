@@ -20,12 +20,7 @@ export const WorkspaceHomeChat = () => {
     profile?.full_name?.split(" ")[0] ??
     "Cliente";
 
-  const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
-    {
-      role: "assistant",
-      text: "Olá! Sou seu assistente de IA. Posso te ajudar a buscar informações sobre seus clientes, tarefas, financeiro, vendas e contratos. Como posso ajudar?",
-    },
-  ]);
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [suggestionIndex, setSuggestionIndex] = useState(0);

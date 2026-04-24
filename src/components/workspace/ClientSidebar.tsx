@@ -27,15 +27,15 @@ import aikortexIconBlack from "@/assets/aikortex-icon-black.png";
 
 type NavItem = { label: string; icon: typeof Home; path: string };
 
-const ferramentasItems: NavItem[] = [
-  { label: "Mensagens", icon: MessageSquare, path: "/workspace/mensagens" },
+const getFerramentasItems = (basePath: string): NavItem[] => [
+  { label: "Mensagens", icon: MessageSquare, path: `${basePath}/mensagens` },
 ];
 
-const gestaoItems: NavItem[] = [
-  { label: "Clientes", icon: Users, path: "/workspace/clientes" },
-  { label: "Vendas", icon: ShoppingCart, path: "/workspace/vendas" },
-  { label: "Financeiro", icon: DollarSign, path: "/workspace/financeiro" },
-  { label: "Tarefas", icon: CheckSquare, path: "/workspace/tarefas" },
+const getGestaoItems = (basePath: string): NavItem[] => [
+  { label: "Clientes", icon: Users, path: `${basePath}/clientes` },
+  { label: "Vendas", icon: ShoppingCart, path: `${basePath}/vendas` },
+  { label: "Financeiro", icon: DollarSign, path: `${basePath}/financeiro` },
+  { label: "Tarefas", icon: CheckSquare, path: `${basePath}/tarefas` },
 ];
 
 type Props = {
@@ -43,10 +43,10 @@ type Props = {
   onMobileClose?: () => void;
   readOnly?: boolean;
   overrideName?: string;
+  basePath?: string;
 };
 
-const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName }: Props) => {
-  void readOnly;
+const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName, basePath = "/workspace" }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
@@ -94,7 +94,7 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
 
   const isActive = (path: string) =>
     location.pathname === path ||
-    (path === "/workspace" && location.pathname === "/workspace");
+    (path === basePath && location.pathname === basePath);
 
   const linkClasses = (active: boolean) =>
     `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors overflow-hidden ${
@@ -200,18 +200,18 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
         <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5 scrollbar-thin">
           <div className="mt-2 space-y-0.5">
             <Link
-              to="/workspace"
+              to={basePath}
               onClick={() => isMobile && onMobileClose?.()}
-              className={linkClasses(location.pathname === "/workspace")}
+              className={linkClasses(location.pathname === basePath)}
               title={collapsed && !isMobile ? "Home" : undefined}
             >
-              <Home className={`w-4 h-4 shrink-0 ${location.pathname === "/workspace" ? "text-primary" : ""}`} />
+              <Home className={`w-4 h-4 shrink-0 ${location.pathname === basePath ? "text-primary" : ""}`} />
               {(!collapsed || isMobile) && <span>Home</span>}
             </Link>
           </div>
 
-          {renderGroup("Ferramentas", ferramentasItems, ferramentasOpen, setFerramentasOpen)}
-          {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
+          {renderGroup("Ferramentas", getFerramentasItems(basePath), ferramentasOpen, setFerramentasOpen)}
+          {renderGroup("Gestão", getGestaoItems(basePath), gestaoOpen, setGestaoOpen)}
 
           <div>
             {!collapsed || isMobile ? (
@@ -228,12 +228,12 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
             {(contaOpen || collapsed || isMobile) && (
               <div className="space-y-0.5">
                 <Link
-                  to="/workspace/configuracoes"
+                  to={`${basePath}/configuracoes`}
                   onClick={() => isMobile && onMobileClose?.()}
-                  className={linkClasses(location.pathname === "/workspace/configuracoes")}
+                  className={linkClasses(location.pathname === `${basePath}/configuracoes`)}
                   title={collapsed && !isMobile ? "Configurações" : undefined}
                 >
-                  <Settings className={`w-4 h-4 shrink-0 ${location.pathname === "/workspace/configuracoes" ? "text-primary" : ""}`} />
+                  <Settings className={`w-4 h-4 shrink-0 ${location.pathname === `${basePath}/configuracoes` ? "text-primary" : ""}`} />
                   {(!collapsed || isMobile) && <span className="truncate">Configurações</span>}
                 </Link>
               </div>
@@ -252,14 +252,29 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
               <span className="truncate">{theme === "dark" ? "Modo claro" : "Modo escuro"}</span>
             )}
           </button>
-          <button
-            onClick={async () => { await signOut(); navigate("/"); }}
-            className={`${linkClasses(false)} w-full`}
-            title={collapsed && !isMobile ? "Sair" : undefined}
-          >
-            <LogOut className="w-4 h-4 shrink-0 text-destructive" />
-            {(!collapsed || isMobile) && <span className="truncate text-destructive">Sair</span>}
-          </button>
+          {readOnly ? (
+            <button
+              onClick={() => navigate("/home")}
+              className={`${linkClasses(false)} w-full`}
+              title={collapsed && !isMobile ? "Voltar ao workspace" : undefined}
+            >
+              <ChevronLeft className="w-4 h-4 shrink-0 text-primary" />
+              {(!collapsed || isMobile) && (
+                <span className="truncate text-primary">Voltar ao meu workspace</span>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={async () => { await signOut(); navigate("/"); }}
+              className={`${linkClasses(false)} w-full`}
+              title={collapsed && !isMobile ? "Sair" : undefined}
+            >
+              <LogOut className="w-4 h-4 shrink-0 text-destructive" />
+              {(!collapsed || isMobile) && (
+                <span className="truncate text-destructive">Sair</span>
+              )}
+            </button>
+          )}
           {isMobile ? (
             <button type="button" onClick={onMobileClose} className={`${linkClasses(false)} w-full`}>
               <X className="w-4 h-4 shrink-0" />

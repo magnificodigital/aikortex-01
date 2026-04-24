@@ -120,6 +120,68 @@ const saveSidebarState = (state: Record<string, unknown>) => {
   } catch {}
 };
 
+const CLIENT_GESTAO = [
+  { label: "Clientes", icon: Users },
+  { label: "Vendas", icon: ShoppingCart },
+  { label: "Financeiro", icon: DollarSign },
+  { label: "Tarefas", icon: CheckSquare },
+];
+
+const ClientWorkspaceNav = ({
+  clientId, location, collapsed, isMobile, handleNavigate, linkClasses, gestaoOpen, setGestaoOpen,
+}: {
+  clientId: string;
+  location: { pathname: string };
+  collapsed: boolean;
+  isMobile: boolean;
+  handleNavigate: () => void;
+  linkClasses: (active: boolean) => string;
+  gestaoOpen: boolean;
+  setGestaoOpen: (v: boolean) => void;
+}) => {
+  const base = `/clients/${clientId}/workspace`;
+  const isActive = (path: string) =>
+    path === base ? location.pathname === base : location.pathname === path;
+
+  const NavLink = ({ to, icon: Icon, label }: { to: string; icon: typeof Home; label: string }) => (
+    <Link to={to} onClick={handleNavigate} className={linkClasses(isActive(to))} title={collapsed && !isMobile ? label : undefined}>
+      <Icon className={`w-4 h-4 shrink-0 ${isActive(to) ? "text-primary" : ""}`} />
+      {(!collapsed || isMobile) && <span>{label}</span>}
+    </Link>
+  );
+
+  return (
+    <div className="mt-2 space-y-0.5">
+      <NavLink to={base} icon={Home} label="Home" />
+      <NavLink to={`${base}/dashboard`} icon={LayoutDashboard} label="Dashboard" />
+
+      {(!collapsed || isMobile) ? (
+        <p className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ferramentas</p>
+      ) : <div className="border-t border-sidebar-border my-2" />}
+      <NavLink to={`${base}/mensagens`} icon={MessageSquare} label="Mensagens" />
+
+      {(!collapsed || isMobile) ? (
+        <button
+          onClick={() => setGestaoOpen(!gestaoOpen)}
+          className="flex items-center justify-between w-full px-3 py-2 mt-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span>Gestão</span>
+          <ChevronDown className={`w-3 h-3 transition-transform ${gestaoOpen ? "" : "-rotate-90"}`} />
+        </button>
+      ) : <div className="border-t border-sidebar-border my-2" />}
+
+      {(gestaoOpen || collapsed || isMobile) && CLIENT_GESTAO.map(({ label, icon: Icon }) => (
+        <NavLink key={label} to={`${base}/${label.toLowerCase()}`} icon={Icon} label={label} />
+      ))}
+
+      {(!collapsed || isMobile) ? (
+        <p className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Conta</p>
+      ) : <div className="border-t border-sidebar-border my-2" />}
+      <NavLink to={`/clients/${clientId}`} icon={Settings} label="Configurações" />
+    </div>
+  );
+};
+
 const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   const saved = loadSidebarState();
   const [collapsed, setCollapsed] = useState(saved?.collapsed ?? false);

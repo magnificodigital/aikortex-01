@@ -32,8 +32,8 @@ export interface WorkspaceShellProps {
   clientName?: string;
 }
 
-type ShellCtx = { mode: "owner" | "read_only"; readOnly: boolean };
-const ShellContext = createContext<ShellCtx>({ mode: "owner", readOnly: false });
+type ShellCtx = { mode: "owner" | "read_only"; readOnly: boolean; ownerId: string | null };
+const ShellContext = createContext<ShellCtx>({ mode: "owner", readOnly: false, ownerId: null });
 const useShell = () => useContext(ShellContext);
 
 class WorkspaceErrorBoundary extends Component<

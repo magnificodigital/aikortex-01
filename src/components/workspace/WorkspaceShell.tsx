@@ -506,5 +506,4 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
 };
 
 export default WorkspaceShell;
-// Suppress unused warning for clientId — reserved for future data-loading
-void (null as unknown as string | undefined);
+// Note: clientId is reserved for future data-loading in read_only mode.

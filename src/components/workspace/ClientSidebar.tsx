@@ -210,8 +210,8 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
             </Link>
           </div>
 
-          {renderGroup("Ferramentas", ferramentasItems, ferramentasOpen, setFerramentasOpen)}
-          {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
+          {renderGroup("Ferramentas", getFerramentasItems(basePath), ferramentasOpen, setFerramentasOpen)}
+          {renderGroup("Gestão", getGestaoItems(basePath), gestaoOpen, setGestaoOpen)}
 
           <div>
             {!collapsed || isMobile ? (

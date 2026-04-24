@@ -567,13 +567,29 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
   const [mobileOpen, setMobileOpen] = useState(false);
   const close = () => setMobileOpen(false);
   const readOnly = mode === "read_only";
+  const { user } = useAuth();
+  const [ownerId, setOwnerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode === "owner") {
+      setOwnerId(user?.id ?? null);
+      return;
+    }
+    if (!clientId) return;
+    supabase
+      .from("agency_clients")
+      .select("client_user_id")
+      .eq("id", clientId)
+      .maybeSingle()
+      .then(({ data }) => setOwnerId(data?.client_user_id ?? null));
+  }, [mode, clientId, user?.id]);
 
   useEffect(() => {
     if (!isMobile) setMobileOpen(false);
   }, [isMobile]);
 
   return (
-    <ShellContext.Provider value={{ mode, readOnly }}>
+    <ShellContext.Provider value={{ mode, readOnly, ownerId }}>
       <div className="flex min-h-screen w-full overflow-hidden">
         <ClientSidebar
           mobileOpen={mobileOpen}

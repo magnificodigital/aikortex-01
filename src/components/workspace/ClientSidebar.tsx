@@ -18,6 +18,7 @@ import {
   Bot,
   GitBranch,
   AppWindow,
+  FileText,
   Target,
   Video,
   UsersRound,

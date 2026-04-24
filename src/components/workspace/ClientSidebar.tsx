@@ -184,6 +184,24 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
     </div>
   );
 
+  // Calculate which logo to display
+  const whitelabelTiers = ["hack", "growth"];
+  const useAgencyBranding =
+    !readOnly &&
+    agencyBranding?.tier &&
+    whitelabelTiers.includes(agencyBranding.tier) &&
+    !!agencyBranding.logoUrl;
+
+  const logoSrc = useAgencyBranding
+    ? agencyBranding!.logoUrl!
+    : collapsed && !isMobile
+      ? (theme === "dark" ? aikortexIconWhite : aikortexIconBlack)
+      : (theme === "dark" ? aikortexLogoWhite : aikortexLogoBlack);
+
+  const logoAlt = useAgencyBranding
+    ? (agencyBranding!.agencyName ?? "Agência")
+    : "Aikortex";
+
   return (
     <>
       {isMobile && mobileOpen && (

@@ -328,14 +328,18 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
           <div className="px-2 pt-3">
             <Select
               value={activeWorkspace.type === "agency" ? "__agency__" : (activeWorkspace.slug ?? activeWorkspace.id)}
-              onValueChange={(val) => {
-                if (val === "__agency__") {
-                  switchToAgency();
-                } else {
-                  const client = clients.find(c => (c.workspace_slug ?? c.id) === val);
-                  if (client) switchToClient(client);
+onValueChange={(val) => {
+              if (val === "__agency__") {
+                switchToAgency();
+                navigate("/home");
+              } else {
+                const client = clients.find(c => c.id === val);
+                if (client) {
+                  switchToClient(client);
+                  navigate(`/clients/${client.id}`);
                 }
-              }}
+              }
+            }}
             >
               <SelectTrigger className="w-full h-8 text-xs border-sidebar-border"><SelectValue placeholder="Workspace" /></SelectTrigger>
               <SelectContent>

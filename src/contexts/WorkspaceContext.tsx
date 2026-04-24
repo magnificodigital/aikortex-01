@@ -8,6 +8,8 @@ interface AgencyClient {
   client_email: string | null;
   status: string | null;
   client_user_id?: string | null;
+  agency_id?: string;
+  agency_name?: string;
 }
 
 export interface ActiveWorkspace {
@@ -28,6 +30,8 @@ interface WorkspaceContextType {
   refreshClients: () => Promise<void>;
   isClientMode: boolean;
   activeClientUserId?: string;
+  agencies: { id: string; name: string }[];
+  isPlatformOwner: boolean;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -39,6 +43,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const [agencyName, setAgencyName] = useState("Meu Workspace");
   const [agencyProfileId, setAgencyProfileId] = useState<string | null>(null);
   const [clients, setClients] = useState<AgencyClient[]>([]);
+  const [agencies, setAgencies] = useState<{ id: string; name: string }[]>([]);
+  const [isPlatformOwner, setIsPlatformOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeWorkspace, setActiveWorkspace] = useState<ActiveWorkspace>({
     type: "agency", id: "", name: "Meu Workspace",
@@ -49,6 +55,30 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
     const load = async () => {
       try {
+        // Platform owner/admin: load ALL agencies and ALL clients (cascata)
+        if (profile?.tenant_type === "platform") {
+          setIsPlatformOwner(true);
+          const { data: ag } = await supabase
+            .from("agency_profiles")
+            .select("id, agency_name")
+            .order("agency_name");
+          setAgencies((ag ?? []).map(a => ({ id: a.id, name: a.agency_name ?? "Sem nome" })));
+          const { data: cl } = await supabase
+            .from("agency_clients")
+            .select("id, client_name, client_email, status, client_user_id, agency_id")
+            .eq("status", "active")
+            .order("client_name");
+          const enriched: AgencyClient[] = (cl ?? []).map(c => ({
+            ...c,
+            agency_name: ag?.find(a => a.id === c.agency_id)?.agency_name ?? undefined,
+          }));
+          setClients(enriched);
+          setAgencyName("Plataforma");
+          setAgencyProfileId(null);
+          setActiveWorkspace({ type: "agency", id: "", name: "Plataforma" });
+          return;
+        }
+
         // Direct client login — no agency profile, force client workspace
         if (profile?.tenant_type === "client") {
           const clientName = profile?.full_name ?? user.email ?? "Cliente";
@@ -147,6 +177,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       loading, refreshClients,
       isClientMode: activeWorkspace.type === "client",
       activeClientUserId: activeWorkspace.type === "client" ? activeWorkspace.clientUserId : undefined,
+      agencies, isPlatformOwner,
     }}>
       {children}
     </WorkspaceContext.Provider>

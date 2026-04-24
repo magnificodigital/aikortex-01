@@ -138,7 +138,8 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   const location = useLocation();
   const { theme, toggle } = useTheme();
   const { signOut, isPlatform } = useAuth();
-  const { agencyName, clients, activeWorkspace, switchToAgency, switchToClient } = useWorkspace();
+  const { agencyName, clients, activeWorkspace, switchToAgency, switchToClient, agencies, isPlatformOwner } = useWorkspace();
+  const [selectedAgencyId, setSelectedAgencyId] = useState<string>("");
   const { canAccess } = useModuleAccess();
   const { canView, isClientMode } = useClientPermissions();
   const { messageCount, monthlyLimit, hasByok, isNearLimit, isUnlimited } = useMonthlyUsage();
@@ -292,6 +293,35 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
 
         {(!collapsed || isMobile) && (
           <div className="px-2 pt-3">
+            {isPlatformOwner ? (
+              <div className="space-y-2">
+                <Select value={selectedAgencyId} onValueChange={(v) => { setSelectedAgencyId(v); switchToAgency(); }}>
+                  <SelectTrigger className="w-full h-8 text-xs border-sidebar-border"><SelectValue placeholder="Escolha uma agência" /></SelectTrigger>
+                  <SelectContent>
+                    {agencies.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {selectedAgencyId && (
+                  <Select
+                    value={activeWorkspace.type === "client" ? activeWorkspace.id : ""}
+                    onValueChange={(val) => {
+                      const client = clients.find(c => c.id === val);
+                      if (client) switchToClient(client);
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-8 text-xs border-sidebar-border"><SelectValue placeholder="Escolha um cliente" /></SelectTrigger>
+                    <SelectContent>
+                      {clients.filter(c => (c as any).agency_id === selectedAgencyId).map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>
+                      ))}
+                      {clients.filter(c => (c as any).agency_id === selectedAgencyId).length === 0 && (
+                        <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhum cliente</div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            ) : (
             <Select
               value={activeWorkspace.type === "agency" ? "__agency__" : activeWorkspace.id}
               onValueChange={(val) => {
@@ -311,6 +341,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
                 ))}
               </SelectContent>
             </Select>
+            )}
           </div>
         )}
 

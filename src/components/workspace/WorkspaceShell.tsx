@@ -132,8 +132,38 @@ const HomeSection = () => {
 };
 
 const ClientesSection = () => {
+  const { readOnly, ownerId } = useShell();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase
+      .from("client_contacts")
+      .select("*")
+      .eq("user_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setContacts(data ?? []);
+        setLoading(false);
+      });
+  }, [ownerId]);
+
+  const filtered = contacts.filter((c) => {
+    const matchSearch =
+      !search ||
+      c.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c.email?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = status === "all" || c.status === status;
+    return matchSearch && matchStatus;
+  });
+
+  const active = contacts.filter((c) => c.status === "active" || !c.status).length;
+  const monthlyTotal = contacts.reduce((s, c) => s + (Number(c.monthly_value) || 0), 0);
+
   return (
     <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
       <SectionHeader
@@ -143,9 +173,9 @@ const ClientesSection = () => {
         actionLabel="Adicionar Cliente"
       />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="Clientes ativos" value={0} />
-        <StatCard label="Receita mensal" value="R$ 0" />
-        <StatCard label="Templates ativos" value={0} />
+        <StatCard label="Clientes ativos" value={active} />
+        <StatCard label="Receita mensal" value={`R$ ${monthlyTotal.toFixed(0)}`} />
+        <StatCard label="Total de clientes" value={contacts.length} />
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -163,8 +193,8 @@ const ClientesSection = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="ativo">Ativo</SelectItem>
-            <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="active">Ativo</SelectItem>
+            <SelectItem value="inactive">Inativo</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -172,19 +202,43 @@ const ClientesSection = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Telefone</TableHead>
+              <TableHead>Valor/mês</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Templates</TableHead>
-              <TableHead>Receita/mês</TableHead>
-              <TableHead>Cadastro</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                Nenhum cliente cadastrado ainda.
-              </TableCell>
-            </TableRow>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  Carregando...
+                </TableCell>
+              </TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                  Nenhum cliente encontrado.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell>{c.name}</TableCell>
+                  <TableCell>{c.email ?? "—"}</TableCell>
+                  <TableCell>{c.phone ?? "—"}</TableCell>
+                  <TableCell>
+                    {c.monthly_value ? `R$ ${Number(c.monthly_value).toFixed(0)}` : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {c.status === "active" || !c.status ? "Ativo" : "Inativo"}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

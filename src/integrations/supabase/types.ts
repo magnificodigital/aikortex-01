@@ -29,6 +29,7 @@ export type Database = {
           client_user_id: string | null
           cnpj: string | null
           created_at: string | null
+          enabled_ia_modules: string[]
           id: string
           platform_subscription_id: string | null
           platform_subscription_status: string | null
@@ -50,6 +51,7 @@ export type Database = {
           client_user_id?: string | null
           cnpj?: string | null
           created_at?: string | null
+          enabled_ia_modules?: string[]
           id?: string
           platform_subscription_id?: string | null
           platform_subscription_status?: string | null
@@ -71,6 +73,7 @@ export type Database = {
           client_user_id?: string | null
           cnpj?: string | null
           created_at?: string | null
+          enabled_ia_modules?: string[]
           id?: string
           platform_subscription_id?: string | null
           platform_subscription_status?: string | null

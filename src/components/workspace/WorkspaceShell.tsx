@@ -32,8 +32,16 @@ export interface WorkspaceShellProps {
   clientName?: string;
 }
 
-type ShellCtx = { mode: "owner" | "read_only"; readOnly: boolean; ownerId: string | null };
-const ShellContext = createContext<ShellCtx>({ mode: "owner", readOnly: false, ownerId: null });
+type ShellCtx = {
+  mode: "owner" | "read_only";
+  readOnly: boolean;
+  ownerId: string | null;
+  enabledModules: string[];
+};
+const ShellContext = createContext<ShellCtx>({
+  mode: "owner", readOnly: false, ownerId: null,
+  enabledModules: ["mensagens"],
+});
 const useShell = () => useContext(ShellContext);
 
 class WorkspaceErrorBoundary extends Component<
@@ -717,6 +725,23 @@ const MensagensSection = () => {
   );
 };
 
+const PlaceholderSection = ({ title }: { title: string }) => (
+  <div className="p-6 lg:p-8 max-w-[1200px]">
+    <h1 className="text-2xl font-bold text-foreground mb-2">{title}</h1>
+    <p className="text-sm text-muted-foreground">Em breve.</p>
+  </div>
+);
+
+const ContratosSection = () => <PlaceholderSection title="Contratos" />;
+const CrmSection      = () => <PlaceholderSection title="CRM" />;
+const ReunioesSection = () => <PlaceholderSection title="Reuniões" />;
+const EquipeSection   = () => <PlaceholderSection title="Equipe" />;
+const AgentesSection  = () => <PlaceholderSection title="Agentes" />;
+const FlowsSection    = () => <PlaceholderSection title="Flows" />;
+const AppsSection     = () => <PlaceholderSection title="Apps" />;
+const TemplatesSection = () => <PlaceholderSection title="Templates" />;
+const DisparosSection = () => <PlaceholderSection title="Disparos" />;
+
 const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => {
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -739,12 +764,28 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
       .then(({ data }) => setOwnerId(data?.client_user_id ?? null));
   }, [mode, clientId, user?.id]);
 
+  const [enabledModules, setEnabledModules] = useState<string[]>(["mensagens"]);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    supabase
+      .from("agency_clients")
+      .select("enabled_ia_modules")
+      .eq("client_user_id", ownerId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.enabled_ia_modules?.length) {
+          setEnabledModules(data.enabled_ia_modules);
+        }
+      });
+  }, [ownerId]);
+
   useEffect(() => {
     if (!isMobile) setMobileOpen(false);
   }, [isMobile]);
 
   return (
-    <ShellContext.Provider value={{ mode, readOnly, ownerId }}>
+    <ShellContext.Provider value={{ mode, readOnly, ownerId, enabledModules }}>
       <div className="flex min-h-screen w-full overflow-hidden">
         <ClientSidebar
           mobileOpen={mobileOpen}
@@ -752,6 +793,7 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
           readOnly={readOnly}
           overrideName={readOnly ? clientName : undefined}
           basePath={readOnly && clientId ? `/clients/${clientId}/workspace` : "/workspace"}
+          enabledModules={enabledModules}
         />
         <main className="relative flex-1 min-w-0 overflow-y-auto overflow-x-hidden bg-background">
           {isMobile && (
@@ -781,13 +823,23 @@ const WorkspaceShell = ({ mode, clientId, clientName }: WorkspaceShellProps) => 
                   <Route index element={<HomeSection />} />
                   <Route path="mensagens" element={<MensagensSection />} />
                   <Route path="clientes" element={<ClientesSection />} />
+                  {/* Gestão — novos */}
+                  <Route path="contratos" element={<ContratosSection />} />
                   <Route path="vendas" element={<VendasSection />} />
+                  <Route path="crm" element={<CrmSection />} />
+                  <Route path="reunioes" element={<ReunioesSection />} />
                   <Route path="financeiro" element={<FinanceiroSection />} />
+                  <Route path="equipe" element={<EquipeSection />} />
                   <Route path="tarefas" element={<TarefasSection />} />
+                  {/* IA — condicionais */}
+                  <Route path="agentes" element={<AgentesSection />} />
+                  <Route path="flows" element={<FlowsSection />} />
+                  <Route path="apps" element={<AppsSection />} />
+                  <Route path="templates" element={<TemplatesSection />} />
+                  <Route path="disparos" element={<DisparosSection />} />
                   <Route path="configuracoes" element={<ConfiguracoesSection />} />
                   {/* Legacy path redirects */}
                   <Route path="clients" element={<Navigate to="/workspace/clientes" replace />} />
-                  <Route path="crm" element={<Navigate to="/workspace/vendas" replace />} />
                   <Route path="messages" element={<Navigate to="/workspace/mensagens" replace />} />
                   <Route path="tasks" element={<Navigate to="/workspace/tarefas" replace />} />
                   <Route path="financial" element={<Navigate to="/workspace/financeiro" replace />} />

@@ -5,6 +5,29 @@ import { Loader2 } from "lucide-react";
 import { WorkspaceHomeChat } from "@/components/workspace/WorkspaceHomeChat";
 import { WorkspaceClients } from "@/components/workspace/WorkspaceClients";
 import { MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, Search, Users, TrendingUp, FileText } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 class WorkspaceErrorBoundary extends Component<
   { children: ReactNode },

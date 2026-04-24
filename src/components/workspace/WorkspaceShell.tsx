@@ -322,7 +322,51 @@ const FinanceiroSection = () => (
 );
 
 const TarefasSection = () => {
+  const { ownerId } = useShell();
   const [search, setSearch] = useState("");
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase
+      .from("workspace_tasks")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setTasks(data ?? []);
+        setLoading(false);
+      });
+  }, [ownerId]);
+
+  const counts = {
+    total: tasks.length,
+    doing: tasks.filter((t) => t.status === "doing" || t.status === "in_progress").length,
+    done: tasks.filter((t) => t.status === "done" || t.status === "completed").length,
+    late: tasks.filter(
+      (t) =>
+        t.due_date &&
+        new Date(t.due_date) < new Date() &&
+        t.status !== "done" &&
+        t.status !== "completed",
+    ).length,
+  };
+
+  const filtered = tasks.filter(
+    (t) => !search || t.title?.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const priorityLabel: Record<string, string> = { high: "Alta", medium: "Média", low: "Baixa" };
+  const statusLabel: Record<string, string> = {
+    todo: "A fazer",
+    doing: "Em andamento",
+    in_progress: "Em andamento",
+    done: "Concluída",
+    completed: "Concluída",
+  };
+
   return (
     <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
       <SectionHeader
@@ -332,10 +376,10 @@ const TarefasSection = () => {
         actionLabel="Nova Tarefa"
       />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total" value={0} />
-        <StatCard label="Em andamento" value={0} valueClassName="text-[hsl(var(--info,210_100%_50%))]" />
-        <StatCard label="Concluídas" value={0} valueClassName="text-[hsl(var(--success))]" />
-        <StatCard label="Atrasadas" value={0} valueClassName="text-destructive" />
+        <StatCard label="Total" value={counts.total} />
+        <StatCard label="Em andamento" value={counts.doing} valueClassName="text-[hsl(var(--info,210_100%_50%))]" />
+        <StatCard label="Concluídas" value={counts.done} valueClassName="text-[hsl(var(--success))]" />
+        <StatCard label="Atrasadas" value={counts.late} valueClassName="text-destructive" />
       </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -357,11 +401,38 @@ const TarefasSection = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
-                Nenhuma tarefa cadastrada ainda.
-              </TableCell>
-            </TableRow>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                  Carregando...
+                </TableCell>
+              </TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                  Nenhuma tarefa encontrada.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((t) => (
+                <TableRow key={t.id}>
+                  <TableCell>{t.title}</TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {statusLabel[t.status] ?? t.status ?? "A fazer"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      {priorityLabel[t.priority] ?? "Normal"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

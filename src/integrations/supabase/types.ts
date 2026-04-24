@@ -1060,6 +1060,54 @@ export type Database = {
           },
         ]
       }
+      financial_entries: {
+        Row: {
+          amount: number
+          category: string | null
+          client_name: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          paid_at: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category?: string | null
+          client_name?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          client_name?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flow_executions: {
         Row: {
           completed_at: string | null
@@ -1745,6 +1793,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_opportunities: {
+        Row: {
+          client_name: string
+          created_at: string
+          expected_close_date: string | null
+          id: string
+          notes: string | null
+          probability: number
+          stage: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          client_name: string
+          created_at?: string
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          probability?: number
+          stage?: string
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          probability?: number
+          stage?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           billing_cycle: string
@@ -1838,6 +1925,96 @@ export type Database = {
           priority?: string
           status?: string
           subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assignee: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          project_id: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignee?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          project_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assignee?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          project_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          department: string | null
+          email: string
+          full_name: string
+          id: string
+          joined_at: string | null
+          phone: string | null
+          role: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          email: string
+          full_name: string
+          id?: string
+          joined_at?: string | null
+          phone?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          joined_at?: string | null
+          phone?: string | null
+          role?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -2100,6 +2277,57 @@ export type Database = {
           tables_schema?: Json
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_contracts: {
+        Row: {
+          client_name: string
+          created_at: string
+          document_url: string | null
+          end_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          signed_at: string | null
+          start_date: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+          value: number | null
+        }
+        Insert: {
+          client_name?: string
+          created_at?: string
+          document_url?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          signed_at?: string | null
+          start_date?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+          value?: number | null
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          document_url?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          signed_at?: string | null
+          start_date?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+          value?: number | null
         }
         Relationships: []
       }

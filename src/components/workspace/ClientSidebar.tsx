@@ -52,7 +52,6 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
 
   const [collapsed, setCollapsed] = useState(false);
   const [iaOpen, setIaOpen] = useState(true);
-  const [ferramentasOpen, setFerramentasOpen] = useState(true);
   const [gestaoOpen, setGestaoOpen] = useState(true);
   const [contaOpen, setContaOpen] = useState(true);
   const [displayName, setDisplayName] = useState<string>(
@@ -255,41 +254,54 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
         )}
 
         <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5 scrollbar-thin">
+          {/* Home */}
           <div className="mt-2 space-y-0.5">
             <Link
               to={basePath}
               onClick={() => isMobile && onMobileClose?.()}
               className={linkClasses(location.pathname === basePath)}
-              title={collapsed && !isMobile ? "Home" : undefined}
             >
               <Home className={`w-4 h-4 shrink-0 ${location.pathname === basePath ? "text-primary" : ""}`} />
               {(!collapsed || isMobile) && <span>Home</span>}
             </Link>
           </div>
 
-          {renderGroup("Ferramentas", getFerramentasItems(basePath), ferramentasOpen, setFerramentasOpen)}
-          {renderGroup("Gestão", getGestaoItems(basePath), gestaoOpen, setGestaoOpen)}
+          {/* IA */}
+          {renderGroup("IA", [
+            { label: "Mensagens",  icon: MessageSquare, path: `${basePath}/mensagens`,  show: true },
+            { label: "Agentes",    icon: Bot,           path: `${basePath}/agentes`,    show: enabledModules.includes("agentes") },
+            { label: "Flows",      icon: GitBranch,     path: `${basePath}/flows`,      show: enabledModules.includes("flows") },
+            { label: "Apps",       icon: AppWindow,     path: `${basePath}/apps`,       show: enabledModules.includes("apps") },
+            { label: "Templates",  icon: FileText,      path: `${basePath}/templates`,  show: enabledModules.includes("templates") },
+            { label: "Disparos",   icon: Send,          path: `${basePath}/disparos`,   show: enabledModules.includes("disparos") },
+          ].filter(i => i.show), iaOpen, setIaOpen)}
 
+          {/* Gestão */}
+          {renderGroup("Gestão", [
+            { label: "Clientes",   icon: Users,         path: `${basePath}/clientes` },
+            { label: "Contratos",  icon: FileText,      path: `${basePath}/contratos` },
+            { label: "Vendas",     icon: ShoppingCart,  path: `${basePath}/vendas` },
+            { label: "CRM",        icon: Target,        path: `${basePath}/crm` },
+            { label: "Reuniões",   icon: Video,         path: `${basePath}/reunioes` },
+            { label: "Financeiro", icon: DollarSign,    path: `${basePath}/financeiro` },
+            { label: "Equipe",     icon: UsersRound,    path: `${basePath}/equipe` },
+            { label: "Tarefas",    icon: CheckSquare,   path: `${basePath}/tarefas` },
+          ], gestaoOpen, setGestaoOpen)}
+
+          {/* Conta */}
           <div>
             {!collapsed || isMobile ? (
-              <button
-                onClick={() => setContaOpen(!contaOpen)}
-                className="flex items-center justify-between w-full px-3 py-2 mt-4 text-[10px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
-              >
+              <button onClick={() => setContaOpen(!contaOpen)}
+                className="flex items-center justify-between w-full px-3 py-2 mt-4 text-[10px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground">
                 <span>Conta</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${contaOpen ? "" : "-rotate-90"}`} />
               </button>
-            ) : (
-              <div className="border-t border-sidebar-border my-2" />
-            )}
+            ) : <div className="border-t border-sidebar-border my-2" />}
             {(contaOpen || collapsed || isMobile) && (
               <div className="space-y-0.5">
-                <Link
-                  to={`${basePath}/configuracoes`}
+                <Link to={`${basePath}/configuracoes`}
                   onClick={() => isMobile && onMobileClose?.()}
-                  className={linkClasses(location.pathname === `${basePath}/configuracoes`)}
-                  title={collapsed && !isMobile ? "Configurações" : undefined}
-                >
+                  className={linkClasses(location.pathname === `${basePath}/configuracoes`)}>
                   <Settings className={`w-4 h-4 shrink-0 ${location.pathname === `${basePath}/configuracoes` ? "text-primary" : ""}`} />
                   {(!collapsed || isMobile) && <span className="truncate">Configurações</span>}
                 </Link>

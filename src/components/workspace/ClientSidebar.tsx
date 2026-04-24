@@ -27,15 +27,15 @@ import aikortexIconBlack from "@/assets/aikortex-icon-black.png";
 
 type NavItem = { label: string; icon: typeof Home; path: string };
 
-const ferramentasItems: NavItem[] = [
-  { label: "Mensagens", icon: MessageSquare, path: "/workspace/mensagens" },
+const getFerramentasItems = (basePath: string): NavItem[] => [
+  { label: "Mensagens", icon: MessageSquare, path: `${basePath}/mensagens` },
 ];
 
-const gestaoItems: NavItem[] = [
-  { label: "Clientes", icon: Users, path: "/workspace/clientes" },
-  { label: "Vendas", icon: ShoppingCart, path: "/workspace/vendas" },
-  { label: "Financeiro", icon: DollarSign, path: "/workspace/financeiro" },
-  { label: "Tarefas", icon: CheckSquare, path: "/workspace/tarefas" },
+const getGestaoItems = (basePath: string): NavItem[] => [
+  { label: "Clientes", icon: Users, path: `${basePath}/clientes` },
+  { label: "Vendas", icon: ShoppingCart, path: `${basePath}/vendas` },
+  { label: "Financeiro", icon: DollarSign, path: `${basePath}/financeiro` },
+  { label: "Tarefas", icon: CheckSquare, path: `${basePath}/tarefas` },
 ];
 
 type Props = {
@@ -43,10 +43,10 @@ type Props = {
   onMobileClose?: () => void;
   readOnly?: boolean;
   overrideName?: string;
+  basePath?: string;
 };
 
-const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName }: Props) => {
-  void readOnly;
+const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName, basePath = "/workspace" }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();

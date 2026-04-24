@@ -38,9 +38,15 @@ const gestaoItems: NavItem[] = [
   { label: "Tarefas", icon: CheckSquare, path: "/workspace/tarefas" },
 ];
 
-type Props = { mobileOpen?: boolean; onMobileClose?: () => void };
+type Props = {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+  readOnly?: boolean;
+  overrideName?: string;
+};
 
-const ClientSidebar = ({ mobileOpen = false, onMobileClose }: Props) => {
+const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName }: Props) => {
+  void readOnly;
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
@@ -52,11 +58,15 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose }: Props) => {
   const [gestaoOpen, setGestaoOpen] = useState(true);
   const [contaOpen, setContaOpen] = useState(true);
   const [displayName, setDisplayName] = useState<string>(
-    profile?.full_name ?? "Meu Workspace"
+    overrideName ?? profile?.full_name ?? "Meu Workspace"
   );
 
   // Load client_name from agency_clients for this user
   useEffect(() => {
+    if (overrideName) {
+      setDisplayName(overrideName);
+      return;
+    }
     if (!user?.id) return;
     let active = true;
     (async () => {
@@ -75,7 +85,7 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose }: Props) => {
     return () => {
       active = false;
     };
-  }, [user?.id, profile?.full_name]);
+  }, [user?.id, profile?.full_name, overrideName]);
 
   useEffect(() => {
     if (isMobile) onMobileClose?.();

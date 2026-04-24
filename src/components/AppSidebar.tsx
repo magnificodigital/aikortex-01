@@ -426,42 +426,34 @@ onValueChange={(val) => {
         )}
 
         <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5 scrollbar-thin">
-          <div className="mt-2 space-y-0.5">
-            <Link to={toWorkspacePath("/home")} onClick={handleNavigate} className={linkClasses(isItemActive("/home"))} title={collapsed && !isMobile ? "Home" : undefined}>
-              <Home className={`w-4 h-4 shrink-0 ${isItemActive("/home") ? "text-primary" : ""}`} />
-              {(!collapsed || isMobile) && <span>Home</span>}
-            </Link>
-            <Link to={toWorkspacePath("/dashboard")} onClick={handleNavigate} className={linkClasses(isItemActive("/dashboard"))} title={collapsed && !isMobile ? "Dashboard" : undefined}>
-              <LayoutDashboard className={`w-4 h-4 shrink-0 ${isItemActive("/dashboard") ? "text-primary" : ""}`} />
-              {(!collapsed || isMobile) && <span>Dashboard</span>}
-            </Link>
-          </div>
-
-          {!isClientMode
-            ? renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)
-            : (() => {
-                const visibleAikortexItems = aikortexItems.filter(item => {
-                  const key = MODULE_KEY_MAP[item.path.split("?")[0]];
-                  return key ? canView(key) : false;
-                });
-                if (visibleAikortexItems.length === 0) return null;
-                return (
-                  <div className="mt-2 space-y-0.5">
-                    {(!collapsed || isMobile) && (
-                      <div className="px-3 py-2 mt-2 text-[10px] uppercase tracking-widest text-muted-foreground">
-                        Ferramentas
-                      </div>
-                    )}
-                    {collapsed && !isMobile && <div className="border-t border-sidebar-border my-2" />}
-                    <div className="space-y-0.5">
-                      {visibleAikortexItems.map(item => renderItem(item))}
-                    </div>
-                  </div>
-                );
-              })()
-          }
-          {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
-          {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
+          {activeWorkspace.type === "client" ? (
+            <ClientWorkspaceNav
+              clientId={activeWorkspace.id}
+              location={location}
+              collapsed={collapsed}
+              isMobile={isMobile}
+              handleNavigate={handleNavigate}
+              linkClasses={linkClasses}
+              gestaoOpen={gestaoOpen}
+              setGestaoOpen={setGestaoOpen}
+            />
+          ) : (
+            <>
+              <div className="mt-2 space-y-0.5">
+                <Link to="/home" onClick={handleNavigate} className={linkClasses(isItemActive("/home"))}>
+                  <Home className={`w-4 h-4 shrink-0 ${isItemActive("/home") ? "text-primary" : ""}`} />
+                  {(!collapsed || isMobile) && <span>Home</span>}
+                </Link>
+                <Link to="/dashboard" onClick={handleNavigate} className={linkClasses(isItemActive("/dashboard"))}>
+                  <LayoutDashboard className={`w-4 h-4 shrink-0 ${isItemActive("/dashboard") ? "text-primary" : ""}`} />
+                  {(!collapsed || isMobile) && <span>Dashboard</span>}
+                </Link>
+              </div>
+              {renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)}
+              {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
+              {renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
+            </>
+          )}
 
           {/* Seção Conta & Suporte */}
           <div>

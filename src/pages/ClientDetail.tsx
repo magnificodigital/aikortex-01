@@ -147,6 +147,7 @@ const ClientDetail = () => {
                 id: client.id,
                 client_email: client.client_email,
                 client_user_id: client.client_user_id,
+                enabled_ia_modules: client.enabled_ia_modules ?? ["mensagens"],
               }}
               onUpdated={() => {
                 supabase.from("agency_clients").select("*").eq("id", clientId!).single().then(({ data }) => {

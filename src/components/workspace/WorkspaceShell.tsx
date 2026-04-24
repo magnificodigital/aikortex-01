@@ -246,80 +246,235 @@ const ClientesSection = () => {
   );
 };
 
-const VendasSection = () => (
-  <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
-    <SectionHeader
-      icon={ShoppingCart}
-      title="Vendas"
-      description="Pipeline e oportunidades"
-      actionLabel="Nova Oportunidade"
-    />
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard label="Pipeline Total" value="R$ 0" />
-      <StatCard label="Fechados" value="R$ 0" />
-      <StatCard label="Ticket Médio" value="R$ 0" />
-      <StatCard label="Oportunidades" value={0} />
-    </div>
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Etapa</TableHead>
-            <TableHead>Probabilidade</TableHead>
-            <TableHead>Data</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-              Nenhuma oportunidade cadastrada ainda.
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </div>
-  </div>
-);
+const VendasSection = () => {
+  const { ownerId } = useShell();
+  const [opps, setOpps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const FinanceiroSection = () => (
-  <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
-    <SectionHeader
-      icon={DollarSign}
-      title="Financeiro"
-      description="Controle de receitas e despesas"
-      actionLabel="Nova Transação"
-    />
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <StatCard label="Receita Total" value="R$ 0" valueClassName="text-[hsl(var(--success))]" />
-      <StatCard label="Despesas" value="R$ 0" valueClassName="text-destructive" />
-      <StatCard label="Saldo" value="R$ 0" />
-    </div>
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold text-foreground">Transações</h2>
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase
+      .from("sales_opportunities")
+      .select("*")
+      .eq("user_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setOpps(data ?? []);
+        setLoading(false);
+      });
+  }, [ownerId]);
+
+  const pipeline = opps.reduce((s, o) => s + (Number(o.value) || 0), 0);
+  const closed = opps
+    .filter((o) => o.stage === "closed_won")
+    .reduce((s, o) => s + (Number(o.value) || 0), 0);
+  const ticket = opps.length > 0 ? pipeline / opps.length : 0;
+
+  const stageLabel: Record<string, string> = {
+    lead: "Lead",
+    contact: "Contato",
+    proposal: "Proposta",
+    negotiation: "Negociação",
+    closed_won: "Fechado",
+    closed_lost: "Perdido",
+  };
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader
+        icon={ShoppingCart}
+        title="Vendas"
+        description="Pipeline e oportunidades"
+        actionLabel="Nova Oportunidade"
+      />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Pipeline Total" value={`R$ ${pipeline.toFixed(0)}`} />
+        <StatCard
+          label="Fechados"
+          value={`R$ ${closed.toFixed(0)}`}
+          valueClassName="text-[hsl(var(--success))]"
+        />
+        <StatCard label="Ticket Médio" value={`R$ ${ticket.toFixed(0)}`} />
+        <StatCard label="Oportunidades" value={opps.length} />
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Data</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Tipo</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
-              Nenhuma transação registrada ainda.
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Valor</TableHead>
+              <TableHead>Etapa</TableHead>
+              <TableHead>Probabilidade</TableHead>
+              <TableHead>Previsão</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-10">
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            ) : opps.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                  Nenhuma oportunidade cadastrada ainda.
+                </TableCell>
+              </TableRow>
+            ) : (
+              opps.map((o) => (
+                <TableRow key={o.id}>
+                  <TableCell className="font-medium">{o.client_name}</TableCell>
+                  <TableCell>R$ {Number(o.value).toFixed(0)}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full border ${
+                        o.stage === "closed_won"
+                          ? "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border-[hsl(var(--success))]/20"
+                          : o.stage === "closed_lost"
+                            ? "bg-destructive/10 text-destructive border-destructive/20"
+                            : "bg-primary/10 text-primary border-primary/20"
+                      }`}
+                    >
+                      {stageLabel[o.stage] ?? o.stage}
+                    </span>
+                  </TableCell>
+                  <TableCell>{o.probability}%</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {o.expected_close_date
+                      ? new Date(o.expected_close_date).toLocaleDateString("pt-BR")
+                      : "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+const FinanceiroSection = () => {
+  const { ownerId } = useShell();
+  const [txs, setTxs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    setLoading(true);
+    supabase
+      .from("workspace_transactions")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setTxs(data ?? []);
+        setLoading(false);
+      });
+  }, [ownerId]);
+
+  const isIncome = (t: any) => t.type === "income" || t.type === "receita";
+  const receita = txs.filter(isIncome).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const despesas = txs
+    .filter((t) => t.type === "expense" || t.type === "despesa")
+    .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const saldo = receita - despesas;
+
+  return (
+    <div className="p-6 lg:p-8 max-w-[1200px] space-y-6">
+      <SectionHeader
+        icon={DollarSign}
+        title="Financeiro"
+        description="Controle de receitas e despesas"
+        actionLabel="Nova Transação"
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard
+          label="Receita Total"
+          value={`R$ ${receita.toFixed(2)}`}
+          valueClassName="text-[hsl(var(--success))]"
+        />
+        <StatCard
+          label="Despesas"
+          value={`R$ ${despesas.toFixed(2)}`}
+          valueClassName="text-destructive"
+        />
+        <StatCard
+          label="Saldo"
+          value={`R$ ${saldo.toFixed(2)}`}
+          valueClassName={saldo >= 0 ? "text-[hsl(var(--success))]" : "text-destructive"}
+        />
+      </div>
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-border">
+          <h2 className="text-sm font-semibold text-foreground">Transações</h2>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Valor</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-10">
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            ) : txs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                  Nenhuma transação registrada ainda.
+                </TableCell>
+              </TableRow>
+            ) : (
+              txs.map((t) => (
+                <TableRow key={t.id}>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {t.created_at ? new Date(t.created_at).toLocaleDateString("pt-BR") : "—"}
+                  </TableCell>
+                  <TableCell className="font-medium">{t.description}</TableCell>
+                  <TableCell
+                    className={
+                      isIncome(t)
+                        ? "text-[hsl(var(--success))] font-medium"
+                        : "text-destructive font-medium"
+                    }
+                  >
+                    {isIncome(t) ? "+" : "-"}R$ {Number(t.amount).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full border ${
+                        isIncome(t)
+                          ? "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border-[hsl(var(--success))]/20"
+                          : "bg-destructive/10 text-destructive border-destructive/20"
+                      }`}
+                    >
+                      {isIncome(t) ? "Receita" : "Despesa"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-xs px-2 py-0.5 rounded-full border bg-muted text-muted-foreground border-border">
+                      {t.status ?? "—"}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
 
 const TarefasSection = () => {
   const { ownerId } = useShell();

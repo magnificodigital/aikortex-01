@@ -74,7 +74,6 @@ const Meetings = lazy(() => import("./pages/Meetings"));
 const MeetingRoom = lazy(() => import("./pages/MeetingRoom"));
 const Tutorials = lazy(() => import("./pages/Tutorials"));
 const CallLogs = lazy(() => import("./pages/CallLogs"));
-const Financeiro = lazy(() => import("./pages/Financeiro"));
 
 const queryClient = new QueryClient();
 
@@ -119,8 +118,8 @@ const App = () => (
               <Route path="/projects" element={<AgencyRoute><Projects /></AgencyRoute>} />
               <Route path="/tasks" element={<AgencyRoute><Tasks /></AgencyRoute>} />
               <Route path="/team" element={<AgencyRoute><Team /></AgencyRoute>} />
-              <Route path="/financial" element={<AgencyRoute><Financial /></AgencyRoute>} />
-              <Route path="/financeiro" element={<AgencyRoute><Financeiro /></AgencyRoute>} />
+              <Route path="/financeiro" element={<AgencyRoute><Financial /></AgencyRoute>} />
+              <Route path="/financial" element={<Navigate to="/financeiro" replace />} />
               <Route path="/contracts" element={<AgencyRoute><Contracts /></AgencyRoute>} />
               <Route path="/reports" element={<AgencyRoute><Reports /></AgencyRoute>} />
               <Route path="/partners" element={<AgencyRoute><Partners /></AgencyRoute>} />

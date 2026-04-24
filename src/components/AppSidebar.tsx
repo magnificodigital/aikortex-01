@@ -63,7 +63,7 @@ type AppSidebarProps = {
 const gestaoItems: NavItem[] = [
   { label: "Clientes", icon: Users, path: "/clients", children: [{ label: "Contratos", icon: FileText, path: "/contracts" }] },
   { label: "Vendas", icon: ShoppingCart, path: "/sales", children: [{ label: "CRM", icon: Contact, path: "/aikortex/crm" }, { label: "Reuniões", icon: Video, path: "/meetings" }] },
-  { label: "Financeiro", icon: DollarSign, path: "/financeiro", children: [{ label: "Gestão Fin.", icon: DollarSign, path: "/financial" }] },
+  { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
   { label: "Equipe", icon: UserCheck, path: "/team" },
   { label: "Tarefas", icon: CheckSquare, path: "/tasks" },
 ];
@@ -100,7 +100,7 @@ const MODULE_KEY_MAP: Record<string, string> = {
   "/sales": "gestao.vendas",
   "/aikortex/crm": "gestao.crm",
   "/meetings": "gestao.reunioes",
-  "/financial": "gestao.financeiro",
+  "/financeiro": "gestao.financeiro",
   "/team": "gestao.equipe",
   "/tasks": "gestao.tarefas",
 };

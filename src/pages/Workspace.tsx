@@ -1,16 +1,10 @@
-import { lazy, Suspense, Component, type ReactNode } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Suspense, Component, type ReactNode } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ClientLayout from "@/components/workspace/ClientLayout";
 import { Loader2 } from "lucide-react";
 import { WorkspaceHomeChat } from "@/components/workspace/WorkspaceHomeChat";
 import { WorkspaceClients } from "@/components/workspace/WorkspaceClients";
-
-const DashboardIndex = lazy(() => import("./Index"));
-const AikortexCRM = lazy(() => import("./AikortexCRM"));
-const AikortexMessages = lazy(() => import("./AikortexMessages"));
-const Tasks = lazy(() => import("./Tasks"));
-const Financial = lazy(() => import("./Financial"));
-const SettingsPage = lazy(() => import("./SettingsPage"));
+import { MessageSquare, ShoppingCart, DollarSign, CheckSquare, Settings } from "lucide-react";
 
 class WorkspaceErrorBoundary extends Component<
   { children: ReactNode },
@@ -51,20 +45,95 @@ const Loader = () => (
   </div>
 );
 
+const Placeholder = ({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof MessageSquare;
+  title: string;
+  description: string;
+}) => (
+  <div className="p-6 lg:p-8 max-w-[1200px]">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+        <Icon className="w-5 h-5 text-primary" />
+      </div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+    </div>
+    <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
+      Em breve você poderá gerenciar {title.toLowerCase()} por aqui.
+    </div>
+  </div>
+);
+
 const Workspace = () => (
   <ClientLayout>
     <WorkspaceErrorBoundary>
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route index element={<WorkspaceHomeChat />} />
-          <Route path="dashboard" element={<DashboardIndex />} />
-          <Route path="clients" element={<WorkspaceClients />} />
-          <Route path="crm" element={<AikortexCRM />} />
-          <Route path="messages" element={<AikortexMessages />} />
-          <Route path="mensagens" element={<AikortexMessages />} />
-          <Route path="tasks" element={<Tasks />} />
-          <Route path="financial" element={<Financial />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route
+            path="mensagens"
+            element={
+              <Placeholder
+                icon={MessageSquare}
+                title="Mensagens"
+                description="Conversas e atendimentos"
+              />
+            }
+          />
+          <Route path="clientes" element={<WorkspaceClients />} />
+          <Route
+            path="vendas"
+            element={
+              <Placeholder
+                icon={ShoppingCart}
+                title="Vendas"
+                description="Pipeline e oportunidades"
+              />
+            }
+          />
+          <Route
+            path="financeiro"
+            element={
+              <Placeholder
+                icon={DollarSign}
+                title="Financeiro"
+                description="Receitas, despesas e cobranças"
+              />
+            }
+          />
+          <Route
+            path="tarefas"
+            element={
+              <Placeholder
+                icon={CheckSquare}
+                title="Tarefas"
+                description="Suas tarefas e pendências"
+              />
+            }
+          />
+          <Route
+            path="configuracoes"
+            element={
+              <Placeholder
+                icon={Settings}
+                title="Configurações"
+                description="Preferências da sua conta"
+              />
+            }
+          />
+          {/* Legacy path redirects */}
+          <Route path="clients" element={<Navigate to="/workspace/clientes" replace />} />
+          <Route path="crm" element={<Navigate to="/workspace/vendas" replace />} />
+          <Route path="messages" element={<Navigate to="/workspace/mensagens" replace />} />
+          <Route path="tasks" element={<Navigate to="/workspace/tarefas" replace />} />
+          <Route path="financial" element={<Navigate to="/workspace/financeiro" replace />} />
+          <Route path="settings" element={<Navigate to="/workspace/configuracoes" replace />} />
         </Routes>
       </Suspense>
     </WorkspaceErrorBoundary>

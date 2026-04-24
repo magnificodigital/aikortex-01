@@ -46,6 +46,7 @@ type Props = {
 };
 
 const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName }: Props) => {
+  void readOnly;
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();

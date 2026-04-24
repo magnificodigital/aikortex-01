@@ -401,7 +401,7 @@ const ConfiguracoesSection = () => {
             />
           </div>
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Salvando..." : "Salvar"}
+            {saving ? "Salvando..." : "Atualizar senha"}
           </Button>
         </div>
       </div>

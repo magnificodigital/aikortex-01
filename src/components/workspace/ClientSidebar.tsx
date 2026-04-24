@@ -252,14 +252,29 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
               <span className="truncate">{theme === "dark" ? "Modo claro" : "Modo escuro"}</span>
             )}
           </button>
-          <button
-            onClick={async () => { await signOut(); navigate("/"); }}
-            className={`${linkClasses(false)} w-full`}
-            title={collapsed && !isMobile ? "Sair" : undefined}
-          >
-            <LogOut className="w-4 h-4 shrink-0 text-destructive" />
-            {(!collapsed || isMobile) && <span className="truncate text-destructive">Sair</span>}
-          </button>
+          {readOnly ? (
+            <button
+              onClick={() => navigate("/home")}
+              className={`${linkClasses(false)} w-full`}
+              title={collapsed && !isMobile ? "Voltar ao workspace" : undefined}
+            >
+              <ChevronLeft className="w-4 h-4 shrink-0 text-primary" />
+              {(!collapsed || isMobile) && (
+                <span className="truncate text-primary">Voltar ao meu workspace</span>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={async () => { await signOut(); navigate("/"); }}
+              className={`${linkClasses(false)} w-full`}
+              title={collapsed && !isMobile ? "Sair" : undefined}
+            >
+              <LogOut className="w-4 h-4 shrink-0 text-destructive" />
+              {(!collapsed || isMobile) && (
+                <span className="truncate text-destructive">Sair</span>
+              )}
+            </button>
+          )}
           {isMobile ? (
             <button type="button" onClick={onMobileClose} className={`${linkClasses(false)} w-full`}>
               <X className="w-4 h-4 shrink-0" />

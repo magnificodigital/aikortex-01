@@ -23,21 +23,15 @@ import FinancialReportsView from "@/components/financial/FinancialReportsView";
 import QuickSaleDialog from "@/components/financial/QuickSaleDialog";
 import { mockInvoices, Invoice } from "@/types/financial";
 import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 const Financial = () => {
-  const { profile } = useAuth();
-  const { isReadOnlyView } = useWorkspace();
-  const isClient = profile?.tenant_type === "client";
   const [search, setSearch] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [showNewExpense, setShowNewExpense] = useState(false);
   const [showQuickSale, setShowQuickSale] = useState(false);
 
-  const sourceInvoices = isClient ? [] : mockInvoices;
-  const filteredInvoices = sourceInvoices.filter(i =>
+  const filteredInvoices = mockInvoices.filter(i =>
     i.client.toLowerCase().includes(search.toLowerCase()) ||
     i.id.toLowerCase().includes(search.toLowerCase()) ||
     i.description.toLowerCase().includes(search.toLowerCase())
@@ -64,16 +58,12 @@ const Financial = () => {
         <div className="flex items-center gap-3 flex-wrap">
           <Button
             onClick={() => setShowQuickSale(true)}
-            disabled={isReadOnlyView}
-            title={isReadOnlyView ? "Apenas o cliente pode gerenciar vendas" : undefined}
             className="bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/90 text-white"
           >
             <TrendingUp className="w-4 h-4 mr-2" /> Venda Rápida
           </Button>
           <Button
             onClick={() => setShowNewExpense(true)}
-            disabled={isReadOnlyView}
-            title={isReadOnlyView ? "Apenas o cliente pode lançar despesas" : undefined}
             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
           >
             <TrendingDown className="w-4 h-4 mr-2" /> Lançar Despesa

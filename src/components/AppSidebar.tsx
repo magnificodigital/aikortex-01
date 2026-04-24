@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useModuleAccess } from "@/hooks/use-module-access";
@@ -64,6 +64,7 @@ const gestaoItems: NavItem[] = [
   { label: "Clientes", icon: Users, path: "/clients", children: [{ label: "Contratos", icon: FileText, path: "/contracts" }] },
   { label: "Vendas", icon: ShoppingCart, path: "/sales", children: [{ label: "CRM", icon: Contact, path: "/aikortex/crm" }, { label: "Reuniões", icon: Video, path: "/meetings" }] },
   { label: "Financeiro", icon: DollarSign, path: "/financeiro", children: [{ label: "Gestão Fin.", icon: DollarSign, path: "/financial" }] },
+  { label: "Equipe", icon: UserCheck, path: "/team" },
   { label: "Tarefas", icon: CheckSquare, path: "/tasks" },
 ];
 
@@ -120,68 +121,6 @@ const saveSidebarState = (state: Record<string, unknown>) => {
   } catch {}
 };
 
-const CLIENT_GESTAO = [
-  { label: "Clientes", icon: Users },
-  { label: "Vendas", icon: ShoppingCart },
-  { label: "Financeiro", icon: DollarSign },
-  { label: "Tarefas", icon: CheckSquare },
-];
-
-const ClientWorkspaceNav = ({
-  clientId, location, collapsed, isMobile, handleNavigate, linkClasses, gestaoOpen, setGestaoOpen,
-}: {
-  clientId: string;
-  location: { pathname: string };
-  collapsed: boolean;
-  isMobile: boolean;
-  handleNavigate: () => void;
-  linkClasses: (active: boolean) => string;
-  gestaoOpen: boolean;
-  setGestaoOpen: (v: boolean) => void;
-}) => {
-  const base = `/clients/${clientId}/workspace`;
-  const isActive = (path: string) =>
-    path === base ? location.pathname === base : location.pathname === path;
-
-  const NavLink = ({ to, icon: Icon, label }: { to: string; icon: typeof Home; label: string }) => (
-    <Link to={to} onClick={handleNavigate} className={linkClasses(isActive(to))} title={collapsed && !isMobile ? label : undefined}>
-      <Icon className={`w-4 h-4 shrink-0 ${isActive(to) ? "text-primary" : ""}`} />
-      {(!collapsed || isMobile) && <span>{label}</span>}
-    </Link>
-  );
-
-  return (
-    <div className="mt-2 space-y-0.5">
-      <NavLink to={base} icon={Home} label="Home" />
-      <NavLink to={`${base}/dashboard`} icon={LayoutDashboard} label="Dashboard" />
-
-      {(!collapsed || isMobile) ? (
-        <p className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Ferramentas</p>
-      ) : <div className="border-t border-sidebar-border my-2" />}
-      <NavLink to={`${base}/mensagens`} icon={MessageSquare} label="Mensagens" />
-
-      {(!collapsed || isMobile) ? (
-        <button
-          onClick={() => setGestaoOpen(!gestaoOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 mt-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <span>Gestão</span>
-          <ChevronDown className={`w-3 h-3 transition-transform ${gestaoOpen ? "" : "-rotate-90"}`} />
-        </button>
-      ) : <div className="border-t border-sidebar-border my-2" />}
-
-      {(gestaoOpen || collapsed || isMobile) && CLIENT_GESTAO.map(({ label, icon: Icon }) => (
-        <NavLink key={label} to={`${base}/${label.toLowerCase()}`} icon={Icon} label={label} />
-      ))}
-
-      {(!collapsed || isMobile) ? (
-        <p className="px-3 pt-4 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Conta</p>
-      ) : <div className="border-t border-sidebar-border my-2" />}
-      <NavLink to={`/clients/${clientId}`} icon={Settings} label="Configurações" />
-    </div>
-  );
-};
-
 const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
   const saved = loadSidebarState();
   const [collapsed, setCollapsed] = useState(saved?.collapsed ?? false);
@@ -198,58 +137,24 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
 
   const location = useLocation();
   const { theme, toggle } = useTheme();
-  const { signOut, isPlatform, profile } = useAuth();
+  const { signOut, isPlatform } = useAuth();
   const { agencyName, clients, activeWorkspace, switchToAgency, switchToClient } = useWorkspace();
   const { canAccess } = useModuleAccess();
   const { canView, isClientMode } = useClientPermissions();
   const { messageCount, monthlyLimit, hasByok, isNearLimit, isUnlimited } = useMonthlyUsage();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { slug: routeSlug } = useParams<{ slug?: string }>();
 
   useEffect(() => {
     if (isMobile) onMobileClose?.();
   }, [location.pathname, location.search, isMobile, onMobileClose]);
 
-  const isDirectClient = profile?.tenant_type === "client";
-  const inWorkspaceRoute = location.pathname.startsWith("/workspace/");
-  const workspaceBase = routeSlug
-    ? `/workspace/${routeSlug}`
-    : (activeWorkspace.type === "client" ? `/workspace/${activeWorkspace.id}` : "/workspace");
-
-  const toWorkspacePath = (agencyPath: string): string => {
-    // Use workspace paths for direct clients always, and for agencies when inside a workspace route
-    if (!isDirectClient && !inWorkspaceRoute && !isClientMode) return agencyPath;
-    const map: Record<string, string> = {
-      "/home":                 `${workspaceBase}`,
-      "/dashboard":            `${workspaceBase}/dashboard`,
-      "/clients":              `${workspaceBase}/clients`,
-      "/contracts":            `${workspaceBase}/clients`,
-      "/sales":                `${workspaceBase}/crm`,
-      "/aikortex/crm":         `${workspaceBase}/crm`,
-      "/meetings":             `${workspaceBase}/crm`,
-      "/aikortex/messages":    `${workspaceBase}/messages`,
-      "/aikortex/broadcasts":  `${workspaceBase}/messages`,
-      "/tasks":                `${workspaceBase}/tasks`,
-      "/financial":            `${workspaceBase}/financial`,
-      "/financeiro":           `${workspaceBase}/financial`,
-      "/team":                 `${workspaceBase}/settings`,
-      "/settings":             `${workspaceBase}/settings`,
-      "/aikortex/agents":      `${workspaceBase}/messages`,
-      "/calls":                `${workspaceBase}/messages`,
-      "/aikortex/automations": `${workspaceBase}/messages`,
-      "/apps":                 `${workspaceBase}/messages`,
-    };
-    return map[agencyPath] ?? agencyPath;
-  };
-
   const isItemActive = (path: string) => {
-    const resolved = toWorkspacePath(path);
-    if (resolved.includes("?tab=")) {
-      const [base, query] = resolved.split("?");
+    if (path.includes("?tab=")) {
+      const [base, query] = path.split("?");
       return location.pathname === base && location.search === `?${query}`;
     }
-    return location.pathname === resolved || location.pathname.startsWith(resolved + "/");
+    return location.pathname === path;
   };
 
   const toggleExpand = (path: string) => {
@@ -268,7 +173,6 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
     }`;
 
   const renderItem = (item: NavItem, depth = 0) => {
-    const resolvedPath = toWorkspacePath(item.path);
     const isActive = isItemActive(item.path);
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems[item.path];
@@ -299,7 +203,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
             </button>
           ) : (
             <Link
-              to={resolvedPath}
+              to={item.path}
               onClick={handleNavigate}
               className={`${linkClasses(isActive)} flex-1`}
               style={!collapsed && depth > 0 ? { paddingLeft: "2.75rem" } : undefined}
@@ -309,7 +213,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
               {(!collapsed || isMobile) && <span className="flex-1 truncate">{item.label}</span>}
             </Link>
           )}
-          {hasChildren && !collapsed && !isMobile && !isLocked && !isDirectClient && (
+          {hasChildren && !collapsed && !isMobile && !isLocked && (
             <button
               onClick={() => toggleExpand(item.path)}
               className="p-1 mr-1 text-muted-foreground hover:text-foreground rounded transition-colors"
@@ -318,7 +222,7 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
             </button>
           )}
         </div>
-        {hasChildren && !isLocked && !isDirectClient && (isExpanded || collapsed || isMobile) && (!collapsed || isMobile) && (
+        {hasChildren && !isLocked && (isExpanded || collapsed || isMobile) && (!collapsed || isMobile) && (
           <div className="space-y-0.5">
             {item.children!.map((child) => renderItem(child, depth + 1))}
           </div>
@@ -386,74 +290,67 @@ const AppSidebar = ({ mobileOpen = false, onMobileClose }: AppSidebarProps) => {
           )}
         </div>
 
-        {(!collapsed || isMobile) && !isDirectClient && (
+        {(!collapsed || isMobile) && (
           <div className="px-2 pt-3">
             <Select
-              value={activeWorkspace.type === "agency" ? "__agency__" : (activeWorkspace.slug ?? activeWorkspace.id)}
-onValueChange={(val) => {
-              if (val === "__agency__") {
-                switchToAgency();
-                navigate("/home");
-              } else {
-                const client = clients.find(c => c.id === val);
-                if (client) {
-                  switchToClient(client);
-                  navigate(`/clients/${client.id}/workspace`);
+              value={activeWorkspace.type === "agency" ? "__agency__" : activeWorkspace.id}
+              onValueChange={(val) => {
+                if (val === "__agency__") {
+                  switchToAgency();
+                } else {
+                  const client = clients.find(c => c.id === val);
+                  if (client) switchToClient(client);
                 }
-              }
-            }}
+              }}
             >
               <SelectTrigger className="w-full h-8 text-xs border-sidebar-border"><SelectValue placeholder="Workspace" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__agency__">{agencyName}</SelectItem>
                 {clients.map(c => (
-                  <SelectItem key={c.id} value={c.workspace_slug ?? c.id}>{c.client_name}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
         )}
 
-        {(!collapsed || isMobile) && isDirectClient && (
-          <div className="px-3 pt-3 pb-1">
-            <p className="text-sm font-medium text-foreground truncate">
-              {agencyName || profile?.full_name}
-            </p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">
-              Workspace do cliente
-            </p>
-          </div>
-        )}
-
         <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5 scrollbar-thin">
-          {activeWorkspace.type === "client" ? (
-            <ClientWorkspaceNav
-              clientId={activeWorkspace.id}
-              location={location}
-              collapsed={collapsed}
-              isMobile={isMobile}
-              handleNavigate={handleNavigate}
-              linkClasses={linkClasses}
-              gestaoOpen={gestaoOpen}
-              setGestaoOpen={setGestaoOpen}
-            />
-          ) : (
-            <>
-              <div className="mt-2 space-y-0.5">
-                <Link to="/home" onClick={handleNavigate} className={linkClasses(isItemActive("/home"))}>
-                  <Home className={`w-4 h-4 shrink-0 ${isItemActive("/home") ? "text-primary" : ""}`} />
-                  {(!collapsed || isMobile) && <span>Home</span>}
-                </Link>
-                <Link to="/dashboard" onClick={handleNavigate} className={linkClasses(isItemActive("/dashboard"))}>
-                  <LayoutDashboard className={`w-4 h-4 shrink-0 ${isItemActive("/dashboard") ? "text-primary" : ""}`} />
-                  {(!collapsed || isMobile) && <span>Dashboard</span>}
-                </Link>
-              </div>
-              {renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)}
-              {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
-              {renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
-            </>
-          )}
+          <div className="mt-2 space-y-0.5">
+            <Link to="/home" onClick={handleNavigate} className={linkClasses(isItemActive("/home"))} title={collapsed && !isMobile ? "Home" : undefined}>
+              <Home className={`w-4 h-4 shrink-0 ${isItemActive("/home") ? "text-primary" : ""}`} />
+              {(!collapsed || isMobile) && <span>Home</span>}
+            </Link>
+            <Link to="/dashboard" onClick={handleNavigate} className={linkClasses(isItemActive("/dashboard"))} title={collapsed && !isMobile ? "Dashboard" : undefined}>
+              <LayoutDashboard className={`w-4 h-4 shrink-0 ${isItemActive("/dashboard") ? "text-primary" : ""}`} />
+              {(!collapsed || isMobile) && <span>Dashboard</span>}
+            </Link>
+          </div>
+
+          {!isClientMode
+            ? renderGroup("Aikortex", aikortexItems, aikortexOpen, setAikortexOpen)
+            : (() => {
+                const visibleAikortexItems = aikortexItems.filter(item => {
+                  const key = MODULE_KEY_MAP[item.path.split("?")[0]];
+                  return key ? canView(key) : false;
+                });
+                if (visibleAikortexItems.length === 0) return null;
+                return (
+                  <div className="mt-2 space-y-0.5">
+                    {(!collapsed || isMobile) && (
+                      <div className="px-3 py-2 mt-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                        Ferramentas
+                      </div>
+                    )}
+                    {collapsed && !isMobile && <div className="border-t border-sidebar-border my-2" />}
+                    <div className="space-y-0.5">
+                      {visibleAikortexItems.map(item => renderItem(item))}
+                    </div>
+                  </div>
+                );
+              })()
+          }
+          {renderGroup("Gestão", gestaoItems, gestaoOpen, setGestaoOpen)}
+          {!isClientMode && renderGroup("Partners", partnersItems, partnersOpen, setPartnersOpen)}
 
           {/* Seção Conta & Suporte */}
           <div>
@@ -504,11 +401,11 @@ onValueChange={(val) => {
                 </button>
               )}
 
-              <Link to={toWorkspacePath("/settings")} onClick={handleNavigate} className={linkClasses(isItemActive("/settings"))} title={collapsed && !isMobile ? "Configurações" : undefined}>
+              <Link to="/settings" onClick={handleNavigate} className={linkClasses(isItemActive("/settings"))} title={collapsed && !isMobile ? "Configurações" : undefined}>
                 <Settings className={`w-4 h-4 shrink-0 ${isItemActive("/settings") ? "text-primary" : ""}`} />
                 {(!collapsed || isMobile) && <span className="truncate">Configurações</span>}
               </Link>
-              {isPlatform && !isDirectClient && (
+              {isPlatform && (
                 <Link to="/admin" onClick={handleNavigate} className={linkClasses(isItemActive("/admin"))} title={collapsed && !isMobile ? "Painel Admin" : undefined}>
                   <ShieldCheck className={`w-4 h-4 shrink-0 ${isItemActive("/admin") ? "text-primary" : ""}`} />
                   {(!collapsed || isMobile) && <span className="truncate">Painel Admin</span>}

@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 /** Convert a Supabase row → Lead shape used by the UI components. */
 function rowToLead(row: any): Lead {
@@ -41,7 +40,6 @@ function rowToLead(row: any): Lead {
 }
 
 const AikortexCRM = () => {
-  const { isReadOnlyView } = useWorkspace();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -186,12 +184,7 @@ const AikortexCRM = () => {
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => void loadLeads()} disabled={loading} title="Recarregar">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             </Button>
-            <Button
-              className="gap-2"
-              onClick={() => setNewLeadOpen(true)}
-              disabled={isReadOnlyView}
-              title={isReadOnlyView ? "Apenas o cliente pode gerenciar leads" : undefined}
-            >
+            <Button className="gap-2" onClick={() => setNewLeadOpen(true)}>
               <Plus className="w-4 h-4" /> Novo Lead
             </Button>
           </div>
@@ -270,13 +263,7 @@ const AikortexCRM = () => {
                 Os leads capturados pelos seus agentes IA aparecerão aqui automaticamente.
               </p>
             </div>
-            <Button
-              size="sm"
-              onClick={() => setNewLeadOpen(true)}
-              disabled={isReadOnlyView}
-              title={isReadOnlyView ? "Apenas o cliente pode gerenciar leads" : undefined}
-              className="gap-2"
-            >
+            <Button size="sm" onClick={() => setNewLeadOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" /> Adicionar lead manualmente
             </Button>
           </div>

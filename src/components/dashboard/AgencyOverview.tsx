@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Users, DollarSign, LayoutTemplate, Trophy } from "lucide-react";
 
-const TIER_LABELS: Record<string, string> = { starter: "Starter", hack: "Hack", growth: "Growth" };
+const TIER_LABELS: Record<string, string> = { starter: "Starter", explorer: "Explorer", hack: "Hack" };
 
 const AgencyOverview = () => {
   const { user } = useAuth();
@@ -38,8 +38,8 @@ const AgencyOverview = () => {
 
   const tier = agency.tier ?? "starter";
   const ac = agency.active_clients_count ?? 0;
-  const tierPct = tier === "growth" ? 100 : tier === "hack" ? Math.min(100, (ac / 15) * 100) : Math.min(100, (ac / 5) * 100);
-  const tierLabel = tier === "growth" ? "Nível máximo 🏆" : tier === "hack" ? `${ac}/15 → Growth` : `${ac}/5 → Hack`;
+  const tierPct = tier === "hack" ? 100 : tier === "explorer" ? Math.min(100, (ac / 15) * 100) : Math.min(100, (ac / 5) * 100);
+  const tierLabel = tier === "hack" ? "Nível máximo 🏆" : tier === "explorer" ? `${ac}/15 → Hack` : `${ac}/5 → Explorer`;
 
   return (
     <div className="space-y-3">

@@ -84,8 +84,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const TIER_LABELS: Record<string, { label: string; color: string }> = {
   starter: { label: "Starter", color: "bg-amber-700/10 text-amber-700" },
-  hack: { label: "Hack", color: "bg-slate-400/10 text-slate-500" },
-  growth: { label: "Growth", color: "bg-yellow-500/10 text-yellow-600" },
+  explorer: { label: "Explorer", color: "bg-slate-400/10 text-slate-500" },
+  hack: { label: "Hack", color: "bg-yellow-500/10 text-yellow-600" },
 };
 
 const slugify = (text: string) =>
@@ -438,8 +438,8 @@ const AdminTemplatesTab = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="starter">Starter</SelectItem>
+                    <SelectItem value="explorer">Explorer</SelectItem>
                     <SelectItem value="hack">Hack</SelectItem>
-                    <SelectItem value="growth">Growth</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -512,7 +512,7 @@ const AdminTemplatesTab = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Exclusivo do Growth</Label>
+              <Label>Exclusivo do Hack</Label>
               <Switch
                 checked={form.is_exclusive}
                 onCheckedChange={(v) =>

@@ -65,9 +65,7 @@ const Apps = lazy(() => import("./pages/Apps"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Credits = lazy(() => import("./pages/Credits"));
 const ClientDetailPage = lazy(() => import("./pages/ClientDetail"));
-const ClientWorkspaceView = lazy(() => import("./pages/ClientWorkspaceView"));
 const Workspace = lazy(() => import("./pages/Workspace"));
-const WorkspaceRedirect = lazy(() => import("./pages/WorkspaceRedirect"));
 
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Templates = lazy(() => import("./pages/Templates"));
@@ -99,11 +97,11 @@ const Loading = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <WorkspaceProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <WorkspaceProvider>
           <Suspense fallback={<Loading />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -118,8 +116,6 @@ const App = () => (
               <Route path="/cadastro-cliente/:token" element={<ClientRegistration />} />
               <Route path="/clients" element={<AgencyRoute><Clients /></AgencyRoute>} />
               <Route path="/clients/:clientId" element={<AgencyRoute><ClientDetailPage /></AgencyRoute>} />
-              <Route path="/clients/:clientId/workspace" element={<AgencyRoute><ClientWorkspaceView /></AgencyRoute>} />
-              <Route path="/clients/:clientId/workspace/*" element={<AgencyRoute><ClientWorkspaceView /></AgencyRoute>} />
               <Route path="/projects" element={<AgencyRoute><Projects /></AgencyRoute>} />
               <Route path="/tasks" element={<AgencyRoute><Tasks /></AgencyRoute>} />
               <Route path="/team" element={<AgencyRoute><Team /></AgencyRoute>} />
@@ -150,8 +146,7 @@ const App = () => (
               {/* Admin routes - platform only */}
               <Route path="/admin" element={<ProtectedRoute roles={['platform_owner','platform_admin']}><AdminPanel /></ProtectedRoute>} />
 
-              {/* Client workspace routes - resolved from auth profile, not URL */}
-              <Route path="/workspace" element={<ClientRoute><Workspace /></ClientRoute>} />
+              {/* Client workspace routes */}
               <Route path="/workspace/*" element={<ClientRoute><Workspace /></ClientRoute>} />
 
               <Route path="/tutorials" element={<Navigate to="/home" replace />} />
@@ -159,9 +154,9 @@ const App = () => (
             </Routes>
             <HelpBubble />
           </Suspense>
-          </WorkspaceProvider>
         </BrowserRouter>
       </TooltipProvider>
+      </WorkspaceProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

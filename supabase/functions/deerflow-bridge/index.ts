@@ -250,6 +250,9 @@ async function handlePing() {
   const models = await deerflow<{ models: unknown[] }>("/api/models");
   return json({
     ok: health.ok && models.ok,
+    deerflow_base_url: DEERFLOW_BASE_URL,
+    health: { status: health.status, body: health.data ?? health.text },
+    models: models.data,
   });
 }
 
@@ -656,13 +659,17 @@ serve(async (req) => {
     return bad("invalid JSON body");
   }
 
+  // "ping" is the only action that does not require authentication —
+  // useful for quickly validating the wiring from a test page.
+  if (body.action === "ping") {
+    return handlePing();
+  }
+
   const user = await authenticateUser(req);
   if (!user) return bad("unauthorized", 401);
 
   try {
     switch (body.action) {
-      case "ping":
-        return await handlePing();
       case "provision_agent":
         return await handleProvisionAgent(user.id, body.agent_id, body.agent_config);
       case "chat":

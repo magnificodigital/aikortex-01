@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       agency_clients: {
         Row: {
-          address: string | null
           agency_id: string
           asaas_customer_id: string | null
           client_document: string | null
@@ -27,17 +26,14 @@ export type Database = {
           client_phone: string | null
           client_primary_color: string | null
           client_user_id: string | null
-          cnpj: string | null
           created_at: string | null
           id: string
           platform_subscription_id: string | null
           platform_subscription_status: string | null
           status: string | null
           updated_at: string | null
-          workspace_slug: string | null
         }
         Insert: {
-          address?: string | null
           agency_id: string
           asaas_customer_id?: string | null
           client_document?: string | null
@@ -48,17 +44,14 @@ export type Database = {
           client_phone?: string | null
           client_primary_color?: string | null
           client_user_id?: string | null
-          cnpj?: string | null
           created_at?: string | null
           id?: string
           platform_subscription_id?: string | null
           platform_subscription_status?: string | null
           status?: string | null
           updated_at?: string | null
-          workspace_slug?: string | null
         }
         Update: {
-          address?: string | null
           agency_id?: string
           asaas_customer_id?: string | null
           client_document?: string | null
@@ -69,14 +62,12 @@ export type Database = {
           client_phone?: string | null
           client_primary_color?: string | null
           client_user_id?: string | null
-          cnpj?: string | null
           created_at?: string | null
           id?: string
           platform_subscription_id?: string | null
           platform_subscription_status?: string | null
           status?: string | null
           updated_at?: string | null
-          workspace_slug?: string | null
         }
         Relationships: [
           {
@@ -2201,78 +2192,6 @@ export type Database = {
         }
         Relationships: []
       }
-      workspace_tasks: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          due_date: string | null
-          id: string
-          owner_id: string
-          priority: string | null
-          status: string | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          due_date?: string | null
-          id?: string
-          owner_id: string
-          priority?: string | null
-          status?: string | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          due_date?: string | null
-          id?: string
-          owner_id?: string
-          priority?: string | null
-          status?: string | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      workspace_transactions: {
-        Row: {
-          amount: number
-          category: string | null
-          created_at: string | null
-          description: string
-          due_date: string | null
-          id: string
-          owner_id: string
-          status: string | null
-          type: string | null
-        }
-        Insert: {
-          amount: number
-          category?: string | null
-          created_at?: string | null
-          description: string
-          due_date?: string | null
-          id?: string
-          owner_id: string
-          status?: string | null
-          type?: string | null
-        }
-        Update: {
-          amount?: number
-          category?: string | null
-          created_at?: string | null
-          description?: string
-          due_date?: string | null
-          id?: string
-          owner_id?: string
-          status?: string | null
-          type?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -2282,15 +2201,6 @@ export type Database = {
         Args: { consumed: number; user_uuid: string }
         Returns: undefined
       }
-      admin_list_asaas_status: {
-        Args: never
-        Returns: {
-          agency_id: string
-          connected: boolean
-          wallet_last4: string
-        }[]
-      }
-      get_asaas_status: { Args: never; Returns: Json }
       is_platform_admin: { Args: never; Returns: boolean }
       is_platform_user: { Args: { check_user_id: string }; Returns: boolean }
     }

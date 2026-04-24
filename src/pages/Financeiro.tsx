@@ -22,9 +22,9 @@ import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const tierInfo: Record<string, { label: string; color: string; next: string | null; threshold: number; icon: typeof Star }> = {
-  starter: { label: "Starter", color: "text-muted-foreground", next: "hack", threshold: 5, icon: Star },
-  hack: { label: "Hack", color: "text-[hsl(var(--warning))]", next: "growth", threshold: 15, icon: Zap },
-  growth: { label: "Growth", color: "text-primary", next: null, threshold: 999, icon: Trophy },
+  starter: { label: "Starter", color: "text-muted-foreground", next: "explorer", threshold: 5, icon: Star },
+  explorer: { label: "Explorer", color: "text-[hsl(var(--warning))]", next: "hack", threshold: 15, icon: Zap },
+  hack: { label: "Hack", color: "text-primary", next: null, threshold: 999, icon: Trophy },
 };
 
 const hackBenefits = [
@@ -159,7 +159,7 @@ const Financeiro = () => {
       : templates.reduce((s: number, t: any) => s + Number(t.platform_price_monthly), 0) / templates.length;
     const revenue = avgPrice * projClients;
     const cost = avgCost * projClients;
-    const projTier = projClients >= 15 ? "growth" : projClients >= 5 ? "hack" : "starter";
+    const projTier = projClients >= 15 ? "hack" : projClients >= 5 ? "explorer" : "starter";
     return { revenue, cost, profit: revenue - cost, tier: projTier };
   }, [projClients, templates, activeSubs, receitaBruta, custoPlataforma]);
 

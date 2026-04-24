@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { useWorkspaceOwner } from "@/hooks/use-workspace-owner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -55,8 +55,9 @@ const statusVariant: Record<ContactStatus, "default" | "secondary" | "outline"> 
 };
 
 export const WorkspaceClients = () => {
-  const { isReadOnlyView } = useWorkspace();
-  const { ownerId: dataUserId } = useWorkspaceOwner();
+  const { user } = useAuth();
+  const { activeClientUserId } = useWorkspace();
+  const dataUserId = activeClientUserId ?? user?.id;
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -145,11 +146,7 @@ export const WorkspaceClients = () => {
           <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus clientes e contatos</p>
         </div>
-        <Button
-          onClick={openNew}
-          disabled={isReadOnlyView}
-          title={isReadOnlyView ? "Apenas o cliente pode gerenciar contatos" : undefined}
-        >
+        <Button onClick={openNew}>
           <Plus className="w-4 h-4 mr-1" /> Novo Cliente
         </Button>
       </div>

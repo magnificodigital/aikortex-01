@@ -25,7 +25,6 @@ import {
 import { ROLE_CONFIG } from "@/types/rbac";
 import EditUserDialog from "@/components/admin/EditUserDialog";
 import CreateUserDialog from "@/components/shared/CreateUserDialog";
-import CreateAgencyWizard from "@/components/admin/CreateAgencyWizard";
 
 /* ────────────────────── types ────────────────────── */
 
@@ -61,8 +60,8 @@ interface SubscriptionDetail {
 
 const TIER_BADGES: Record<string, { label: string; className: string }> = {
   starter: { label: "Starter", className: "bg-muted text-muted-foreground" },
-  hack: { label: "Hack", className: "bg-blue-500/10 text-blue-600" },
-  growth: { label: "Growth", className: "bg-purple-500/10 text-purple-600" },
+  explorer: { label: "Explorer", className: "bg-blue-500/10 text-blue-600" },
+  hack: { label: "Hack", className: "bg-purple-500/10 text-purple-600" },
 };
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
@@ -86,9 +85,9 @@ const relativeDate = (d: string | null) => {
 };
 
 const getTierProgress = (tier: string, clients: number) => {
-  if (tier === "growth") return { target: null, pct: 100, next: null };
-  if (tier === "hack") return { target: 15, pct: Math.min(100, (clients / 15) * 100), next: "Growth" };
-  return { target: 5, pct: Math.min(100, (clients / 5) * 100), next: "Hack" };
+  if (tier === "hack") return { target: 15, pct: 100, next: null };
+  if (tier === "explorer") return { target: 15, pct: Math.min(100, (clients / 15) * 100), next: "Hack" };
+  return { target: 5, pct: Math.min(100, (clients / 5) * 100), next: "Explorer" };
 };
 
 const generatePassword = () => {
@@ -241,7 +240,7 @@ const CreateAgencyModal = ({ open, onClose, onSuccess }: { open: boolean; onClos
             </div>
             <div><Label>Tier inicial</Label>
               <Select value={tier} onValueChange={setTier}><SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="hack">Hack</SelectItem><SelectItem value="growth">Growth</SelectItem></SelectContent>
+                <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="explorer">Explorer</SelectItem><SelectItem value="hack">Hack</SelectItem></SelectContent>
               </Select>
             </div>
           </div>
@@ -302,7 +301,7 @@ const EditAgencyModal = ({ open, onClose, agency, onSuccess }: { open: boolean; 
             <Label>Tier</Label>
             <Select value={tier} onValueChange={v => { setTier(v); setOverride(true); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="hack">Hack</SelectItem><SelectItem value="growth">Growth</SelectItem></SelectContent>
+              <SelectContent><SelectItem value="starter">Starter</SelectItem><SelectItem value="explorer">Explorer</SelectItem><SelectItem value="hack">Hack</SelectItem></SelectContent>
             </Select>
             {override && <p className="text-xs text-yellow-600 mt-1">⚠ Override manual — ignora contagem de clientes</p>}
             {override && <Button variant="link" size="sm" className="text-xs p-0 h-auto" onClick={handleRemoveOverride}>Remover override</Button>}
@@ -551,7 +550,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState(initialTier || "all");
   const [showCreate, setShowCreate] = useState(false);
-  const [stats, setStats] = useState({ totalAgencies: 0, totalClients: 0, platformMRR: 0, templatesSold: 0, tierBreakdown: { starter: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 }, growth: { agencies: 0, clients: 0, mrr: 0 } } });
+  const [stats, setStats] = useState({ totalAgencies: 0, totalClients: 0, platformMRR: 0, templatesSold: 0, tierBreakdown: { starter: { agencies: 0, clients: 0, mrr: 0 }, explorer: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 } } });
 
   useEffect(() => { fetchData(); }, []);
   useEffect(() => { if (initialTier) setTierFilter(initialTier); }, [initialTier]);
@@ -565,26 +564,20 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [agenciesRes, subsRes, usersData, clientsRes, asaasStatusRes] = await Promise.all([
-        // Sensitive Asaas columns are not selectable; fetched via secure RPC below
-        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, created_at, custom_pricing, tier_manually_overridden"),
+      const [agenciesRes, subsRes, usersData, clientsRes] = await Promise.all([
+        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, asaas_api_key, asaas_wallet_id, created_at, custom_pricing, tier_manually_overridden").then((res: any) => {
+          if (res.data) {
+            res.data = res.data.map((row: any) => ({
+              ...row,
+              asaas_api_key: row.asaas_api_key ? "connected" : null,
+            }));
+          }
+          return res;
+        }),
         supabase.from("client_template_subscriptions").select("agency_id, agency_price_monthly, platform_price_monthly, status").in("status", ["active", "trial"]),
         supabase.functions.invoke("admin-users", { body: { action: "list" } }),
         supabase.from("agency_clients").select("id, status, agency_id"),
-        (supabase.rpc as any)("admin_list_asaas_status"),
       ]);
-
-      const asaasMap = new Map<string, { connected: boolean; wallet_last4: string | null }>();
-      ((asaasStatusRes as any)?.data || []).forEach((r: any) => {
-        asaasMap.set(r.agency_id, { connected: !!r.connected, wallet_last4: r.wallet_last4 });
-      });
-      if (agenciesRes.data) {
-        (agenciesRes.data as any[]).forEach((row) => {
-          const s = asaasMap.get(row.id);
-          row.asaas_api_key = s?.connected ? "connected" : null;
-          row.asaas_wallet_id = s?.wallet_last4 ? `••••${s.wallet_last4}` : null;
-        });
-      }
 
       const usersMap = new Map<string, string>();
       (usersData?.data?.users || []).forEach((u: any) => usersMap.set(u.user_id, u.email || ""));
@@ -596,19 +589,19 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
         platformMap.set(s.agency_id, (platformMap.get(s.agency_id) || 0) + (s.platform_price_monthly || 0));
       });
 
-      const agenciesData = ((agenciesRes.data || []) as any[]).map((a: any) => ({
+      const agenciesData = (agenciesRes.data || []).map(a => ({
         ...a,
         email: usersMap.get(a.user_id) || "",
         mrr: mrrMap.get(a.id) || 0,
         platformRevenue: platformMap.get(a.id) || 0,
-      })) as AgencyRow[];
+      }));
       setAgencies(agenciesData);
 
       const activeClients = (clientsRes.data || []).filter(c => c.status === "active");
       const activeSubs = subsRes.data || [];
       const platformMRR = activeSubs.reduce((sum: number, s: any) => sum + (s.platform_price_monthly || 0), 0);
 
-      const tb = { starter: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 }, growth: { agencies: 0, clients: 0, mrr: 0 } };
+      const tb = { starter: { agencies: 0, clients: 0, mrr: 0 }, explorer: { agencies: 0, clients: 0, mrr: 0 }, hack: { agencies: 0, clients: 0, mrr: 0 } };
       agenciesData.forEach(a => { const t = a.tier as keyof typeof tb; if (tb[t]) { tb[t].agencies++; tb[t].clients += a.active_clients_count || 0; } });
       activeSubs.forEach((s: any) => {
         const agTier = agenciesData.find(a => a.id === s.agency_id)?.tier as keyof typeof tb;
@@ -628,8 +621,8 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
 
   const tierRows = [
     { key: "starter" as const, label: "Starter", cls: "bg-muted", textCls: "text-muted-foreground" },
-    { key: "hack" as const, label: "Hack", cls: "bg-blue-500/10", textCls: "text-blue-600" },
-    { key: "growth" as const, label: "Growth", cls: "bg-purple-500/10", textCls: "text-purple-600" },
+    { key: "explorer" as const, label: "Explorer", cls: "bg-blue-500/10", textCls: "text-blue-600" },
+    { key: "hack" as const, label: "Hack", cls: "bg-purple-500/10", textCls: "text-purple-600" },
   ];
 
   if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
@@ -689,7 +682,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
           </div>
           <Select value={tierFilter} onValueChange={setTierFilter}>
             <SelectTrigger className="w-36"><SelectValue placeholder="Tier" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Todos os tiers</SelectItem><SelectItem value="starter">Starter</SelectItem><SelectItem value="hack">Hack</SelectItem><SelectItem value="growth">Growth</SelectItem></SelectContent>
+            <SelectContent><SelectItem value="all">Todos os tiers</SelectItem><SelectItem value="starter">Starter</SelectItem><SelectItem value="explorer">Explorer</SelectItem><SelectItem value="hack">Hack</SelectItem></SelectContent>
           </Select>
           <Button size="sm" variant="outline" onClick={fetchData}><RefreshCw className="w-4 h-4 mr-1.5" /> Atualizar</Button>
           <Button size="sm" onClick={() => setShowCreate(true)}><Plus className="w-4 h-4 mr-1.5" /> Criar agência</Button>
@@ -743,7 +736,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
         </Card>
       </div>
 
-      <CreateAgencyWizard open={showCreate} onClose={() => setShowCreate(false)} onSuccess={fetchData} />
+      <CreateAgencyModal open={showCreate} onClose={() => setShowCreate(false)} onSuccess={fetchData} />
     </div>
   );
 };

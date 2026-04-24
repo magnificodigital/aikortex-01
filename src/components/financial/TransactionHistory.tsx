@@ -4,8 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TransactionType } from "@/types/financial";
-import { useFinancialData } from "@/hooks/use-financial-data";
+import { mockTransactions, TransactionType } from "@/types/financial";
 import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Search, CheckCircle2, Circle } from "lucide-react";
 
 const typeConfig: Record<TransactionType, { label: string; icon: typeof ArrowDownLeft; color: string }> = {
@@ -15,7 +14,6 @@ const typeConfig: Record<TransactionType, { label: string; icon: typeof ArrowDow
 };
 
 const TransactionHistory = () => {
-  const { transactions: mockTransactions } = useFinancialData();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 

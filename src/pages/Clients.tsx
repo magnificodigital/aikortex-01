@@ -47,7 +47,7 @@ const STATUS_MAP: Record<string, { label: string; class: string }> = {
   inactive: { label: "Inativo", class: "bg-muted text-muted-foreground border-border" },
 };
 
-const TIER_LABELS: Record<string, string> = { starter: "Starter", hack: "Hack", growth: "Growth" };
+const TIER_LABELS: Record<string, string> = { starter: "Starter", explorer: "Explorer", hack: "Hack" };
 
 const Clients = () => {
   const { user } = useAuth();
@@ -97,9 +97,9 @@ const Clients = () => {
   const agencyTier = agency?.tier ?? "starter";
   const clientCount = agency?.active_clients_count ?? 0;
   const tierProgress = useMemo(() => {
-    if (agencyTier === "growth") return { label: "Nível máximo 🏆", pct: 100 };
-    if (agencyTier === "hack") return { label: `${clientCount}/15 → Growth`, pct: Math.min(100, (clientCount / 15) * 100) };
-    return { label: `${clientCount}/5 → Hack`, pct: Math.min(100, (clientCount / 5) * 100) };
+    if (agencyTier === "hack") return { label: "Nível máximo 🏆", pct: 100 };
+    if (agencyTier === "explorer") return { label: `${clientCount}/15 → Hack`, pct: Math.min(100, (clientCount / 15) * 100) };
+    return { label: `${clientCount}/5 → Explorer`, pct: Math.min(100, (clientCount / 5) * 100) };
   }, [agencyTier, clientCount]);
 
   const getSubsForClient = (cId: string) => subs.filter((s) => s.client_id === cId && (s.status === "active" || s.status === "trial"));

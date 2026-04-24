@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { frequencyLabels } from "@/types/financial";
-import { useFinancialData } from "@/hooks/use-financial-data";
+import { mockSubscriptions, frequencyLabels } from "@/types/financial";
 
 const statusConfig = {
   active: { label: "Ativo", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
@@ -9,9 +8,7 @@ const statusConfig = {
   cancelled: { label: "Cancelado", color: "bg-muted text-muted-foreground" },
 };
 
-const SubscriptionList = () => {
-  const { subscriptions: mockSubscriptions } = useFinancialData();
-  return (
+const SubscriptionList = () => (
   <div className="glass-card rounded-xl overflow-hidden">
     <div className="p-4 border-b border-border/50">
       <h3 className="text-sm font-semibold text-foreground">Assinaturas Recorrentes</h3>
@@ -47,7 +44,6 @@ const SubscriptionList = () => {
       </TableBody>
     </Table>
   </div>
-  );
-};
+);
 
 export default SubscriptionList;

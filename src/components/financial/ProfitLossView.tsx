@@ -1,9 +1,8 @@
-import { useFinancialData } from "@/hooks/use-financial-data";
+import { mockInvoices, mockExpenses, mockCashFlow } from "@/types/financial";
 import { Separator } from "@/components/ui/separator";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 const ProfitLossView = () => {
-  const { invoices: mockInvoices, expenses: mockExpenses, cashFlow: mockCashFlow } = useFinancialData();
   const totalRevenue = mockInvoices.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
   const pendingRevenue = mockInvoices.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0);
 

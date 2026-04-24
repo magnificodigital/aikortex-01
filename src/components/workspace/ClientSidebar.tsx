@@ -15,6 +15,13 @@ import {
   Sun,
   Moon,
   X,
+  Bot,
+  GitBranch,
+  AppWindow,
+  Target,
+  Video,
+  UsersRound,
+  Send,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,26 +34,16 @@ import aikortexIconBlack from "@/assets/aikortex-icon-black.png";
 
 type NavItem = { label: string; icon: typeof Home; path: string };
 
-const getFerramentasItems = (basePath: string): NavItem[] => [
-  { label: "Mensagens", icon: MessageSquare, path: `${basePath}/mensagens` },
-];
-
-const getGestaoItems = (basePath: string): NavItem[] => [
-  { label: "Clientes", icon: Users, path: `${basePath}/clientes` },
-  { label: "Vendas", icon: ShoppingCart, path: `${basePath}/vendas` },
-  { label: "Financeiro", icon: DollarSign, path: `${basePath}/financeiro` },
-  { label: "Tarefas", icon: CheckSquare, path: `${basePath}/tarefas` },
-];
-
 type Props = {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
   readOnly?: boolean;
   overrideName?: string;
   basePath?: string;
+  enabledModules?: string[];
 };
 
-const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName, basePath = "/workspace" }: Props) => {
+const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, overrideName, basePath = "/workspace", enabledModules = ["mensagens"] }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
@@ -54,6 +51,7 @@ const ClientSidebar = ({ mobileOpen = false, onMobileClose, readOnly = false, ov
   const isMobile = useIsMobile();
 
   const [collapsed, setCollapsed] = useState(false);
+  const [iaOpen, setIaOpen] = useState(true);
   const [ferramentasOpen, setFerramentasOpen] = useState(true);
   const [gestaoOpen, setGestaoOpen] = useState(true);
   const [contaOpen, setContaOpen] = useState(true);

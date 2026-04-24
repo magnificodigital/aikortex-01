@@ -131,7 +131,7 @@ export const WorkspaceHomeChat = () => {
               send();
             }
           }}
-          placeholder="Pergunte sobre seus clientes, tarefas, financeiro, vendas ou contratos..."
+          placeholder="Descreva aqui sua necessidade?"
           className="w-full bg-transparent border-none outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/50 px-5 py-3 min-h-[72px]"
           disabled={loading}
         />

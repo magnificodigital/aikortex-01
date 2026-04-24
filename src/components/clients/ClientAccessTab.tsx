@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, KeyRound, UserPlus, Send, Loader2, Copy, Link2 } from "lucide-react";
+import { Mail, KeyRound, UserPlus, Send, Loader2, Copy, Link2, Layers } from "lucide-react";
 
 interface Props {
   client: {
     id: string;
     client_email: string | null;
     client_user_id: string | null;
+    enabled_ia_modules: string[];
   };
   onUpdated: () => void;
 }
@@ -23,6 +25,8 @@ export const ClientAccessTab = ({ client, onUpdated }: Props) => {
   const [createPassword, setCreatePassword] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [modules, setModules] = useState(client.enabled_ia_modules ?? ["mensagens"]);
+  const [savingModules, setSavingModules] = useState(false);
 
   const handleGenerateInvite = async () => {
     setLoading("invite");
@@ -83,10 +87,70 @@ export const ClientAccessTab = ({ client, onUpdated }: Props) => {
     }
   };
 
+  const toggleModule = async (key: string, enabled: boolean) => {
+    const next = enabled ? [...modules, key] : modules.filter((m) => m !== key);
+    setModules(next);
+    setSavingModules(true);
+    try {
+      const { error } = await supabase
+        .from("agency_clients")
+        .update({ enabled_ia_modules: next })
+        .eq("id", client.id);
+      if (error) throw error;
+      toast.success("Módulos atualizados");
+      onUpdated();
+    } catch (err) {
+      toast.error((err as Error).message);
+      setModules(modules);
+    } finally {
+      setSavingModules(false);
+    }
+  };
+
   const hasUser = !!client.client_user_id;
 
   return (
     <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Layers className="w-4 h-4" /> Módulos de IA liberados
+          </CardTitle>
+          <p className="text-xs text-muted-foreground pt-1">
+            Escolha quais recursos de IA o cliente pode acessar no workspace dele.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Mensagens</p>
+              <p className="text-xs text-muted-foreground">Sempre habilitado</p>
+            </div>
+            <Badge>Ativo</Badge>
+          </div>
+
+          {[
+            { key: "agentes",   label: "Agentes",   desc: "Criação e uso de agentes de IA" },
+            { key: "flows",     label: "Flows",     desc: "Automações e fluxos de IA" },
+            { key: "apps",      label: "Apps",      desc: "Aplicativos conectados" },
+            { key: "templates", label: "Templates", desc: "Biblioteca de templates" },
+            { key: "disparos",  label: "Disparos",  desc: "Envios em massa" },
+          ].map(({ key, label, desc }) => (
+            <div key={key} className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">{label}</p>
+                <p className="text-xs text-muted-foreground">{desc}</p>
+              </div>
+              <Switch
+                checked={modules.includes(key)}
+                onCheckedChange={(val) => toggleModule(key, val)}
+                disabled={savingModules}
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       {!hasUser && (
         <Card>
           <CardHeader>

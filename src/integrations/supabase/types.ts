@@ -1207,6 +1207,50 @@ export type Database = {
         }
         Relationships: []
       }
+      flow_node_logs: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          execution_id: string
+          id: string
+          node_label: string | null
+          node_type: string | null
+          output: Json | null
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          execution_id: string
+          id?: string
+          node_label?: string | null
+          node_type?: string | null
+          output?: Json | null
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          execution_id?: string
+          id?: string
+          node_label?: string | null
+          node_type?: string | null
+          output?: Json | null
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_node_logs_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "flow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       help_articles: {
         Row: {
           article_type: string
@@ -2392,6 +2436,53 @@ export type Database = {
           value?: number | null
         }
         Relationships: []
+      }
+      user_flows: {
+        Row: {
+          created_at: string
+          edges: Json
+          id: string
+          is_active: boolean
+          name: string
+          nodes: Json
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          edges?: Json
+          id?: string
+          is_active?: boolean
+          name?: string
+          nodes?: Json
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          edges?: Json
+          id?: string
+          is_active?: boolean
+          name?: string
+          nodes?: Json
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_flows_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       whatsapp_messages: {
         Row: {

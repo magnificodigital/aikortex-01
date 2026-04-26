@@ -783,6 +783,7 @@ const AgentChatPanel = ({
             </div>
           );
         })()}
+        {executionEngineCard}
         <div className={`rounded-xl border border-border bg-card/50 p-1 transition-colors ${
           (wizardStep === "done" || wizardStep === "discover") ? "focus-within:border-primary/30" : "opacity-60"
         }`}>

@@ -822,6 +822,31 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
         setupModel={setupModel}
         setSetupModel={setSetupModel}
         setAgentModel={setAgentModel}
+        executionEngineCard={resolvedAgentId ? (
+          <div className="mb-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-card/50 px-3 py-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                <Zap className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground">Engine DeerFlow</p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {loadedAgent.executionEngine === "deerflow"
+                    ? `Ativo — ${loadedAgent.deerflowAgentName ?? ""}`
+                    : "Agentes complexos (SDR, BDR, Research)"}
+                </p>
+              </div>
+            </div>
+            {loadedAgent.executionEngine === "deerflow" ? (
+              <Badge variant="secondary" className="shrink-0 text-[11px]">Ativo</Badge>
+            ) : (
+              <Button size="sm" variant="outline" className="h-7 shrink-0 gap-1.5 text-xs" onClick={handleProvision} disabled={provisioning}>
+                {provisioning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                Provisionar
+              </Button>
+            )}
+          </div>
+        ) : null}
         gatewayModels={GATEWAY_MODELS}
         onGoToIntegrations={() => { setShowConfig(true); setRightPanelTab("connectors"); }}
         onConfigStructured={handleConfigStructured}

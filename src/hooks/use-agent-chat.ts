@@ -216,6 +216,29 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+      // DeerFlow path — bypasses app-chat entirely
+      if (options.executionEngine === "deerflow" && options.agentId) {
+        const bridgeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deerflow-bridge`;
+        const res = await fetch(bridgeUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            action: "chat",
+            agent_id: options.agentId,
+            message: userText,
+            thread_ref: { channel: "web" },
+          }),
+        });
+        const data = await res.json().catch(() => ({ error: "Resposta inválida" }));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        const reply = (data.reply as string) || "(sem resposta do agente)";
+        setMessages((prev) => [...prev, { role: "agent" as const, text: reply }]);
+        return;
+      }
+
       let resp: Response | null = null;
       const maxRetries = 2;
       for (let attempt = 0; attempt <= maxRetries; attempt++) {

@@ -94,24 +94,18 @@ export type Database = {
       agency_payment_secrets: {
         Row: {
           agency_id: string
-          asaas_api_key: string | null
-          asaas_wallet_id: string | null
           created_at: string | null
           id: string
           updated_at: string | null
         }
         Insert: {
           agency_id: string
-          asaas_api_key?: string | null
-          asaas_wallet_id?: string | null
           created_at?: string | null
           id?: string
           updated_at?: string | null
         }
         Update: {
           agency_id?: string
-          asaas_api_key?: string | null
-          asaas_wallet_id?: string | null
           created_at?: string | null
           id?: string
           updated_at?: string | null

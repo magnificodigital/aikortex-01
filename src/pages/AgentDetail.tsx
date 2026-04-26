@@ -122,6 +122,7 @@ const AgentDetail = () => {
   const location    = useLocation();
   const { agentId } = useParams();
   const navState    = location.state as any;
+  const deerflow = useDeerflowBridge();
 
   const isTemplate    = !!agentId && !!TEMPLATE_MAP[agentId];
   const isNewCustomFromHome = navState?.fromTemplate === false && !!navState?.initialPrompt;
@@ -255,9 +256,31 @@ const AgentDetail = () => {
 
   const { saveAgent } = useUserAgents();
   const [isSaving, setIsSaving] = useState(false);
+  const [provisioning, setProvisioning] = useState(false);
   const [rightPanelTab, setRightPanelTab] = useState("agent");
   const [showOutboundCall, setShowOutboundCall] = useState(false);
   const [showBrowserCall, setShowBrowserCall] = useState(false);
+
+  const handleProvision = async () => {
+    if (!resolvedAgentId || !agentConfig) return;
+    setProvisioning(true);
+    try {
+      await deerflow.provisionAgent(resolvedAgentId, {
+        name: agentConfig.name || loadedAgent.name,
+        description: agentConfig.description,
+        instructions: agentConfig.instructions,
+        greeting_message: agentConfig.greetingMessage,
+        tone: agentConfig.toneOfVoice,
+        agent_type: loadedAgent.agentType,
+      });
+      toast.success("Agente provisionado no DeerFlow!");
+      setLoadedAgent(prev => ({ ...prev, executionEngine: "deerflow" }));
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao provisionar");
+    } finally {
+      setProvisioning(false);
+    }
+  };
 
   const handleSaveAgent = useCallback(async (config: AgentConfig & { model: string; agentType: string }) => {
     setIsSaving(true);

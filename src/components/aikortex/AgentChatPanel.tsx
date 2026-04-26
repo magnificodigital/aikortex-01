@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import {
   ArrowLeft, ArrowUp, Send, AlertTriangle,
   Sparkles, Bot, Mic, MicOff, Check, Loader2, Pencil, RotateCw, Brain, Lock, ChevronDown,
@@ -47,6 +47,7 @@ interface AgentChatPanelProps {
   setupModel: string;
   setSetupModel: (model: string) => void;
   setAgentModel: (model: string) => void;
+  executionEngineCard?: ReactNode;
   gatewayModels: ReadonlyArray<{ value: string; label: string }>;
   onGoToIntegrations: () => void;
   onConfigStructured: (config: StructuredAgentConfig) => void;
@@ -141,6 +142,7 @@ const AgentChatPanel = ({
   setupModel,
   setSetupModel,
   setAgentModel,
+  executionEngineCard,
   gatewayModels,
   onGoToIntegrations,
   onConfigStructured,

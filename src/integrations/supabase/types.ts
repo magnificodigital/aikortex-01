@@ -91,6 +91,41 @@ export type Database = {
           },
         ]
       }
+      agency_payment_secrets: {
+        Row: {
+          agency_id: string
+          asaas_api_key: string | null
+          asaas_wallet_id: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          agency_id: string
+          asaas_api_key?: string | null
+          asaas_wallet_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          agency_id?: string
+          asaas_api_key?: string | null
+          asaas_wallet_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_payment_secrets_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agency_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_profiles: {
         Row: {
           active_clients_count: number | null
@@ -132,41 +167,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      agency_payment_secrets: {
-        Row: {
-          id: string
-          agency_id: string
-          asaas_api_key: string | null
-          asaas_wallet_id: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          agency_id: string
-          asaas_api_key?: string | null
-          asaas_wallet_id?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          agency_id?: string
-          asaas_api_key?: string | null
-          asaas_wallet_id?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agency_payment_secrets_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: true
-            referencedRelation: "agency_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       agency_template_licenses: {
         Row: {

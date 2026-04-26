@@ -91,12 +91,45 @@ export type Database = {
           },
         ]
       }
+      agency_payment_secrets: {
+        Row: {
+          agency_id: string
+          asaas_api_key: string | null
+          asaas_wallet_id: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          agency_id: string
+          asaas_api_key?: string | null
+          asaas_wallet_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          agency_id?: string
+          asaas_api_key?: string | null
+          asaas_wallet_id?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_payment_secrets_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agency_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_profiles: {
         Row: {
           active_clients_count: number | null
           agency_name: string | null
-          asaas_api_key: string | null
-          asaas_wallet_id: string | null
           created_at: string | null
           custom_pricing: Json | null
           id: string
@@ -110,8 +143,6 @@ export type Database = {
         Insert: {
           active_clients_count?: number | null
           agency_name?: string | null
-          asaas_api_key?: string | null
-          asaas_wallet_id?: string | null
           created_at?: string | null
           custom_pricing?: Json | null
           id?: string
@@ -125,8 +156,6 @@ export type Database = {
         Update: {
           active_clients_count?: number | null
           agency_name?: string | null
-          asaas_api_key?: string | null
-          asaas_wallet_id?: string | null
           created_at?: string | null
           custom_pricing?: Json | null
           id?: string

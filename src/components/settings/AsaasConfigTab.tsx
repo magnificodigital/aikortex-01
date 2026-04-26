@@ -24,27 +24,22 @@ const AsaasConfigTab = () => {
   useEffect(() => {
     const load = async () => {
       if (!user) return;
-      // Only fetch wallet id + a boolean indicator. Never load the full API key into the browser.
       const { data: agencyData } = await supabase
         .from("agency_profiles")
         .select("id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+      if (!agencyData?.id) return;
 
       const { data: secrets } = await supabase
         .from("agency_payment_secrets")
-        .select("asaas_api_key, asaas_wallet_id")
-        .eq("agency_id", agencyData?.id)
+        .select("asaas_api_key")
+        .eq("agency_id", agencyData.id)
         .maybeSingle();
-
-      const asaas_api_key = secrets?.asaas_api_key ?? null;
-      const asaas_wallet_id = secrets?.asaas_wallet_id ?? null;
-
-      if (asaas_api_key) {
+      if (secrets?.asaas_api_key) {
         setExistingKey(true);
         setConnected(true);
-        // Display a masked placeholder instead of the real key
-        const masked = "••••••••••••" + String(asaas_api_key).slice(-4);
+        const masked = "••••••••••••" + String(secrets.asaas_api_key).slice(-4);
         setApiKey(masked);
       }
     };

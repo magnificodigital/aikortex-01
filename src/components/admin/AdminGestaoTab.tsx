@@ -30,8 +30,8 @@ import CreateUserDialog from "@/components/shared/CreateUserDialog";
 
 interface AgencyRow {
   id: string; user_id: string; agency_name: string | null; logo_url: string | null;
-  tier: string; active_clients_count: number | null; asaas_api_key: string | null;
-  asaas_wallet_id: string | null; created_at: string | null; custom_pricing: any;
+  tier: string; active_clients_count: number | null; has_asaas_key: boolean;
+  created_at: string | null; custom_pricing: any;
   email?: string; mrr?: number; platformRevenue?: number;
   tier_manually_overridden?: boolean;
 }
@@ -564,12 +564,17 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
   const fetchData = async () => {
     setLoading(true);
     try {
+      const { data: secrets } = await supabase
+        .from('agency_payment_secrets')
+        .select('agency_id');
+      const agenciesWithKey = new Set(secrets?.map(s => s.agency_id) ?? []);
+
       const [agenciesRes, subsRes, usersData, clientsRes] = await Promise.all([
-        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, asaas_api_key, asaas_wallet_id, created_at, custom_pricing, tier_manually_overridden").then((res: any) => {
+        supabase.from("agency_profiles").select("id, user_id, agency_name, logo_url, tier, active_clients_count, created_at, custom_pricing, tier_manually_overridden").then((res: any) => {
           if (res.data) {
             res.data = res.data.map((row: any) => ({
               ...row,
-              asaas_api_key: row.asaas_api_key ? "connected" : null,
+              has_asaas_key: agenciesWithKey.has(row.id),
             }));
           }
           return res;
@@ -723,7 +728,7 @@ const Level1 = ({ onSelectAgency, initialTier, initialAgencyId }: { onSelectAgen
                       <TableCell>{a.active_clients_count || 0}</TableCell>
                       <TableCell className="font-medium">R$ {((a.mrr || 0) + (a.platformRevenue || 0)).toFixed(2)}</TableCell>
                       <TableCell>
-                        {a.asaas_api_key ? <Badge className="bg-green-500/10 text-green-600 border-0 text-xs"><CheckCircle className="w-3 h-3 mr-1" />Conectado</Badge> :
+                        {a.has_asaas_key ? <Badge className="bg-green-500/10 text-green-600 border-0 text-xs"><CheckCircle className="w-3 h-3 mr-1" />Conectado</Badge> :
                           <Badge className="bg-red-500/10 text-red-500 border-0 text-xs"><XCircle className="w-3 h-3 mr-1" />Não config.</Badge>}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{relativeDate(a.created_at)}</TableCell>
@@ -846,7 +851,7 @@ const Level2 = ({ agency, onSelectClient, onAgencyUpdated }: { agency: AgencyRow
                   <p className="text-sm text-muted-foreground">{agency.email || "—"}</p>
                 </div>
               </div>
-              <p className="text-sm"><span className="text-muted-foreground">Asaas:</span> {agency.asaas_api_key ? "Configurado" : "Não configurado"}</p>
+              <p className="text-sm"><span className="text-muted-foreground">Asaas:</span> {agency.has_asaas_key ? "Configurado" : "Não configurado"}</p>
               <p className="text-sm text-muted-foreground">Cadastro: {relativeDate(agency.created_at)}</p>
             </div>
             <div className="space-y-2">

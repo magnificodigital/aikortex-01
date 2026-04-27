@@ -55,27 +55,28 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
     const load = async () => {
       try {
-        // Platform owner/admin: load ALL agencies and ALL clients (cascata)
+        // Platform owner/admin: treat as regular agency in workspace context.
+        // Cross-agency data is only available in /admin panel.
         if (profile?.tenant_type === "platform") {
           setIsPlatformOwner(true);
-          const { data: ag } = await supabase
+          const { data: agency } = await supabase
             .from("agency_profiles")
             .select("id, agency_name")
-            .order("agency_name");
-          setAgencies((ag ?? []).map(a => ({ id: a.id, name: a.agency_name ?? "Sem nome" })));
-          const { data: cl } = await supabase
-            .from("agency_clients")
-            .select("id, client_name, client_email, status, client_user_id, agency_id")
-            .eq("status", "active")
-            .order("client_name");
-          const enriched: AgencyClient[] = (cl ?? []).map(c => ({
-            ...c,
-            agency_name: ag?.find(a => a.id === c.agency_id)?.agency_name ?? undefined,
-          }));
-          setClients(enriched);
-          setAgencyName("Plataforma");
-          setAgencyProfileId(null);
-          setActiveWorkspace({ type: "agency", id: "", name: "Plataforma" });
+            .eq("user_id", user.id)
+            .maybeSingle();
+          const name = agency?.agency_name || "Plataforma";
+          setAgencyName(name);
+          setAgencyProfileId(agency?.id ?? null);
+          if (agency?.id) {
+            const { data } = await supabase
+              .from("agency_clients")
+              .select("id, client_name, client_email, status, client_user_id")
+              .eq("agency_id", agency.id)
+              .eq("status", "active")
+              .order("client_name");
+            setClients(data ?? []);
+          }
+          setActiveWorkspace({ type: "agency", id: agency?.id ?? "", name });
           return;
         }
 

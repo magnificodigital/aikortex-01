@@ -83,11 +83,6 @@ const AgencyRoute = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute tenantTypes={['agency', 'platform', 'client']}>{children}</ProtectedRoute>
 );
 
-// Client-only route guard
-const ClientRoute = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute tenantTypes={['client']}>{children}</ProtectedRoute>
-);
-
 const Loading = () => (
   <div className="flex h-screen items-center justify-center bg-background">
     <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -148,7 +143,7 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute roles={['platform_owner','platform_admin']}><AdminPanel /></ProtectedRoute>} />
 
               {/* Client workspace routes */}
-              <Route path="/workspace/*" element={<ClientRoute><Workspace /></ClientRoute>} />
+              <Route path="/workspace/*" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
 
               <Route path="/tutorials" element={<Navigate to="/home" replace />} />
               <Route path="*" element={<NotFound />} />

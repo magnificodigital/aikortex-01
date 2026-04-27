@@ -81,11 +81,22 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
         // Direct client login — no agency profile, force client workspace
         if (profile?.tenant_type === "client") {
-          const clientName = profile?.full_name ?? user.email ?? "Cliente";
+          const { data: clientRecord } = await supabase
+            .from("agency_clients")
+            .select("id, client_name, agency_id")
+            .eq("client_user_id", user.id)
+            .maybeSingle();
+
+          const clientName = clientRecord?.client_name ?? profile?.full_name ?? user.email ?? "Cliente";
           setAgencyName(clientName);
-          setAgencyProfileId(null);
+          setAgencyProfileId(clientRecord?.agency_id ?? null);
           setClients([]);
-          setActiveWorkspace({ type: "client", id: user.id, name: clientName });
+          setActiveWorkspace({
+            type: "client",
+            id: clientRecord?.id ?? user.id,
+            name: clientName,
+            clientUserId: user.id,
+          });
           return;
         }
 

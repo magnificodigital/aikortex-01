@@ -35,7 +35,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { theme, toggle } = useTheme();
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const [globalSearch, setGlobalSearch] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -182,7 +182,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
             {theme === "dark" ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
             <span>{theme === "dark" ? "Modo claro" : "Modo escuro"}</span>
           </button>
-          <button onClick={() => navigate("/home")} className={`${linkClasses(false)} w-full`}>
+          <button onClick={async () => { await signOut(); navigate("/"); }} className={`${linkClasses(false)} w-full`}>
             <ArrowLeft className="w-4 h-4 shrink-0" />
             <span>Sair do Admin</span>
           </button>

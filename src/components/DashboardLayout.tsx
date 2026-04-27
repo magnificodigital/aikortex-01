@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
-import { Menu, X, AlertTriangle, Key, TrendingUp } from "lucide-react";
+import { Menu, X, AlertTriangle, Key, TrendingUp, Eye, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import { RightPanelProvider } from "./RightPanel";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMonthlyUsage } from "@/hooks/use-monthly-usage";
 import { LightboxNotificationModal } from "@/components/clients/LightboxNotificationModal";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
@@ -17,6 +19,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const [bannerDismissed, setBannerDismissed] = useState(() =>
     sessionStorage.getItem("usage-banner-dismissed") === "true"
   );
+  const { isClientMode, activeWorkspace, switchToAgency } = useWorkspace();
+  const { profile } = useAuth();
+  const isImpersonating = isClientMode && profile?.tenant_type !== "client";
 
   useEffect(() => {
     if (!isMobile) setMobileSidebarOpen(false);
@@ -52,6 +57,17 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               <button onClick={dismissBanner} className="shrink-0 text-muted-foreground hover:text-foreground">
                 <X className="h-4 w-4" />
               </button>
+            </div>
+          )}
+          {isImpersonating && (
+            <div className="sticky top-0 z-40 flex items-center gap-3 bg-primary/10 border-b border-primary/20 px-4 py-2.5 text-sm">
+              <Eye className="h-4 w-4 text-primary shrink-0" />
+              <span className="flex-1 text-foreground">
+                Visualizando como cliente: {activeWorkspace.name}
+              </span>
+              <Button size="sm" variant="outline" className="shrink-0 text-xs gap-1.5" onClick={switchToAgency}>
+                <ArrowLeft className="w-3 h-3" /> Voltar para minha conta
+              </Button>
             </div>
           )}
           {isMobile && (

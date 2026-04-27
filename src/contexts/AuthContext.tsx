@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const getRedirectPath = () => {
     if (isPlatformOwner || isPlatformAdmin) return "/admin";
-    if (isClient) return "/workspace";
+    if (isClient) return "/home";
     return "/home";
   };
 

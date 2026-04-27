@@ -80,7 +80,7 @@ const queryClient = new QueryClient();
 
 // Agency-only route guard
 const AgencyRoute = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute tenantTypes={['agency', 'platform']}>{children}</ProtectedRoute>
+  <ProtectedRoute tenantTypes={['agency', 'platform', 'client']}>{children}</ProtectedRoute>
 );
 
 // Client-only route guard

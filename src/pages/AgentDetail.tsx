@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Loader2, ArrowLeft, Sparkles, Bot, Settings, Plug, Share2, Rocket, Phone, Brain, Monitor, Workflow, Zap } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, Bot, Settings, Plug, Share2, Rocket, Phone, Brain, Monitor, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ConversationProvider } from "@elevenlabs/react";
 import AgentRightPanel, { type AgentConfig } from "@/components/aikortex/AgentRightPanel";
@@ -255,32 +254,36 @@ const AgentDetail = () => {
   /* ── Save agent ── */
 
   const { saveAgent } = useUserAgents();
+  const DEERFLOW_AGENT_TYPES = ["SDR", "BDR"];
+
+  const autoProvisionIfNeeded = useCallback(
+    async (savedAgent: { id: string; agent_type: string; execution_engine?: string; name?: string }) => {
+      if (
+        !savedAgent.id ||
+        savedAgent.execution_engine === "deerflow" ||
+        !DEERFLOW_AGENT_TYPES.includes(savedAgent.agent_type)
+      ) return;
+      try {
+        await deerflow.provisionAgent(savedAgent.id, {
+          name: savedAgent.name || agentConfig?.name || loadedAgent.name,
+          description: agentConfig?.description,
+          instructions: agentConfig?.instructions,
+          greeting_message: agentConfig?.greetingMessage,
+          tone: agentConfig?.toneOfVoice,
+          agent_type: savedAgent.agent_type,
+        });
+        setLoadedAgent(prev => ({ ...prev, executionEngine: "deerflow" }));
+      } catch {
+        // silent fail — não bloqueia o fluxo principal
+      }
+    },
+    [deerflow, agentConfig, loadedAgent.name]
+  );
+
   const [isSaving, setIsSaving] = useState(false);
-  const [provisioning, setProvisioning] = useState(false);
   const [rightPanelTab, setRightPanelTab] = useState("agent");
   const [showOutboundCall, setShowOutboundCall] = useState(false);
   const [showBrowserCall, setShowBrowserCall] = useState(false);
-
-  const handleProvision = async () => {
-    if (!resolvedAgentId || !agentConfig) return;
-    setProvisioning(true);
-    try {
-      await deerflow.provisionAgent(resolvedAgentId, {
-        name: agentConfig.name || loadedAgent.name,
-        description: agentConfig.description,
-        instructions: agentConfig.instructions,
-        greeting_message: agentConfig.greetingMessage,
-        tone: agentConfig.toneOfVoice,
-        agent_type: loadedAgent.agentType,
-      });
-      toast.success("Agente provisionado no DeerFlow!");
-      setLoadedAgent(prev => ({ ...prev, executionEngine: "deerflow" }));
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao provisionar");
-    } finally {
-      setProvisioning(false);
-    }
-  };
 
   const handleSaveAgent = useCallback(async (config: AgentConfig & { model: string; agentType: string }) => {
     setIsSaving(true);
@@ -314,6 +317,7 @@ const AgentDetail = () => {
           chatMode,
         },
       });
+      if (result) autoProvisionIfNeeded(result as any);
       if (result) {
         setLoadedAgent({
           name: config.name,
@@ -330,7 +334,7 @@ const AgentDetail = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [agentId, saveAgent, navigate, wizardStep, wizardMessages, setupModel, chatMode]);
+  }, [agentId, saveAgent, navigate, wizardStep, wizardMessages, setupModel, chatMode, autoProvisionIfNeeded]);
 
   const saveAgentRef = useRef(handleSaveAgent);
   saveAgentRef.current = handleSaveAgent;
@@ -447,6 +451,7 @@ const AgentDetail = () => {
           urls:            [],
         },
       });
+      if (result) autoProvisionIfNeeded(result as any);
 
       if (result) {
         toast.success(`✅ ${config.agent_name} criado com sucesso!`);
@@ -494,7 +499,7 @@ const AgentDetail = () => {
     } finally {
       setIsBuilding(false);
     }
-  }, [agentId, saveAgent, navigate, agentModel, loadedAgent.agentType]);
+  }, [agentId, saveAgent, navigate, agentModel, loadedAgent.agentType, autoProvisionIfNeeded]);
 
   /* ── Templates: do NOT preload preset data.
         The wizard chat must collect every detail from the user before the
@@ -822,31 +827,6 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
         setupModel={setupModel}
         setSetupModel={setSetupModel}
         setAgentModel={setAgentModel}
-        executionEngineCard={resolvedAgentId ? (
-          <div className="mb-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-card/50 px-3 py-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
-                <Zap className="h-3.5 w-3.5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-foreground">Engine DeerFlow</p>
-                <p className="truncate text-[11px] text-muted-foreground">
-                  {loadedAgent.executionEngine === "deerflow"
-                    ? `Ativo — ${loadedAgent.deerflowAgentName ?? ""}`
-                    : "Agentes complexos (SDR, BDR, Research)"}
-                </p>
-              </div>
-            </div>
-            {loadedAgent.executionEngine === "deerflow" ? (
-              <Badge variant="secondary" className="shrink-0 text-[11px]">Ativo</Badge>
-            ) : (
-              <Button size="sm" variant="outline" className="h-7 shrink-0 gap-1.5 text-xs" onClick={handleProvision} disabled={provisioning}>
-                {provisioning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-                Provisionar
-              </Button>
-            )}
-          </div>
-        ) : null}
         gatewayModels={GATEWAY_MODELS}
         onGoToIntegrations={() => { setShowConfig(true); setRightPanelTab("connectors"); }}
         onConfigStructured={handleConfigStructured}

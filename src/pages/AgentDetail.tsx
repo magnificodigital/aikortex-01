@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AGENT_PRESETS } from "@/types/agent-presets";
 import { getOperationalInstructions, type OperationalContext } from "@/lib/agent-operational-prompts";
 import { DEFAULT_FREE_SETUP_MODEL, GATEWAY_MODELS, normalizeFreeSetupModel } from "@/lib/free-setup-models";
-import { LLM_MODELS as ALL_LLM_MODELS, getGroupedModels, getProviderForModel, DEFAULT_FREE_MODEL } from "@/lib/llm-models";
+import { LLM_MODELS as ALL_LLM_MODELS, getGroupedModels, getProviderForModel, DEFAULT_FREE_MODEL, normalizeModelId } from "@/lib/llm-models";
 import AgentMemoryTab from "@/components/aikortex/AgentMemoryTab";
 import { useAgentMemory } from "@/hooks/use-agent-memory";
 
@@ -31,8 +31,8 @@ import avatar8 from "@/assets/avatars/avatar-8.png";
 /* ── Constants ── */
 
 const TEMPLATE_MAP: Record<string, { name: string; avatar: string; model: string; agentType: AgentType; autoPrompt: string }> = {
-  "sdr-1":    { name: "Agente SDR",           avatar: avatar1, model: "google/gemini-2.5-flash", agentType: "SDR",    autoPrompt: "Crie um agente SDR para qualificação de leads inbound. Ele deve coletar nome, email, empresa e interesse do lead, qualificar com base em critérios BANT e agendar reuniões com o time comercial." },
-  "sac-1":    { name: "Agente SAC",           avatar: avatar3, model: "google/gemini-2.5-flash", agentType: "SAC",    autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
+  "sdr-1":    { name: "Agente SDR",           avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: "SDR",    autoPrompt: "Crie um agente SDR para qualificação de leads inbound. Ele deve coletar nome, email, empresa e interesse do lead, qualificar com base em critérios BANT e agendar reuniões com o time comercial." },
+  "sac-1":    { name: "Agente SAC",           avatar: avatar3, model: "google/gemini-2.0-flash-001", agentType: "SAC",    autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
 };
 
 const AVATAR_BY_TYPE: Record<string, string> = {
@@ -135,7 +135,7 @@ const AgentDetail = () => {
       // Templates start with neutral name — wizard chat will collect details first
       return { name: "Novo Agente", avatar: templateAgent.avatar, model: templateAgent.model, agentType: templateAgent.agentType, savedConfig: null };
     }
-    return { name: "Carregando...", avatar: avatar1, model: "google/gemini-2.5-flash", agentType: initialType, savedConfig: null };
+    return { name: "Carregando...", avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: initialType, savedConfig: null };
   });
   const [agentLoading, setAgentLoading] = useState(!isTemplate);
 
@@ -148,7 +148,7 @@ const AgentDetail = () => {
         setLoadedAgent({
           name:              data.name,
           avatar:            data.avatar_url || AVATAR_BY_TYPE[data.agent_type] || avatar1,
-          model:             data.model || "google/gemini-2.5-flash",
+          model:             data.model || "google/gemini-2.0-flash-001",
           agentType:         (data.agent_type as AgentType) || "Custom",
           executionEngine:   (data as any).execution_engine || undefined,
           deerflowAgentName: (data as any).deerflow_agent_name || undefined,
@@ -199,8 +199,8 @@ const AgentDetail = () => {
   /* ── Model state ── */
 
   const [agentModel, setAgentModel] = useState(() => {
-    if (!shouldPersistTemplateDraft) return loadedAgent.model;
-    try { return localStorage.getItem(`${storagePrefix}-model`) || loadedAgent.model; } catch { return loadedAgent.model; }
+    if (!shouldPersistTemplateDraft) return normalizeModelId(loadedAgent.model);
+    try { return normalizeModelId(localStorage.getItem(`${storagePrefix}-model`) || loadedAgent.model); } catch { return normalizeModelId(loadedAgent.model); }
   });
   const [setupModel, setSetupModel] = useState<string>(() => {
     if (!shouldPersistTemplateDraft) return DEFAULT_FREE_SETUP_MODEL;
@@ -216,9 +216,9 @@ const AgentDetail = () => {
     setAgentModel((currentModel) => {
       try {
         const storedModel = localStorage.getItem(`${storagePrefix}-model`);
-        return storedModel || loadedAgent.model || currentModel;
+        return normalizeModelId(storedModel || loadedAgent.model) || currentModel;
       } catch {
-        return loadedAgent.model || currentModel;
+        return normalizeModelId(loadedAgent.model) || currentModel;
       }
     });
   }, [loadedAgent.model, storagePrefix, shouldPersistTemplateDraft]);
@@ -551,13 +551,61 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
   /* ── Chat (wizard-setup mode — guided Q&A to fill agent config) ── */
 
   const wizardAgentTypeKey = (loadedAgent.agentType || "Custom").toLowerCase();
+
+  const wizardSystemPrompt = useMemo(() => {
+    const typeMap: Record<string, string> = {
+      sdr: "SDR (vendas e qualificação de leads)",
+      sac: "SAC (suporte ao cliente)",
+      bdr: "BDR (prospecção B2B)",
+      cs: "Customer Success",
+      custom: "personalizado",
+    };
+    const typeName = typeMap[wizardAgentTypeKey] || wizardAgentTypeKey.toUpperCase();
+
+    const questionsByType: Record<string, string> = {
+      sdr: `1. Nome da empresa e produto/serviço principal
+2. Perfil ideal do cliente (B2B/B2C, segmento, porte)
+3. Nome do agente e como deve se apresentar
+4. Canal principal de atuação (WhatsApp, site, etc.)
+5. Tom de voz (formal, casual, amigável, etc.)
+6. Ferramenta de agendamento (Calendly, Cal.com, Google Calendar, etc.) — se houver
+7. O que desqualifica um lead automaticamente
+8. Proibições ou cuidados especiais`,
+      sac: `1. Nome da empresa e produto/serviço
+2. Nome do agente e como deve se apresentar
+3. Principais dúvidas e problemas que deve resolver
+4. Tom de voz (formal, empático, etc.)
+5. Critério e método de escalada para humano
+6. Sistema de tickets (Zendesk, Freshdesk, etc.) — se houver`,
+    };
+
+    const questions = questionsByType[wizardAgentTypeKey] ||
+      `1. Nome da empresa e produto/serviço
+2. Objetivo do agente
+3. Nome e personalidade do agente
+4. Tom de voz
+5. Canais de atuação
+6. Restrições ou proibições especiais`;
+
+    return `Você é um assistente de configuração da plataforma Aikortex. Entreviste o usuário para criar um agente ${typeName} personalizado.
+
+REGRAS OBRIGATÓRIAS:
+- Faça EXATAMENTE UMA pergunta por resposta (máximo 2 linhas)
+- Converse naturalmente; NÃO mostre listas ou numerações ao usuário
+- Responda SEMPRE em português brasileiro
+- Quando receber "start", vá direto para a primeira pergunta (sem introdução longa)
+- Após coletar todos os dados, encerre com: "Perfeito! Vou configurar seu agente agora."
+
+Sequência de informações a coletar (UMA de cada vez):
+${questions}`;
+  }, [wizardAgentTypeKey]);
+
   const wizardChat = useAgentChat(
     [],
     {
-      useGateway: true,
-      gatewayModel: setupModel,
-      mode: "wizard-setup",
-      agentType: wizardAgentTypeKey,
+      model: setupModel,
+      systemPrompt: wizardSystemPrompt,
+      apiConfig: { maxTokens: 400, temperature: 0.7 },
       persistKey: shouldPersistTemplateDraft ? `${storagePrefix}-wizard-messages` : undefined,
       disableCrmExtraction: true,
     }

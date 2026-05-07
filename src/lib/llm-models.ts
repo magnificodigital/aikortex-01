@@ -71,7 +71,7 @@ export function getGroupedModels() {
   return groups;
 }
 
-export const DEFAULT_FREE_MODEL = "google/gemini-2.5-flash";
+export const DEFAULT_FREE_MODEL = "google/gemini-2.0-flash-001";
 
 /** Map deprecated/legacy OpenRouter model IDs to their current equivalents. */
 const LEGACY_MODEL_ALIASES: Record<string, string> = {
@@ -83,7 +83,10 @@ const LEGACY_MODEL_ALIASES: Record<string, string> = {
 
 export function normalizeModelId(modelId?: string | null): string {
   if (!modelId) return DEFAULT_FREE_MODEL;
-  return LEGACY_MODEL_ALIASES[modelId] || modelId;
+  const aliased = LEGACY_MODEL_ALIASES[modelId] || modelId;
+  // Short form without provider prefix (e.g. "gemini-2.5-flash") → add "google/"
+  if (!aliased.includes("/") && aliased.startsWith("gemini")) return `google/${aliased}`;
+  return aliased;
 }
 
 export function getProviderForModel(modelId: string): string {

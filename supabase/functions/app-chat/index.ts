@@ -11,7 +11,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const DEFAULT_MODEL = "google/gemini-2.5-flash";
+const DEFAULT_MODEL = "google/gemini-2.0-flash-001";
 
 function normalizeModel(model: string | undefined, provider?: string): string {
   if (!model) return DEFAULT_MODEL;
@@ -61,14 +61,19 @@ serve(async (req) => {
       );
     }
 
+    // Gemini 2.5 models are currently slow on OpenRouter — redirect to 2.0 Flash.
+    const SLOW_MODELS = new Set(["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "google/gemini-2.5-pro"]);
+    const resolvedModel = normalizeModel(model, provider);
+    const finalModel = SLOW_MODELS.has(resolvedModel) ? "google/gemini-2.0-flash-001" : resolvedModel;
+
     const orPayload: Record<string, unknown> = {
-      model: normalizeModel(model, provider),
+      model: finalModel,
       messages,
       stream: true,
     };
     if (typeof temperature === "number") orPayload.temperature = temperature;
-    // Cap max_tokens to avoid OpenRouter 402 "requires more credits" errors.
-    const MAX_TOKENS_CAP = 8000;
+    // Cap max_tokens — keep default low to avoid OpenRouter 402 errors and slow responses.
+    const MAX_TOKENS_CAP = 2000;
     orPayload.max_tokens = typeof max_tokens === "number"
       ? Math.min(max_tokens, MAX_TOKENS_CAP)
       : MAX_TOKENS_CAP;
@@ -83,7 +88,7 @@ serve(async (req) => {
       headers: {
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://aikortex01.lovable.app",
+        "HTTP-Referer": "https://aikortex26.lovable.app",
         "X-Title": "Aikortex",
       },
       body: JSON.stringify(orPayload),
@@ -106,12 +111,18 @@ serve(async (req) => {
       });
     }
 
-    return new Response(orResp.body, {
+    // Use TransformStream + pipeTo — the most reliable streaming pattern in Deno/Supabase.
+    // pipeTo drives the pump automatically and closes the readable side on completion.
+    const { readable, writable } = new TransformStream();
+    orResp.body.pipeTo(writable).catch(() => {});
+
+    return new Response(readable, {
       headers: {
         ...corsHeaders,
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
       },
     });
   } catch (e) {

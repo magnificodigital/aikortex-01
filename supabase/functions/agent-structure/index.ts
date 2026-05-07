@@ -3,7 +3,7 @@
 // structured agent config in PT-BR, including a high-quality `instructions`
 // prompt organized in clear stages using prompt-engineering best practices.
 //
-// Uses the Lovable AI Gateway (LOVABLE_API_KEY) — no user BYOK needed.
+// Uses OpenRouter (OPENROUTER_API_KEY) — no user BYOK needed.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -14,8 +14,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-flash";
+const GATEWAY_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "google/gemini-2.0-flash-001";
 
 const SYSTEM_PROMPT = `Você é um arquiteto sênior de agentes de IA. Sua tarefa é transformar a descrição (ou entrevista) fornecida pelo usuário em uma configuração COMPLETA de agente, em português do Brasil.
 
@@ -80,9 +80,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) {
+      return new Response(JSON.stringify({ error: "OPENROUTER_API_KEY not configured" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -107,8 +107,10 @@ Gere a configuração completa via \`build_agent_config\`.`;
     const resp = await fetch(GATEWAY_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://aikortex26.lovable.app",
+        "X-Title": "Aikortex",
       },
       body: JSON.stringify({
         model: MODEL,

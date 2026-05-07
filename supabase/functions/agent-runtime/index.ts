@@ -232,7 +232,7 @@ serve(async (req) => {
       headers: {
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://aikortex01.lovable.app",
+        "HTTP-Referer": "https://aikortex26.lovable.app",
         "X-Title": "Aikortex",
       },
       body: JSON.stringify(orPayload),

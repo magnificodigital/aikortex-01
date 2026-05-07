@@ -618,6 +618,7 @@ ${questions}`;
     if (agentLoading) return;
     if (wizardStep !== "discover") return;
     if (wizardChat.messages.length > 0) { wizardStartedRef.current = true; return; }
+    console.log("[wizard] auto-sending start");
     wizardStartedRef.current = true;
     void wizardChat.sendMessage("start");
   }, [agentLoading, wizardStep, wizardChat]);
@@ -630,6 +631,7 @@ ${questions}`;
   const wizardCompletedRef = useRef(false);
 
   const runWizardBuild = useCallback(async (conversationSummary: string) => {
+    console.log("[wizard] runWizardBuild triggered, summary length:", conversationSummary.length);
     if (wizardCompletedRef.current) return;
     wizardCompletedRef.current = true;
 

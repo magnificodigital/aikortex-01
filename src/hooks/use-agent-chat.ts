@@ -186,6 +186,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
   }, []);
 
   const sendMessage = useCallback(async (userText: string) => {
+    console.log("[chat] sendMessage →", JSON.stringify(userText).slice(0, 40), "model:", options.model, "streaming:", isStreaming);
     if (!userText.trim() || isStreaming) return;
 
     const inferredProvider = deriveProvider(options.model);
@@ -273,6 +274,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
           }
         }
 
+        console.log("[chat] fetch →", getAgentRuntimeUrl(options.mode), "payload model:", payload.model, "msgs:", (payload.messages as any[])?.length);
         resp = await fetch(getAgentRuntimeUrl(options.mode), {
           method: "POST",
           headers: {
@@ -281,6 +283,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
           },
           body: JSON.stringify(payload),
         });
+        console.log("[chat] response status:", resp?.status);
         if (resp.status !== 429 || attempt === maxRetries) break;
         const waitMs = (attempt + 1) * 2000;
         await new Promise((r) => setTimeout(r, waitMs));
@@ -333,6 +336,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
         }
       }
 
+      console.log("[chat] stream done, flushing. text length:", pendingTextRef.current.length);
       flushPendingText(true);
 
       const finalText = pendingTextRef.current;

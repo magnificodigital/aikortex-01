@@ -564,39 +564,32 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
 
     const questionsByType: Record<string, string> = {
       sdr: `1. Nome da empresa e produto/serviço principal
-2. Perfil ideal do cliente (B2B/B2C, segmento, porte)
-3. Nome do agente e como deve se apresentar
-4. Canal principal de atuação (WhatsApp, site, etc.)
-5. Tom de voz (formal, casual, amigável, etc.)
-6. Ferramenta de agendamento (Calendly, Cal.com, Google Calendar, etc.) — se houver
-7. O que desqualifica um lead automaticamente
-8. Proibições ou cuidados especiais`,
+2. Público-alvo e perfil ideal do cliente
+3. Tom de voz do agente
+4. Canal principal (WhatsApp, site, etc.)
+5. O que desqualifica um lead automaticamente`,
       sac: `1. Nome da empresa e produto/serviço
-2. Nome do agente e como deve se apresentar
-3. Principais dúvidas e problemas que deve resolver
-4. Tom de voz (formal, empático, etc.)
-5. Critério e método de escalada para humano
-6. Sistema de tickets (Zendesk, Freshdesk, etc.) — se houver`,
+2. Principais dúvidas e problemas que o agente deve resolver
+3. Tom de voz (formal, empático, descontraído, etc.)
+4. Como deve encaminhar casos que não souber resolver`,
     };
 
     const questions = questionsByType[wizardAgentTypeKey] ||
       `1. Nome da empresa e produto/serviço
-2. Objetivo do agente
-3. Nome e personalidade do agente
-4. Tom de voz
-5. Canais de atuação
-6. Restrições ou proibições especiais`;
+2. Objetivo principal do agente
+3. Tom de voz
+4. Restrições ou proibições especiais`;
 
     return `Você é um assistente de configuração da plataforma Aikortex. Entreviste o usuário para criar um agente ${typeName} personalizado.
 
 REGRAS OBRIGATÓRIAS:
 - Faça EXATAMENTE UMA pergunta por resposta (máximo 2 linhas)
-- Converse naturalmente; NÃO mostre listas ou numerações ao usuário
-- Responda SEMPRE em português brasileiro
-- Quando receber "start", vá direto para a primeira pergunta (sem introdução longa)
-- Após coletar todos os dados, encerre com: "Perfeito! Vou configurar seu agente agora."
+- Converse naturalmente em português brasileiro; NÃO mostre listas ou numerações
+- Quando receber "start", vá direto para a primeira pergunta (sem introdução)
+- NUNCA gere blocos de configuração, JSON, YAML ou resumos técnicos
+- Após coletar todas as informações, diga EXATAMENTE esta frase e mais nada: "Perfeito! Vou configurar seu agente agora."
 
-Sequência de informações a coletar (UMA de cada vez):
+Informações a coletar (UMA pergunta de cada vez, na ordem):
 ${questions}`;
   }, [wizardAgentTypeKey]);
 
@@ -691,7 +684,17 @@ ${questions}`;
       } catch { /* malformed, fall through */ }
     }
 
-    // Case 2: plain-text config summary (AI lists agent_name:, tone:, etc.)
+    // Case 2: AI said the closing phrase
+    const isClosingPhrase = lastAgentMsg.text.includes("Vou configurar seu agente agora");
+    if (isClosingPhrase) {
+      const summary = wizardChat.messages
+        .map(m => m.role === "user" ? `Usuário: ${m.text}` : `Assistente: ${m.text}`)
+        .join("\n");
+      void runWizardBuild(summary);
+      return;
+    }
+
+    // Case 3: plain-text config summary (AI went off-script and generated agent_name: etc.)
     const isConfigSummary =
       (lastAgentMsg.text.includes("agent_name:") || lastAgentMsg.text.includes("agent_type:")) &&
       (lastAgentMsg.text.includes("tone:") || lastAgentMsg.text.includes("objective:") || lastAgentMsg.text.includes("description:"));

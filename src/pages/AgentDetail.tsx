@@ -625,7 +625,7 @@ ${questions}`;
 
   // Number of Q&A questions per agent type (first agent msg is intro, rest are questions)
   const WIZARD_MIN_QUESTIONS: Record<string, number> = {
-    sdr: 8, sac: 6, support: 6, marketing: 6, custom: 6,
+    sdr: 6, sac: 4, support: 4, marketing: 4, custom: 4,
   };
 
   const wizardCompletedRef = useRef(false);
@@ -668,31 +668,38 @@ ${questions}`;
     void runWizardBuild(summary);
   }, [wizardChat.messages, wizardChat.isStreaming, wizardStep, wizardAgentTypeKey, runWizardBuild]);
 
-  // Also detect explicit ```agent-config``` block if AI generates one before minRequired
+  // Detect ```agent-config``` block OR plain-text config summary from AI
   useEffect(() => {
     if (wizardCompletedRef.current) return;
     if (wizardChat.isStreaming) return;
     if (wizardStep !== "discover") return;
+    if (wizardChat.messages.filter(m => m.role === "user").length < 3) return;
 
     const lastAgentMsg = [...wizardChat.messages].reverse().find(m => m.role === "agent");
     if (!lastAgentMsg) return;
-    const match = lastAgentMsg.text.match(/```agent-config\s*([\s\S]*?)```/);
-    if (!match) return;
 
-    try {
-      const parsed = JSON.parse(match[1].trim().replace(/^```json\s*/i, "").replace(/```$/i, "").trim());
-      const brief = [
-        parsed.companyName  ? `Empresa: ${parsed.companyName}` : "",
-        parsed.description  ? `Descrição: ${parsed.description}` : "",
-        parsed.objective    ? `Objetivo: ${parsed.objective}` : "",
-        parsed.toneOfVoice  ? `Tom de voz: ${parsed.toneOfVoice}` : "",
-        parsed.greetingMessage ? `Saudação: ${parsed.greetingMessage}` : "",
-        parsed.instructions ? `Instruções:\n${parsed.instructions}` : "",
-      ].filter(Boolean).join("\n\n");
+    // Case 1: markdown agent-config block
+    const blockMatch = lastAgentMsg.text.match(/```agent-config\s*([\s\S]*?)```/);
+    if (blockMatch) {
+      try {
+        const parsed = JSON.parse(blockMatch[1].trim());
+        const brief = wizardChat.messages
+          .map(m => m.role === "user" ? `Usuário: ${m.text}` : `Assistente: ${m.text}`)
+          .join("\n");
+        void runWizardBuild(brief);
+        return;
+      } catch { /* malformed, fall through */ }
+    }
 
-      void runWizardBuild(brief || "Agente configurado via wizard");
-    } catch {
-      // malformed block — wait for auto-advance by message count
+    // Case 2: plain-text config summary (AI lists agent_name:, tone:, etc.)
+    const isConfigSummary =
+      (lastAgentMsg.text.includes("agent_name:") || lastAgentMsg.text.includes("agent_type:")) &&
+      (lastAgentMsg.text.includes("tone:") || lastAgentMsg.text.includes("objective:") || lastAgentMsg.text.includes("description:"));
+    if (isConfigSummary) {
+      const summary = wizardChat.messages
+        .map(m => m.role === "user" ? `Usuário: ${m.text}` : `Assistente: ${m.text}`)
+        .join("\n");
+      void runWizardBuild(summary);
     }
   }, [wizardChat.messages, wizardChat.isStreaming, wizardStep, runWizardBuild]);
 

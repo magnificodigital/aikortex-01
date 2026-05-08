@@ -31,8 +31,11 @@ import avatar8 from "@/assets/avatars/avatar-8.png";
 /* ── Constants ── */
 
 const TEMPLATE_MAP: Record<string, { name: string; avatar: string; model: string; agentType: AgentType; autoPrompt: string }> = {
-  "sdr-1":    { name: "Agente SDR",           avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: "SDR",    autoPrompt: "Crie um agente SDR para qualificação de leads inbound. Ele deve coletar nome, email, empresa e interesse do lead, qualificar com base em critérios BANT e agendar reuniões com o time comercial." },
-  "sac-1":    { name: "Agente SAC",           avatar: avatar3, model: "google/gemini-2.0-flash-001", agentType: "SAC",    autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
+  "sdr-1":    { name: "Agente SDR",    avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: "SDR",    autoPrompt: "Crie um agente SDR para qualificação de leads inbound. Ele deve coletar nome, email, empresa e interesse do lead, qualificar com base em critérios BANT e agendar reuniões com o time comercial." },
+  "sac-1":    { name: "Agente SAC",    avatar: avatar3, model: "google/gemini-2.0-flash-001", agentType: "SAC",    autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
+  "bdr-1":    { name: "Agente BDR",    avatar: avatar2, model: "google/gemini-2.0-flash-001", agentType: "BDR",    autoPrompt: "Crie um agente BDR para prospecção ativa B2B. Ele deve identificar decisores, apresentar a proposta de valor da empresa e qualificar interesse antes de passar para o time comercial." },
+  "cs-1":     { name: "Agente CS",     avatar: avatar8, model: "google/gemini-2.0-flash-001", agentType: "CS",     autoPrompt: "Crie um agente de Customer Success. Ele deve acompanhar clientes pós-venda, garantir adoção do produto, identificar riscos de churn e gerar oportunidades de upsell." },
+  "custom-1": { name: "Agente Custom", avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: "Custom", autoPrompt: "Crie um agente personalizado conforme as necessidades específicas do negócio." },
 };
 
 const AVATAR_BY_TYPE: Record<string, string> = {
@@ -564,14 +567,24 @@ IMPORTANTE: Você NÃO é o agente final. Apenas configure.`;
 
     const questionsByType: Record<string, string> = {
       sdr: `1. Nome da empresa e produto/serviço principal
-2. Público-alvo e perfil ideal do cliente
-3. Tom de voz do agente
-4. Canal principal (WhatsApp, site, etc.)
-5. O que desqualifica um lead automaticamente`,
+2. Público-alvo e perfil ideal do cliente (ICP)
+3. Tom de voz do agente (formal, consultivo, descontraído, etc.)
+4. Critério principal de qualificação de lead
+5. O que desqualifica um lead automaticamente
+6. Próximo passo após qualificação (agendar reunião, enviar proposta, etc.)`,
       sac: `1. Nome da empresa e produto/serviço
 2. Principais dúvidas e problemas que o agente deve resolver
 3. Tom de voz (formal, empático, descontraído, etc.)
 4. Como deve encaminhar casos que não souber resolver`,
+      bdr: `1. Nome da empresa e produto/serviço principal
+2. Perfil de empresa-alvo (segmento, porte, cargo do decisor)
+3. Proposta de valor principal (o que diferencia a empresa)
+4. Tom de voz e abordagem (consultivo, direto, etc.)
+5. Critério de qualificação e próximo passo`,
+      cs: `1. Nome da empresa e produto/serviço
+2. Principais marcos de sucesso que o agente deve monitorar
+3. Sinais de risco de churn que o agente deve identificar
+4. Tom de voz e como deve se comunicar com clientes`,
     };
 
     const questions = questionsByType[wizardAgentTypeKey] ||
@@ -618,7 +631,7 @@ ${questions}`;
 
   // Number of Q&A questions per agent type (first agent msg is intro, rest are questions)
   const WIZARD_MIN_QUESTIONS: Record<string, number> = {
-    sdr: 6, sac: 4, support: 4, marketing: 4, custom: 4,
+    sdr: 6, bdr: 5, sac: 4, cs: 4, support: 4, marketing: 4, custom: 4,
   };
 
   const wizardCompletedRef = useRef(false);

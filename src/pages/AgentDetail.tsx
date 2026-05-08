@@ -31,11 +31,8 @@ import avatar8 from "@/assets/avatars/avatar-8.png";
 /* ── Constants ── */
 
 const TEMPLATE_MAP: Record<string, { name: string; avatar: string; model: string; agentType: AgentType; autoPrompt: string }> = {
-  "sdr-1":    { name: "Agente SDR",    avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: "SDR",    autoPrompt: "Crie um agente SDR para qualificação de leads inbound. Ele deve coletar nome, email, empresa e interesse do lead, qualificar com base em critérios BANT e agendar reuniões com o time comercial." },
-  "sac-1":    { name: "Agente SAC",    avatar: avatar3, model: "google/gemini-2.0-flash-001", agentType: "SAC",    autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
-  "bdr-1":    { name: "Agente BDR",    avatar: avatar2, model: "google/gemini-2.0-flash-001", agentType: "BDR",    autoPrompt: "Crie um agente BDR para prospecção ativa B2B. Ele deve identificar decisores, apresentar a proposta de valor da empresa e qualificar interesse antes de passar para o time comercial." },
-  "cs-1":     { name: "Agente CS",     avatar: avatar8, model: "google/gemini-2.0-flash-001", agentType: "CS",     autoPrompt: "Crie um agente de Customer Success. Ele deve acompanhar clientes pós-venda, garantir adoção do produto, identificar riscos de churn e gerar oportunidades de upsell." },
-  "custom-1": { name: "Agente Custom", avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: "Custom", autoPrompt: "Crie um agente personalizado conforme as necessidades específicas do negócio." },
+  "sdr-1": { name: "Agente SDR", avatar: avatar1, model: "google/gemini-2.0-flash-001", agentType: "SDR", autoPrompt: "Crie um agente SDR para qualificação de leads inbound. Ele deve coletar nome, email, empresa e interesse do lead, qualificar com base em critérios BANT e agendar reuniões com o time comercial." },
+  "sac-1": { name: "Agente SAC", avatar: avatar3, model: "google/gemini-2.0-flash-001", agentType: "SAC", autoPrompt: "Crie um agente de atendimento ao cliente (SAC). Ele deve responder dúvidas frequentes, resolver problemas comuns, escalar casos complexos para humanos e manter um tom empático e profissional." },
 };
 
 const AVATAR_BY_TYPE: Record<string, string> = {

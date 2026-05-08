@@ -31,28 +31,11 @@ const TEMPLATE_CARDS = [
     avatar: avatar3,
     type: "SAC" as const,
   },
-  {
-    id: "bdr-1",
-    name: "Agente BDR",
-    description: "Prospecta empresas de forma ativa, identifica decisores e gera reuniões qualificadas para o time.",
-    avatar: avatar2,
-    type: "BDR" as const,
-  },
-  {
-    id: "cs-1",
-    name: "Agente CS",
-    description: "Acompanha clientes pós-venda, monitora marcos de sucesso e reduz churn proativamente.",
-    avatar: avatar8,
-    type: "CS" as const,
-  },
 ];
 
 const AVATAR_MAP: Record<string, string> = {
   "sdr-1": avatar1,
   "sac-1": avatar3,
-  "bdr-1": avatar2,
-  "cs-1":  avatar8,
-  "custom-1": avatar1,
 };
 
 const StepAgents = ({ selected, onSelect }: Props) => {

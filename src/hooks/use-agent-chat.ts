@@ -339,6 +339,18 @@ export function useAgentChat(initialMessages: ChatMessage[] = [], options: UseAg
       console.log("[chat] stream done, flushing. text length:", pendingTextRef.current.length);
       flushPendingText(true);
 
+      // Empty stream — replace placeholder with error so user isn't staring at a blank bubble
+      if (!pendingTextRef.current && mountedRef.current) {
+        setMessages((prev) => {
+          if (!prev.length) return prev;
+          const last = prev[prev.length - 1];
+          if (last.role !== "agent" || last.text) return prev;
+          const next = prev.slice();
+          next[next.length - 1] = { role: "agent", text: "⚠️ Sem resposta. Tente enviar novamente." };
+          return next;
+        });
+      }
+
       const finalText = pendingTextRef.current;
       if (!options.disableCrmExtraction && finalText && CRM_LEAD_REGEX.test(finalText)) {
         const cleanText = await processCrmLeadBlock(finalText);
